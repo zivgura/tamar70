@@ -1,0 +1,1 @@
+{ "compilerOptions": { "types": ["google-apps-script"], "checkJs": false } }
