@@ -24,4 +24,15 @@ npm run check        # everything CI runs: lint, format check, tests, build
 npm run push -w apps-script   # clasp push (needs clasp logged in as the owner account)
 ```
 
-The pre-commit hook runs ESLint and Prettier on staged files. GitHub Actions runs `lint`, `format:check`, `test` and `build` on every PR and on `main`.
+The pre-commit hook runs ESLint and Prettier on staged files.
+
+## CI and deploy
+
+GitHub Actions (`.github/workflows/ci.yml`) runs `lint`, `format:check`, `test` and `build` on every PR and on `main`. Once those pass:
+
+- **Pull request:** the build is deployed to a temporary Firebase preview channel (kept 14 days) and the URL is posted on the PR.
+- **Merge to `main`:** the build goes live at https://tamar70.web.app.
+
+Both use the `FIREBASE_SERVICE_ACCOUNT_TAMAR70` repository secret. Apps Script is not deployed by CI: push it by hand with `npm run push -w apps-script`.
+
+Manual deploy, if ever needed: `npm run build && firebase deploy --only hosting`.
