@@ -1,0 +1,10 @@
+{
+  "name": "@tamar70/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Constants, rules and (later) Zod schemas shared by web/ and apps-script/",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

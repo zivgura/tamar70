@@ -1,0 +1,5 @@
+package-lock.json
+dist/
+coverage/
+.firebase/
+apps-script/.clasp.json
