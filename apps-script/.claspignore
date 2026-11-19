@@ -1,4 +1,4 @@
-node_modules/**
-package.json
-package-lock.json
-jsconfig.json
+# clasp pushes from dist/ (see rootDir in .clasp.json). Only these two files belong there.
+**/*
+!Code.js
+!appsscript.json
