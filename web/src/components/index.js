@@ -1,6 +1,7 @@
 export { Button } from './Button.jsx'
 export { Card } from './Card.jsx'
 export { Chip } from './Chip.jsx'
+export { CornerIcon } from './CornerIcon.jsx'
 export { CornerTile } from './CornerTile.jsx'
 export { Countdown } from './Countdown.jsx'
 export { Layout } from './Layout.jsx'

@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: 104px;
+  min-height: 116px;
   padding: var(--space-4);
   color: var(--color-text);
   text-decoration: none;
@@ -22,16 +22,22 @@
   grid-column: span 2;
   flex-direction: row-reverse;
   align-items: center;
-  min-height: 64px;
+  min-height: 72px;
 }
 
-/* Postage stamp in the corner's tone */
+/* Postage stamp in the corner's tone, with the corner's icon */
 .stamp {
+  display: flex;
   align-self: flex-start;
-  width: 34px;
-  height: 40px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 52px;
+  color: var(--tone-ink);
+  background: var(--tone-soft);
   border: 2px dashed var(--tone-strong);
   border-radius: var(--radius-xs);
+  transform: rotate(var(--tilt-right));
 }
 
 .wide .stamp {
