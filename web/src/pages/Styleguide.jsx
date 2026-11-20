@@ -1,5 +1,5 @@
 import { CATEGORY_TONES } from '@tamar70/shared'
-import { Button, Card, Chip, Polaroid } from '../components'
+import { Button, Card, Chip, Polaroid, ProgressBar, TextField } from '../components'
 import styles from './Styleguide.module.css'
 
 // A living reference of the design system, at /_styleguide (not linked from the site).
@@ -140,6 +140,18 @@ export default function Styleguide() {
           <Chip selected={false}>מסע בזמן</Chip>
           <Chip selected>טיולים בארץ ובעולם</Chip>
           <Chip dashed>לא בטוחים – כללי</Chip>
+        </div>
+      </Section>
+
+      <Section title="טפסים והתקדמות">
+        <div className={styles.cards}>
+          <TextField label="כותרת" optional placeholder="הטרמפ לאילת" />
+          <TextField label="השם שלכם" error="צריך לכתוב שם" />
+        </div>
+        <div className={styles.cards}>
+          <ProgressBar value={0.6} label="מעלה" />
+          <ProgressBar value={1} state="done" label="הועלתה" />
+          <ProgressBar value={0.3} state="error" label="נכשלה" />
         </div>
       </Section>
 

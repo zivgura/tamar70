@@ -90,7 +90,11 @@ class FakeSpreadsheet {
 
 export function createFakeGas({ owner = 'owner@example.test' } = {}) {
   const spreadsheet = new FakeSpreadsheet()
-  const properties = new Map([['SHEET_ID', 'sheet-1']])
+  const properties = new Map([
+    ['SHEET_ID', 'sheet-1'],
+    ['ORIGINALS_FOLDER_ID', 'folder-originals'],
+  ])
+  const fetches = []
   const cache = new Map()
   const logs = []
 
@@ -151,6 +155,20 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
       computeDigest: (alg, text) =>
         Array.from(createHash(alg).update(text, 'utf8').digest(), (b) => (b > 127 ? b - 256 : b)),
     },
+    ScriptApp: { getOAuthToken: () => 'owner-token' },
+    // Answers like Drive: a session URL for an upload request, file metadata for a GET.
+    UrlFetchApp: {
+      fetch: (url, options = {}) => {
+        fetches.push({ url, options })
+        const isUpload = url.startsWith('https://www.googleapis.com/upload/drive/v3/files')
+        const body = isUpload ? '' : JSON.stringify({ id: url.split('/').pop().split('?')[0] })
+        return {
+          getResponseCode: () => 200,
+          getHeaders: () => (isUpload ? { location: 'https://upload.example/session-1' } : {}),
+          getContentText: () => body,
+        }
+      },
+    },
     Session: { getEffectiveUser: () => ({ getEmail: () => owner }) },
     ContentService: {
       MimeType: { JSON: 'application/json' },
@@ -169,5 +187,5 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     },
   }
 
-  return { globals, spreadsheet, properties, cache, logs }
+  return { globals, spreadsheet, properties, cache, logs, fetches }
 }

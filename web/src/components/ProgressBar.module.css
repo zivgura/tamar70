@@ -1,0 +1,20 @@
+.track {
+  height: 4px;
+  overflow: hidden;
+  background: var(--color-border);
+  border-radius: var(--radius-xs);
+}
+
+.fill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+.done .fill {
+  background: var(--color-success);
+}
+
+.error .fill {
+  background: var(--color-danger);
+}

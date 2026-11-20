@@ -40,12 +40,53 @@ export function createMemoryDb() {
   }
 }
 
+/**
+ * A Drive that records upload sessions. `browserUpload(url, bytes)` plays the browser's part:
+ * it turns a session into a file, as Drive does when the upload completes.
+ */
+export function createFakeDrive({ folderId = 'folder-originals' } = {}) {
+  const sessions = new Map()
+  const files = new Map()
+  let n = 0
+  return {
+    folderId,
+    sessions,
+    files,
+    failNextSession: false,
+    createUploadSession(request) {
+      if (this.failNextSession) {
+        this.failNextSession = false
+        throw new Error('Drive said no')
+      }
+      const url = `https://upload.example/session-${++n}`
+      sessions.set(url, request)
+      return url
+    },
+    browserUpload(url, bytes) {
+      const s = sessions.get(url)
+      const id = `drivefile${String(++n).padStart(6, '0')}`
+      files.set(id, {
+        id,
+        parents: [folderId],
+        size: bytes ?? s.bytes,
+        mimeType: s.mime,
+        appProperties: { ...s.properties },
+        width: 4032,
+        height: 3024,
+      })
+      return id
+    },
+    getFile: (id) => files.get(id) ?? null,
+  }
+}
+
 export function createMemoryContext({ now = '2026-12-01T10:00:00.000Z' } = {}) {
   const cacheStore = new Map()
   let version = 0
   let clock = now
   return {
     db: createMemoryDb(),
+    drive: createFakeDrive(),
     now: () => clock,
     ownerEmail: () => 'owner@example.test',
     setNow: (iso) => (clock = iso),

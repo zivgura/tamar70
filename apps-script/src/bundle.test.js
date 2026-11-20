@@ -101,6 +101,49 @@ describe('bundle', () => {
     expect(row[1]).toBe('2027-02-07')
   })
 
+  it('opens a Drive upload session tied to the site origin, as the owner', () => {
+    script.rotateFamilyCode()
+    const code = gas.logs
+      .map(([, msg]) => msg)
+      .find((m) => m.startsWith('New family code: '))
+      .slice('New family code: '.length)
+    const edit_token = 'b'.repeat(40)
+    const { id } = post({
+      action: 'stories.submit',
+      payload: { edit_token, family_code: code, kind: 'photos', author_name: 'רונית' },
+    }).data
+
+    const res = post({
+      action: 'media.start',
+      payload: {
+        story_id: id,
+        edit_token,
+        origin: 'https://tamar70.web.app',
+        filename: 'IMG_1.jpg',
+        mime: 'image/jpeg',
+        bytes: 1234,
+      },
+    })
+    expect(res.data.upload_url).toBe('https://upload.example/session-1')
+
+    const [{ url, options }] = gas.fetches
+    expect(url).toMatch(
+      /^https:\/\/www\.googleapis\.com\/upload\/drive\/v3\/files\?uploadType=resumable/,
+    )
+    expect(options.method).toBe('post')
+    expect(options.headers).toMatchObject({
+      Authorization: 'Bearer owner-token',
+      Origin: 'https://tamar70.web.app',
+      'X-Upload-Content-Type': 'image/jpeg',
+      'X-Upload-Content-Length': '1234',
+    })
+    expect(JSON.parse(options.payload)).toEqual({
+      name: `${res.data.media_id}-IMG_1.jpg`,
+      parents: ['folder-originals'],
+      appProperties: { media_id: res.data.media_id, story_id: id },
+    })
+  })
+
   it('returns validation errors from zod inside the bundle', () => {
     const res = post({ action: 'stories.submit', payload: { kind: 'text' } })
     expect(res.ok).toBe(false)

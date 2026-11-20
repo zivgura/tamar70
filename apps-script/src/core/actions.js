@@ -14,9 +14,9 @@ import {
   VISIBILITY,
 } from '@tamar70/shared'
 import { ApiError, notFound } from './errors.js'
+import { finishUpload, PUBLIC_LIST_CACHE_KEY, startUpload } from './media.js'
 import { readSettings, siteConfig } from './settings.js'
 
-const PUBLIC_LIST_CACHE_KEY = 'stories.list'
 const CACHE_SECONDS = 60
 // CacheService refuses values over 100 KB; stay well under.
 const CACHE_MAX_CHARS = 90_000
@@ -154,4 +154,6 @@ export const handlers = {
   [ACTIONS.STORIES_LIST]: listStories,
   [ACTIONS.STORIES_GET]: getStory,
   [ACTIONS.STORIES_SUBMIT]: submitStory,
+  [ACTIONS.MEDIA_START]: startUpload,
+  [ACTIONS.MEDIA_FINISH]: finishUpload,
 }

@@ -11,6 +11,8 @@ export const ACTIONS = Object.freeze({
   STORIES_LIST: 'stories.list',
   STORIES_GET: 'stories.get',
   STORIES_SUBMIT: 'stories.submit',
+  MEDIA_START: 'media.start',
+  MEDIA_FINISH: 'media.finish',
 })
 
 export const ERROR_CODES = Object.freeze({
@@ -20,6 +22,9 @@ export const ERROR_CODES = Object.freeze({
   BAD_FAMILY_CODE: 'bad_family_code',
   SUBMISSIONS_CLOSED: 'submissions_closed',
   NOT_FOUND: 'not_found',
+  FORBIDDEN: 'forbidden',
+  TOO_MANY_PHOTOS: 'too_many_photos',
+  UPLOAD_FAILED: 'upload_failed',
   BUSY: 'busy',
   INTERNAL: 'internal',
 })
