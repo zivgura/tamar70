@@ -89,16 +89,16 @@ export default function Styleguide() {
       </Section>
 
       <Section title="טיפוגרפיה">
-        <p className={`${styles.typeRow} ${styles.display}`}>
-          <span className={styles.typeToken}>--font-display</span>
+        <h3 className={styles.typeRow}>
+          <span className={styles.typeToken}>--weight-heading</span>
           <span className={styles.typeSample} style={tokenVar('--text-3xl')}>
-            Frank Ruhl Libre · תמר בת 70
+            כותרת · תמר בת 70
           </span>
-        </p>
+        </h3>
         <p className={styles.typeRow}>
           <span className={styles.typeToken}>--font-body</span>
           <span className={styles.typeSample} style={tokenVar('--text-xl')}>
-            Assistant · אוספים סיפורים וזיכרונות
+            Assistant · אוספים סיפורים ותמונות
           </span>
         </p>
         <p className={`${styles.typeRow} ${styles.hand}`}>
@@ -144,12 +144,12 @@ export default function Styleguide() {
 
       <Section title="כפתורים">
         <div className={styles.row}>
-          <Button>הוסיפו זיכרון</Button>
+          <Button>הוסיפו סיפור</Button>
           <Button variant="secondary">עוד לא כתבתם?</Button>
           <Button variant="quiet">שיתוף הסיפור</Button>
           <Button disabled>שליחה</Button>
           <Button variant="secondary" size="small">
-            הוסיפו זיכרון
+            הוסיפו סיפור
           </Button>
         </div>
       </Section>

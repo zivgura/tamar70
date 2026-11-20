@@ -102,7 +102,7 @@ export default function UploadTest() {
     <main className={styles.page}>
       <h1>בדיקת העלאת תמונות</h1>
       <p className={styles.notice}>
-        עמוד בדיקה פנימי. הוא יוצר זיכרון אמיתי מסוג &quot;תמונות&quot; ומעלה את התמונות ישירות
+        עמוד בדיקה פנימי. הוא יוצר סיפור אמיתי מסוג &quot;תמונות&quot; ומעלה את התמונות ישירות
         לתיקייה ב-Drive.
       </p>
 

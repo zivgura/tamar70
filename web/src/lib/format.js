@@ -1,9 +1,9 @@
 // Hebrew wording and dates. Plural forms are spelled out because Hebrew counts differ by
-// noun ("זיכרון אחד", "שני זיכרונות" is not needed here; the site uses digits).
+// noun ("סיפור אחד", "שני סיפורים" is not needed here; the site uses digits).
 
 const plural = (one, many) => (n) => (n === 1 ? one : `${n.toLocaleString('he-IL')} ${many}`)
 
-export const memoriesText = plural('זיכרון אחד', 'זיכרונות')
+export const storiesText = plural('סיפור אחד', 'סיפורים')
 export const peopleText = plural('אדם אחד', 'אנשים')
 export const photosText = plural('תמונה אחת', 'תמונות')
 export const attachedPhotosText = (n) =>

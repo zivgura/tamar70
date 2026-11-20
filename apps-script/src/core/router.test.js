@@ -95,6 +95,52 @@ describe('migration', () => {
     expect(ctx.schemaVersion.get()).toBe(SCHEMA_VERSION)
   })
 
+  it('upgrades a version 2 Sheet to say "סיפור", leaving edited texts alone', () => {
+    const v2 = createMemoryContext()
+    v2.db.ensureTable(
+      'Categories',
+      TABLES.Categories.map((c) => c.name),
+    )
+    v2.db.insert('Categories', {
+      id: 'journey',
+      color: 'rose',
+      description: 'ילדות, נעורים, רגעים משמעותיים וזיכרונות משפחתיים',
+      active: true,
+    })
+    v2.db.insert('Categories', {
+      id: 'general',
+      color: 'sand',
+      prompt_hint: 'זיכרון שכתבתי בעצמי',
+      active: true,
+    })
+    v2.db.insert('Categories', {
+      id: 'protest',
+      name: 'תקופת המחאה',
+      color: 'sage',
+      description: 'סיפורים, חוויות ואנשים מתקופת המחאה',
+      prompt_hint: 'איפה הייתם עם תמר בתקופת המחאה?',
+      active: true,
+    })
+    v2.schemaVersion.set(2)
+    ctx = v2
+    ok('site.get')
+
+    const byId = Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c]))
+    expect(byId.journey.description).toBe('ילדות, נעורים, רגעים משמעותיים וסיפורים משפחתיים')
+    expect(byId.general.prompt_hint).toBe('זיכרון שכתבתי בעצמי')
+    expect(byId.protest).toMatchObject({
+      name: 'מחאות פוליטיות',
+      description: 'סיפורים, חוויות ואנשים מהמחאות שתמר השתתפה בהן',
+      prompt_hint: 'באיזו מחאה הייתם יחד עם תמר?',
+    })
+  })
+
+  it('seeds a new Sheet without memorial wording', () => {
+    const text = JSON.stringify(ok('categories.list'))
+    expect(text).not.toMatch(/זיכרו|תשכחו|תקופת המחאה/)
+    expect(text).toContain('מחאות פוליטיות')
+  })
+
   it('maps an unknown tone in the Sheet to the neutral tone in the API', () => {
     ctx.db.update('Categories', 'id', 'journey', { color: '#123456' })
     expect(ok('categories.list').find((c) => c.id === 'journey').tone).toBe('sand')

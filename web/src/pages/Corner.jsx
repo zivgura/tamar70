@@ -42,11 +42,11 @@ export default function Corner() {
       {category.description && <p className={styles.description}>{category.description}</p>}
       {category.prompt_hint && <p className={styles.prompt}>{category.prompt_hint}</p>}
       <Button as={Link} to={`/add?corner=${category.id}`} block>
-        הוסיפו זיכרון לפינה הזו
+        הוסיפו סיפור לפינה הזו
       </Button>
 
       {stories.length === 0 ? (
-        <Message>עוד אין זיכרונות בפינה הזו. היו הראשונים.</Message>
+        <Message>עוד אין סיפורים בפינה הזו. היו הראשונים.</Message>
       ) : (
         <div className={styles.feed}>
           {stories.map((s) => (

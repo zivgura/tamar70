@@ -78,10 +78,6 @@
   line-height: var(--leading-snug);
 }
 
-.display {
-  font-family: var(--font-display);
-}
-
 .hand {
   font-family: var(--font-hand);
   font-weight: var(--weight-bold);

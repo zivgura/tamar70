@@ -34,12 +34,12 @@
 
 .avatar {
   display: flex;
+  font-weight: var(--weight-bold);
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   width: var(--tap-min);
   height: var(--tap-min);
-  font-family: var(--font-display);
   font-size: var(--text-lg);
   color: var(--color-text-inverse);
   background: var(--color-accent);
@@ -67,7 +67,6 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  font-family: var(--font-display);
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
   color: var(--color-text-inverse);
@@ -94,7 +93,6 @@
 }
 
 .body {
-  font-family: var(--font-display);
   font-size: var(--text-lg);
   line-height: var(--leading-relaxed);
   white-space: pre-line;
