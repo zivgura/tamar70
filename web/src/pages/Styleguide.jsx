@@ -1,5 +1,5 @@
 import { CATEGORY_TONES } from '@tamar70/shared'
-import { Button, Card, Chip, Polaroid, ProgressBar, TextField } from '../components'
+import { Button, Card, Chip, CornerTile, Polaroid, ProgressBar, TextField } from '../components'
 import styles from './Styleguide.module.css'
 
 // A living reference of the design system, at /_styleguide (not linked from the site).
@@ -27,6 +27,17 @@ const TEXT_SIZES = ['xs', 'sm', 'md', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '
 const RADII = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', 'full']
 const SHADOWS = ['card', 'photo', 'photo-lifted']
 const TONE_NAMES = { rose: 'ורוד עתיק', sage: 'ירוק מרווה', terracotta: 'טרקוטה', sand: 'חול' }
+
+const CORNERS = [
+  ['journey', 'מסע בזמן', 'rose'],
+  ['protest', 'תקופת המחאה', 'sage'],
+  ['travels', 'טיולים בארץ ובעולם', 'sage'],
+  ['sayings', 'המשפטים של תמר', 'rose'],
+  ['fun-fact', 'עובדה מעניינת על תמר', 'rose'],
+  ['did-you-know', 'לא ידעתם על תמר', 'sage'],
+  ['wishes', 'כמה מילים לתמר', 'rose'],
+  ['general', 'לא בטוחים – כללי', 'sand'],
+]
 
 const tokenVar = (name) => ({ '--swatch': `var(${name})` })
 
@@ -65,6 +76,14 @@ export default function Styleguide() {
               {TONE_NAMES[tone]}
               <span className={styles.swatchLabel}>data-tone=&quot;{tone}&quot;</span>
             </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="אייקונים של הפינות">
+        <div className={styles.grid}>
+          {CORNERS.map(([id, name, tone]) => (
+            <CornerTile key={id} category={{ id, name, tone }} />
           ))}
         </div>
       </Section>

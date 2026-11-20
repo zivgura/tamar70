@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { findCategory, useBootstrap } from '../api/queries.js'
-import { Button, ErrorMessage, LoadingCards, Message, StoryCard } from '../components'
+import { Button, CornerIcon, ErrorMessage, LoadingCards, Message, StoryCard } from '../components'
 import styles from './Corner.module.css'
 
 /** One corner: its prompt, a button that opens the add flow on it, and its memories. */
@@ -33,7 +33,12 @@ export default function Corner() {
       <Link to="/" className={styles.back}>
         → כל הפינות
       </Link>
-      <h1 className={styles.title}>{category.name}</h1>
+      <div className={styles.heading}>
+        <span className={styles.stamp}>
+          <CornerIcon id={category.id} size={34} />
+        </span>
+        <h1 className={styles.title}>{category.name}</h1>
+      </div>
       {category.description && <p className={styles.description}>{category.description}</p>}
       {category.prompt_hint && <p className={styles.prompt}>{category.prompt_hint}</p>}
       <Button as={Link} to={`/add?corner=${category.id}`} block>
