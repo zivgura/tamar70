@@ -99,6 +99,8 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
   const cache = new Map()
   const logs = []
 
+  const triggers = []
+  const mails = []
   const globals = {
     SpreadsheetApp: {
       openById: (id) => {
@@ -157,8 +159,21 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
       computeDigest: (alg, text) =>
         Array.from(createHash(alg).update(text, 'utf8').digest(), (b) => (b > 127 ? b - 256 : b)),
     },
-    ScriptApp: { getOAuthToken: () => 'owner-token' },
+    ScriptApp: {
+      getOAuthToken: () => 'owner-token',
+      getProjectTriggers: () => triggers.map((name) => ({ getHandlerFunction: () => name })),
+      newTrigger: (name) => {
+        const chain = {
+          timeBased: () => chain,
+          everyMinutes: () => chain,
+          create: () => triggers.push(name),
+        }
+        return chain
+      },
+    },
+    MailApp: { sendEmail: (message) => mails.push(message) },
     DriveApp: {
+      getFolderById: () => ({ searchFiles: () => ({ hasNext: () => false }) }),
       getFileById: (id) => ({
         getThumbnail: () => ({
           getContentType: () => 'image/png',
@@ -171,6 +186,9 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     UrlFetchApp: {
       fetch: (url, options = {}) => {
         fetches.push({ url, options })
+        if (url.startsWith('https://oauth2.googleapis.com/tokeninfo')) {
+          return { getResponseCode: () => 400, getHeaders: () => ({}), getContentText: () => '{}' }
+        }
         const isUpload = url.startsWith('https://www.googleapis.com/upload/drive/v3/files')
         const id = url.split('/').pop().split('?')[0]
         const session = fetches.find((f) => f.url.includes('uploadType=resumable'))
@@ -210,5 +228,5 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     },
   }
 
-  return { globals, spreadsheet, properties, cache, logs, fetches, trashed }
+  return { globals, spreadsheet, properties, cache, logs, fetches, trashed, triggers, mails }
 }

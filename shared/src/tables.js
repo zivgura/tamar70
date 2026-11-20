@@ -2,7 +2,7 @@
 // column names. Bump SCHEMA_VERSION whenever a tab or column is added: the server notices on its
 // next request and adds what's missing (it never deletes or reorders anything).
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 // Column types, used to convert between Sheet cells (always stored as text) and JS values.
 export const T = Object.freeze({
@@ -126,4 +126,7 @@ export const SETTING_KEYS = Object.freeze({
   COMMENTS_OPEN: 'comments_open',
   REVEAL_MESSAGE: 'reveal_message',
   NOTIFY_EMAILS: 'notify_emails',
+  // Bookkeeping for the scheduled housekeeping job (see apps-script/src/core/housekeeping.js).
+  NOTIFIED_UNTIL: 'notified_until',
+  CLEANED_AT: 'cleaned_at',
 })

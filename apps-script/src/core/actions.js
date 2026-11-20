@@ -13,6 +13,7 @@ import {
   toPublicStory,
   VISIBILITY,
 } from '@tamar70/shared'
+import { adminHandlers } from './admin.js'
 import { ApiError, notFound } from './errors.js'
 import { finishUpload, invalidatePublicCache, startUpload } from './media.js'
 import {
@@ -190,4 +191,5 @@ export const handlers = {
   [ACTIONS.OWN_DELETE]: deleteOwnStory,
   [ACTIONS.OWN_MEDIA_UPDATE]: updateOwnMedia,
   [ACTIONS.OWN_MEDIA_REMOVE]: removeOwnMedia,
+  ...adminHandlers,
 }

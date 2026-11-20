@@ -180,6 +180,19 @@ describe('bundle', () => {
     expect(gas.trashed).toEqual(['drivefile0001'])
   })
 
+  it('installs the housekeeping timer once, on the first request', () => {
+    post({ action: 'site.get' })
+    post({ action: 'site.get' })
+    expect(gas.triggers).toEqual(['housekeeping'])
+    script.housekeeping()
+  })
+
+  it('asks admins to sign in when Google rejects the token', () => {
+    const res = post({ action: 'admin.stories', payload: { id_token: 'x'.repeat(200) } })
+    expect(res.error.code).toBe('sign_in_required')
+    expect(gas.fetches.at(-1).url).toContain('oauth2.googleapis.com/tokeninfo?id_token=')
+  })
+
   it('returns validation errors from zod inside the bundle', () => {
     const res = post({ action: 'stories.submit', payload: { kind: 'text' } })
     expect(res.ok).toBe(false)

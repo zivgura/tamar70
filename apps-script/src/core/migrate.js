@@ -65,6 +65,16 @@ const UPGRADES = {
   },
 }
 
+// The housekeeping job (new-story emails, cleanup) runs on a timer. Installing it here means a
+// deploy sets it up by itself; setup() tries again if this ever fails.
+function ensureSchedule(ctx) {
+  try {
+    ctx.schedule?.ensure()
+  } catch (err) {
+    ctx.log.error(`Could not install the housekeeping timer: ${err && err.message}`)
+  }
+}
+
 /**
  * Brings the Sheet up to SCHEMA_VERSION: creates missing tabs and columns, seeds empty tabs,
  * then runs the data upgrades the Sheet hasn't had yet. Safe to run any number of times.
@@ -107,6 +117,7 @@ export function migrate(ctx) {
     }
 
     schemaVersion.set(SCHEMA_VERSION)
+    ensureSchedule(ctx)
     return true
   })
 }

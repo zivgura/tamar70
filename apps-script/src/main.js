@@ -2,6 +2,7 @@
 // function declarations that call these, because Apps Script only sees declared functions.
 import { SCHEMA_VERSION } from '@tamar70/shared'
 import { rotateFamilyCode as rotateFamilyCodeCore } from './core/familyCode.js'
+import { housekeeping as housekeepingCore } from './core/housekeeping.js'
 import { migrate } from './core/migrate.js'
 import { handleRequest } from './core/router.js'
 import { createContext, props } from './gas/context.js'
@@ -72,6 +73,7 @@ export function setup() {
 
   const ctx = createContext()
   migrate(ctx)
+  if (ctx.schedule.ensure()) console.log('Installed the housekeeping timer.')
   console.log(`Done. Schema version ${SCHEMA_VERSION}.`)
   console.log(`Folder: ${root.getUrl()}`)
   console.log(`Sheet: https://docs.google.com/spreadsheets/d/${sheetId}`)
@@ -85,4 +87,11 @@ export function rotateFamilyCode() {
   console.log(`New family code: ${code}`)
   console.log(`Link to share: ${link}`)
   console.log('The previous link no longer works for adding memories.')
+}
+
+/** Run by a timer every 15 minutes: emails about new stories, daily cleanup. */
+export function housekeeping() {
+  const ctx = createContext()
+  migrate(ctx)
+  housekeepingCore(ctx)
 }

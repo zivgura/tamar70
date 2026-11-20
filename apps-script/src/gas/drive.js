@@ -56,6 +56,17 @@ export function createDrive(folderId) {
       }
     },
 
+    /** Every file in the originals folder (not in the trash): [{ id, created }]. */
+    listFiles() {
+      const out = []
+      const it = DriveApp.getFolderById(folderId).searchFiles('trashed = false')
+      while (it.hasNext()) {
+        const f = it.next()
+        out.push({ id: f.getId(), created: f.getDateCreated().toISOString() })
+      }
+      return out
+    },
+
     trash(id) {
       DriveApp.getFileById(id).setTrashed(true)
     },
