@@ -60,18 +60,32 @@ describe('adding a story', () => {
   })
 
   it('walks through writing a story, then thanks with the new card', async () => {
+    let finishSubmit
+    api.submitStory.mockImplementationOnce(
+      () => new Promise((resolve) => (finishSubmit = () => resolve({ id: 'st_new000001' }))),
+    )
     renderAdd('/add?corner=travels')
     expect(await screen.findByText('שלב 1 מתוך 3')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'כתיבה' }))
 
-    // Step 2: the corner from the link is already chosen, and its prompt is shown
+    // Step 2: who's writing, before the story
     expect(screen.getByText('שלב 2 מתוך 3')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
+    expect(screen.getByText('כתבו את השם שלכם')).toBeInTheDocument()
+    await user.type(screen.getByLabelText('השם שלכם'), 'ענת')
+    await user.type(screen.getByLabelText(/איך אתם מכירים/), 'חברה מהצבא')
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
+    expect(readStored('author')).toEqual({ name: 'ענת', relation: 'חברה מהצבא' })
+
+    // Step 3: the corner from the link is already chosen, and its prompt is shown
+    expect(screen.getByText('שלב 3 מתוך 3')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'טיולים בארץ ובעולם' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
     expect(screen.getByText('שאלה על טיולים בארץ ובעולם')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'המשך' }))
+    expect(screen.getByText(/עשויים לשמש במשחק משפחתי/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'שליחה' }))
     expect(screen.getByText('כתבו כמה מילים, אפילו משפט אחד')).toBeInTheDocument()
 
     await user.type(screen.getByLabelText(/כותרת/), 'הטרמפ לאילת')
@@ -80,18 +94,15 @@ describe('adding a story', () => {
     await user.click(screen.getByText('הוסיפו פרטים (רשות)'))
     await user.click(screen.getByRole('button', { name: 'שנות ה-70' }))
     await user.type(screen.getByLabelText(/איפה/), 'אילת, הערבה')
-    await user.click(screen.getByRole('button', { name: 'המשך' }))
+    await user.click(screen.getByRole('button', { name: 'שליחה' }))
 
-    // Step 3: name required, then send
-    expect(screen.getByText('שלב 3 מתוך 3')).toBeInTheDocument()
-    expect(screen.getByText(/עשויים לשמש במשחק משפחתי/)).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'שליחה' }))
-    expect(screen.getByText('כתבו את השם שלכם')).toBeInTheDocument()
-    await user.type(screen.getByLabelText('השם שלכם'), 'ענת')
-    await user.type(screen.getByLabelText(/איך אתם מכירים/), 'חברה מהצבא')
-    await user.click(screen.getByRole('button', { name: 'שליחה' }))
+    // While sending: a loader
+    expect(await screen.findByRole('status', { name: 'שולחים את הסיפור' })).toBeInTheDocument()
+    expect(screen.getByText('שומרים את הסיפור…')).toBeInTheDocument()
+    finishSubmit()
 
     expect(await screen.findByRole('heading', { name: 'תודה!' })).toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: 'שולחים את הסיפור' })).not.toBeInTheDocument()
     const payload = api.submitStory.mock.calls[0][0]
     expect(payload).toMatchObject({
       family_code: '9u44tmn4',
@@ -106,8 +117,7 @@ describe('adding a story', () => {
     expect(payload.edit_token).toMatch(/^[0-9a-f]{48}$/)
     expect(screen.getByText('זה היה בקיץ של 1975.')).toBeInTheDocument() // the card's excerpt
 
-    // Remembered on the device: the name, and this story with its edit token
-    expect(readStored('author')).toEqual({ name: 'ענת', relation: 'חברה מהצבא' })
+    // Remembered on the device: this story with its edit token; the draft is gone
     expect(readStored('mine').st_new000001.token).toBe(payload.edit_token)
     expect(readStored('draft')).toBeNull()
 
@@ -123,7 +133,9 @@ describe('adding a story', () => {
     writeStored('author', { name: 'רונית', relation: '' })
     renderAdd()
     await user.click(await screen.findByRole('button', { name: 'תמונות' }))
+    expect(screen.getByLabelText('השם שלכם')).toHaveValue('רונית') // remembered
     await user.click(screen.getByRole('button', { name: 'המשך' }))
+    await user.click(screen.getByRole('button', { name: 'שליחה' }))
     expect(screen.getByText('בחרו לפחות תמונה אחת')).toBeInTheDocument()
 
     await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [
@@ -132,8 +144,6 @@ describe('adding a story', () => {
       new File(['x'], 'doc.pdf', { type: 'application/pdf' }),
     ])
     expect(screen.getByText('זה לא קובץ תמונה שאפשר להעלות')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'המשך' }))
-    expect(screen.getByLabelText('השם שלכם')).toHaveValue('רונית') // remembered
     await user.click(screen.getByRole('button', { name: 'שליחה' }))
 
     expect(await screen.findByText('הסיפור נשמר, אבל תמונה אחת לא הועלתה.')).toBeInTheDocument()
@@ -149,23 +159,24 @@ describe('adding a story', () => {
   })
 
   it('keeps the draft on the device and brings it back', async () => {
+    writeStored('author', { name: 'דני', relation: '' })
     const { unmount } = renderAdd()
     await user.click(await screen.findByRole('button', { name: 'כתיבה' }))
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
     await user.type(screen.getByLabelText('הסיפור'), 'טיוטה ארוכה')
     unmount()
 
     renderAdd()
     expect(await screen.findByLabelText('הסיפור')).toHaveValue('טיוטה ארוכה')
-    expect(screen.getByText('שלב 2 מתוך 3')).toBeInTheDocument()
+    expect(screen.getByText('שלב 3 מתוך 3')).toBeInTheDocument()
   })
 
   it('shows a server refusal and lets the person try again', async () => {
     api.submitStory.mockRejectedValueOnce(new ApiError('bad_family_code', 'wrong'))
-    writeStored('draft', { step: 2, kind: 'text', content: 'סיפור', title: '' })
+    writeStored('draft', { step: 3, kind: 'text', content: 'סיפור', title: '' })
     writeStored('author', { name: 'דני', relation: '' })
     renderAdd()
-    await user.click(await screen.findByRole('button', { name: 'המשך' }))
-    await user.click(screen.getByRole('button', { name: 'שליחה' }))
+    await user.click(await screen.findByRole('button', { name: 'שליחה' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('הקישור לא תקין')
     await user.click(screen.getByRole('button', { name: 'שליחה' }))
     expect(await screen.findByRole('heading', { name: 'תודה!' })).toBeInTheDocument()
@@ -174,8 +185,10 @@ describe('adding a story', () => {
   })
 
   it('collects photo details in a dialog', async () => {
+    writeStored('author', { name: 'דני', relation: '' })
     renderAdd()
     await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
     await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [photoFile('beach.jpg')])
     await user.click(screen.getByRole('button', { name: 'פרטי התמונה beach.jpg' }))
     const dialog = screen.getByRole('dialog', { name: 'פרטי התמונה' })

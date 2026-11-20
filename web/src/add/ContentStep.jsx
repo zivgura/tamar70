@@ -6,7 +6,7 @@ import { PhotoGrid } from './PhotoGrid.jsx'
 const DECADES = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020]
 const decadeLabel = (d) => (d < 2000 ? `שנות ה-${String(d).slice(2)}` : `שנות ה-${d}`)
 
-/** Step 2: the corner, the text, the photos and the optional details. */
+/** Step 3: the corner, the text, the photos and the optional details. */
 export function ContentStep({
   draft,
   update,

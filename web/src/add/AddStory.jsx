@@ -5,7 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { newEditToken } from '../api/client.js'
 import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
-import { Button, ErrorMessage, LoadingCards, StoryCard } from '../components'
+import { Button, ErrorMessage, LoadingCards, Spinner, StoryCard } from '../components'
 import { readFamilyCode } from '../lib/familyCode.js'
 import { formatDay } from '../lib/format.js'
 import { rejectReason } from '../upload/uploadPhoto.js'
@@ -31,15 +31,20 @@ let nextPhotoKey = 0
 
 function initialDraft(cornerFromLink) {
   const saved = loadDraft()
-  const draft = saved ? { ...saved, step: Math.min(saved.step, 2) } : { ...EMPTY_DRAFT }
+  const draft = saved ? { ...saved, step: Math.min(saved.step, 3) } : { ...EMPTY_DRAFT }
   if (cornerFromLink && !saved?.category_id) draft.category_id = cornerFromLink
   return draft
 }
 
+// The steps: 1 what to share, 2 who's writing, 3 the story itself (then send).
+const STEP_AUTHOR = 2
+const STEP_CONTENT = 3
+
 /** What's missing before leaving a step, as { field: message }. */
 function stepErrors(step, draft, photos, author) {
   const errors = {}
-  if (step === 2) {
+  if (step === STEP_AUTHOR && !author.name.trim()) errors.name = 'כתבו את השם שלכם'
+  if (step === STEP_CONTENT) {
     const usable = photos.filter((p) => !p.rejected)
     if (draft.kind !== STORY_KIND.PHOTOS && !draft.content.trim()) {
       errors.content = 'כתבו כמה מילים, אפילו משפט אחד'
@@ -48,7 +53,6 @@ function stepErrors(step, draft, photos, author) {
       errors.photos = 'בחרו לפחות תמונה אחת'
     }
   }
-  if (step === 3 && !author.name.trim()) errors.name = 'כתבו את השם שלכם'
   return errors
 }
 
@@ -78,7 +82,9 @@ export default function AddStory() {
   const [sent, setSent] = useState(null) // { storyId, editToken }
   const [photosLostFromDraft] = useState(() => {
     const saved = loadDraft()
-    return Boolean(saved && saved.kind && saved.kind !== STORY_KIND.TEXT && saved.step >= 2)
+    return Boolean(
+      saved && saved.kind && saved.kind !== STORY_KIND.TEXT && saved.step >= STEP_CONTENT,
+    )
   })
   const editToken = useRef(null)
   const urls = useRef([])
@@ -121,7 +127,8 @@ export default function AddStory() {
     const found = stepErrors(draft.step, draft, photos, author)
     setErrors(found)
     if (Object.keys(found).length) return
-    if (draft.step < 3) update({ step: draft.step + 1 })
+    if (draft.step === STEP_AUTHOR) saveAuthor(author)
+    if (draft.step < STEP_CONTENT) update({ step: draft.step + 1 })
     else send()
   }
 
@@ -240,14 +247,20 @@ export default function AddStory() {
     const failed = photos.filter((p) => p.stage === 'error').length
     return (
       <div className={styles.center}>
-        <h1 className={styles.title}>{phase === 'sending' ? 'שולחים…' : 'כמעט סיימנו'}</h1>
-        <p className={styles.status} role="status">
-          {!sent
-            ? 'שומרים את הסיפור…'
-            : phase === 'sending'
-              ? `הסיפור נשמר. מעלים את התמונות (${uploaded} מתוך ${photos.length}).`
-              : `הסיפור נשמר, אבל ${failed === 1 ? 'תמונה אחת לא הועלתה' : `${failed} תמונות לא הועלו`}.`}
-        </p>
+        <div className={styles.sendingHead}>
+          {phase === 'sending' && (
+            <Spinner label="שולחים את הסיפור" className={styles.bigSpinner} />
+          )}
+          <h1 className={styles.title}>{phase === 'sending' ? 'שולחים…' : 'כמעט סיימנו'}</h1>
+
+          <p className={styles.status} aria-live="polite">
+            {!sent
+              ? 'שומרים את הסיפור…'
+              : phase === 'sending'
+                ? `הסיפור נשמר. מעלים את התמונות (${uploaded} מתוך ${photos.length}).`
+                : `הסיפור נשמר, אבל ${failed === 1 ? 'תמונה אחת לא הועלתה' : `${failed} תמונות לא הועלו`}.`}
+          </p>
+        </div>
         {photos.length > 0 && <PhotoGrid photos={photos} sending />}
         {phase === 'photosFailed' && (
           <div className={styles.actions}>
@@ -278,7 +291,10 @@ export default function AddStory() {
           {draft.step === 1 && (
             <KindStep kind={draft.kind} onChange={(kind) => update({ kind, step: 2 })} />
           )}
-          {draft.step === 2 && (
+          {draft.step === STEP_AUTHOR && (
+            <AuthorStep author={author} setAuthor={setAuthor} errors={errors} />
+          )}
+          {draft.step === STEP_CONTENT && (
             <ContentStep
               draft={draft}
               update={update}
@@ -290,20 +306,27 @@ export default function AddStory() {
               photosLostFromDraft={photosLostFromDraft && photos.length === 0}
             />
           )}
-          {draft.step === 3 && <AuthorStep author={author} setAuthor={setAuthor} errors={errors} />}
         </div>
 
         {draft.step > 1 && (
           <div className={styles.footer}>
+            {draft.step === STEP_CONTENT && (
+              <p className={styles.consent}>
+                הסיפור והתמונות יהיו גלויים לכל מי שיש לו את קישור האתר, ועשויים לשמש במשחק משפחתי
+                ליום ההולדת.
+              </p>
+            )}
             {sendError && (
               <p className={styles.error} role="alert">
                 {errorMessage(sendError)}
               </p>
             )}
             <Button type="submit" block>
-              {draft.step === 3 ? 'שליחה' : 'המשך'}
+              {draft.step === STEP_CONTENT ? 'שליחה' : 'המשך'}
             </Button>
-            {draft.step === 2 && <p className={styles.footerNote}>הטיוטה נשמרת אוטומטית במכשיר</p>}
+            {draft.step === STEP_CONTENT && (
+              <p className={styles.footerNote}>הטיוטה נשמרת אוטומטית במכשיר</p>
+            )}
           </div>
         )}
       </form>
