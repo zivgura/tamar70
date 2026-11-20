@@ -25,7 +25,10 @@ function encodeValue(value, type) {
 function decodeValue(cell, type) {
   if (Object.prototype.toString.call(cell) === '[object Date]') return cell.toISOString()
   if (cell === '' || cell === null || cell === undefined) {
-    return type === T.JSON ? [] : type === T.BOOLEAN ? false : null
+    if (type === T.JSON) return []
+    if (type === T.BOOLEAN) return false
+    if (type === T.NUMBER) return null
+    return ''
   }
   switch (type) {
     case T.NUMBER: {

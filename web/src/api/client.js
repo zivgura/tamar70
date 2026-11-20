@@ -74,6 +74,7 @@ export async function apiCall(action, payload = {}, options = {}) {
 
 export const api = {
   site: (opts) => apiCall(ACTIONS.SITE, {}, opts),
+  bootstrap: (opts) => apiCall(ACTIONS.BOOTSTRAP, {}, opts),
   categories: (opts) => apiCall(ACTIONS.CATEGORIES_LIST, {}, opts),
   stories: (opts) => apiCall(ACTIONS.STORIES_LIST, {}, opts),
   story: (id, opts) => apiCall(ACTIONS.STORIES_GET, { id }, opts),

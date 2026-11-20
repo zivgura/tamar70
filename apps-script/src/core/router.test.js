@@ -233,6 +233,36 @@ describe('reading stories', () => {
   })
 })
 
+describe('site.bootstrap', () => {
+  it('returns site, corners and teasers in one call', () => {
+    submit({ author_name: 'ענת' })
+    submit({ author_name: 'דני', category_id: 'sayings' })
+    const data = ok('site.bootstrap')
+    expect(data.site).toMatchObject({
+      site_status: 'collecting',
+      stats: { stories: 2, contributors: 2 },
+    })
+    expect(data.categories).toHaveLength(8)
+    expect(data.stories.map((s) => s.view)).toEqual(['teaser', 'teaser'])
+    expect(JSON.stringify(data)).not.toContain('content')
+  })
+
+  it('is cached, and a new story clears the cache', () => {
+    ok('site.bootstrap')
+    expect(ctx.cache.store.has('site.bootstrap')).toBe(true)
+    submit()
+    expect(ctx.cache.store.has('site.bootstrap')).toBe(false)
+    expect(ok('site.bootstrap').stories).toHaveLength(1)
+  })
+
+  it('returns empty text, not null, for fields left blank', () => {
+    submit({ author_relation: '', title: '' })
+    const [story] = ok('site.bootstrap').stories
+    expect(story.author_relation).toBe('')
+    expect(story.title).toBe('')
+  })
+})
+
 describe('site.get', () => {
   it('counts stories and distinct contributors', () => {
     submit({ author_name: 'ענת' })

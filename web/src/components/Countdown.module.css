@@ -1,0 +1,30 @@
+.countdown {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  width: 100%;
+  margin: 0;
+}
+
+.unit {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  padding: var(--space-3) var(--space-1);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+}
+
+.value {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

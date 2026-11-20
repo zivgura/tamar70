@@ -14,9 +14,11 @@ import {
   VISIBILITY,
 } from '@tamar70/shared'
 import { ApiError, notFound } from './errors.js'
-import { finishUpload, PUBLIC_LIST_CACHE_KEY, startUpload } from './media.js'
+import { finishUpload, invalidatePublicCache, startUpload } from './media.js'
 import { readSettings, siteConfig } from './settings.js'
 
+const LIST_CACHE_KEY = 'stories.list'
+const BOOTSTRAP_CACHE_KEY = 'site.bootstrap'
 const CACHE_SECONDS = 60
 // CacheService refuses values over 100 KB; stay well under.
 const CACHE_MAX_CHARS = 90_000
@@ -31,11 +33,17 @@ function publicStories(ctx, config) {
     .filter(Boolean)
 }
 
-function getSite(ctx) {
-  const config = siteConfig(readSettings(ctx.db))
-  const shown = ctx.db
-    .all('Stories')
-    .filter((s) => getStoryView(s, config.site_status) !== STORY_VIEW.NONE)
+/** Caches JSON-able results for a minute, unless too big for CacheService. */
+function cached(ctx, key, compute) {
+  const hit = ctx.cache.get(key)
+  if (hit) return JSON.parse(hit)
+  const value = compute()
+  const json = JSON.stringify(value)
+  if (json.length <= CACHE_MAX_CHARS) ctx.cache.put(key, json, CACHE_SECONDS)
+  return value
+}
+
+function siteInfo(config, shown) {
   const contributors = new Set(shown.map((s) => String(s.author_name).trim().toLowerCase()))
   return {
     site_status: config.site_status,
@@ -49,6 +57,23 @@ function getSite(ctx) {
       photos: shown.reduce((n, s) => n + (s.media_count || 0), 0),
     },
   }
+}
+
+function getSite(ctx) {
+  const config = siteConfig(readSettings(ctx.db))
+  const shown = ctx.db
+    .all('Stories')
+    .filter((s) => getStoryView(s, config.site_status) !== STORY_VIEW.NONE)
+  return siteInfo(config, shown)
+}
+
+/** Everything a page needs to render, in one round trip (each call costs seconds). */
+function bootstrap(ctx) {
+  return cached(ctx, BOOTSTRAP_CACHE_KEY, () => {
+    const config = siteConfig(readSettings(ctx.db))
+    const stories = publicStories(ctx, config)
+    return { site: siteInfo(config, stories), categories: listCategories(ctx), stories }
+  })
 }
 
 function listCategories(ctx) {
@@ -67,14 +92,10 @@ function listCategories(ctx) {
 }
 
 function listStories(ctx) {
-  const cached = ctx.cache.get(PUBLIC_LIST_CACHE_KEY)
-  if (cached) return JSON.parse(cached)
-
-  const config = siteConfig(readSettings(ctx.db))
-  const result = { site_status: config.site_status, stories: publicStories(ctx, config) }
-  const json = JSON.stringify(result)
-  if (json.length <= CACHE_MAX_CHARS) ctx.cache.put(PUBLIC_LIST_CACHE_KEY, json, CACHE_SECONDS)
-  return result
+  return cached(ctx, LIST_CACHE_KEY, () => {
+    const config = siteConfig(readSettings(ctx.db))
+    return { site_status: config.site_status, stories: publicStories(ctx, config) }
+  })
 }
 
 function getStory(ctx, payload) {
@@ -144,12 +165,13 @@ function submitStory(ctx, payload) {
     return { id: story.id, duplicate: false }
   })
 
-  ctx.cache.remove(PUBLIC_LIST_CACHE_KEY)
+  invalidatePublicCache(ctx)
   return result
 }
 
 export const handlers = {
   [ACTIONS.SITE]: getSite,
+  [ACTIONS.BOOTSTRAP]: bootstrap,
   [ACTIONS.CATEGORIES_LIST]: listCategories,
   [ACTIONS.STORIES_LIST]: listStories,
   [ACTIONS.STORIES_GET]: getStory,

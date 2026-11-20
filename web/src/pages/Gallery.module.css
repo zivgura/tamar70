@@ -1,0 +1,4 @@
+.polaroid {
+  align-self: center;
+  width: min(240px, 70%);
+}

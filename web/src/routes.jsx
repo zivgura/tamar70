@@ -1,31 +1,34 @@
+/* eslint-disable react-refresh/only-export-components -- route config, not a component module */
 import { lazy, Suspense } from 'react'
+import { Layout } from './components'
+import AddSoon from './pages/AddSoon.jsx'
+import Corner from './pages/Corner.jsx'
+import Gallery from './pages/Gallery.jsx'
 import Home from './pages/Home.jsx'
+import Story from './pages/Story.jsx'
 
-// Route config, not a component module, so fast refresh doesn't apply here.
-// eslint-disable-next-line react-refresh/only-export-components
 const Styleguide = lazy(() => import('./pages/Styleguide.jsx'))
-// eslint-disable-next-line react-refresh/only-export-components
 const UploadTest = lazy(() => import('./pages/UploadTest.jsx'))
 
+const later = (Page) => (
+  <Suspense fallback={null}>
+    <Page />
+  </Suspense>
+)
+
 export const routes = [
-  { path: '/', element: <Home /> },
   {
-    // The design system reference. Not linked from the site.
-    path: '/_styleguide',
-    element: (
-      <Suspense fallback={null}>
-        <Styleguide />
-      </Suspense>
-    ),
+    element: <Layout />,
+    children: [
+      { path: '/', element: <Home /> },
+      { path: '/corner/:slug', element: <Corner /> },
+      { path: '/story/:id', element: <Story /> },
+      { path: '/gallery', element: <Gallery /> },
+      { path: '/add', element: <AddSoon /> },
+      { path: '*', element: <Home /> },
+    ],
   },
-  {
-    // Milestone 3 proof of concept: real upload to Drive. Not linked from the site.
-    path: '/_upload-test',
-    element: (
-      <Suspense fallback={null}>
-        <UploadTest />
-      </Suspense>
-    ),
-  },
-  { path: '*', element: <Home /> },
+  // Not linked from the site.
+  { path: '/_styleguide', element: later(Styleguide) },
+  { path: '/_upload-test', element: later(UploadTest) },
 ]

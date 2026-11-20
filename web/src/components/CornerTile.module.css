@@ -1,0 +1,43 @@
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 104px;
+  padding: var(--space-4);
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-surface);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.tile:hover {
+  color: var(--color-text);
+  transform: rotate(var(--tilt-left));
+}
+
+.wide {
+  grid-column: span 2;
+  flex-direction: row-reverse;
+  align-items: center;
+  min-height: 64px;
+}
+
+/* Postage stamp in the corner's tone */
+.stamp {
+  align-self: flex-start;
+  width: 34px;
+  height: 40px;
+  border: 2px dashed var(--tone-strong);
+  border-radius: var(--radius-xs);
+}
+
+.wide .stamp {
+  align-self: center;
+}
+
+.name {
+  font-weight: var(--weight-bold);
+}

@@ -1,0 +1,36 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--layout-gutter) var(--space-10);
+}
+
+.back {
+  align-self: flex-start;
+  font-size: var(--text-md);
+}
+
+.title {
+  font-size: var(--text-5xl);
+}
+
+.description {
+  color: var(--color-text-secondary);
+}
+
+/* The writing prompt, as a note pinned in the corner's tone */
+.prompt {
+  padding: var(--space-4) var(--space-5);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--tone-ink);
+  background: var(--tone-soft);
+  border-inline-start: 4px solid var(--tone-strong);
+  border-radius: var(--radius-sm);
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
