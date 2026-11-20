@@ -11,7 +11,9 @@ import {
 import { ApiError } from './errors.js'
 import { readSettings, siteConfig } from './settings.js'
 
-export const PUBLIC_LIST_CACHE_KEY = 'stories.list'
+// Public reads are cached for a minute; every write clears them.
+export const PUBLIC_CACHE_KEYS = ['stories.list', 'site.bootstrap']
+export const invalidatePublicCache = (ctx) => PUBLIC_CACHE_KEYS.forEach((k) => ctx.cache.remove(k))
 
 /**
  * The contributor's own story, proven by the edit token their device kept. A wrong token and
@@ -135,6 +137,6 @@ export function finishUpload(ctx, payload) {
     return { media_id: media.id, width: file.width ?? null, height: file.height ?? null }
   })
 
-  ctx.cache.remove(PUBLIC_LIST_CACHE_KEY)
+  invalidatePublicCache(ctx)
   return result
 }

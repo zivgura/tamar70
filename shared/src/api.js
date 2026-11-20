@@ -7,6 +7,7 @@
 
 export const ACTIONS = Object.freeze({
   SITE: 'site.get',
+  BOOTSTRAP: 'site.bootstrap',
   CATEGORIES_LIST: 'categories.list',
   STORIES_LIST: 'stories.list',
   STORIES_GET: 'stories.get',
