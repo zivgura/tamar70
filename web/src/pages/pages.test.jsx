@@ -31,7 +31,7 @@ describe('Home', () => {
   it('shows the countdown, the counter, the corners and sealed memories', async () => {
     renderAt('/')
     expect(screen.getByRole('heading', { level: 1, name: 'תמר בת 70' })).toBeInTheDocument()
-    expect(await screen.findByText(/כבר נאספו/)).toHaveTextContent('כבר נאספו 2 זיכרונות מ-2 אנשים')
+    expect(await screen.findByText(/כבר נאספו/)).toHaveTextContent('כבר נאספו 2 סיפורים מ-2 אנשים')
     expect(screen.getByLabelText('הזמן שנשאר עד יום ההולדת')).toHaveTextContent('ימים65שעות12דקות0')
     expect(screen.getByText(/ייחשף ב-7 בפברואר/)).toBeInTheDocument()
 
@@ -39,12 +39,12 @@ describe('Home', () => {
     expect(corners.map((a) => a.textContent)).toHaveLength(7) // "general" isn't a postcard
     expect(corners[6]).toHaveAttribute('href', '/corner/wishes')
 
-    const feed = screen.getByRole('region', { name: 'זיכרונות אחרונים' })
+    const feed = screen.getByRole('region', { name: 'סיפורים אחרונים' })
     expect(within(feed).getByRole('link', { name: 'הטרמפ לאילת' })).toHaveAttribute(
       'href',
       '/story/st_aaaaaa01',
     )
-    expect(within(feed).getByText('זיכרון מדני')).toBeInTheDocument() // no title
+    expect(within(feed).getByText('סיפור מדני')).toBeInTheDocument() // no title
     expect(within(feed).getByText('3 תמונות מצורפות')).toBeInTheDocument()
     expect(within(feed).getAllByText('הסיפור המלא ייחשף בקרוב')).toHaveLength(2)
     expect(within(feed).getByText('ענת, חברה מהצבא · טיולים בארץ ובעולם')).toBeInTheDocument()
@@ -55,8 +55,8 @@ describe('Home', () => {
       bootstrap({ stories: [], site: { ...bootstrap().site, stats: { stories: 0 } } }),
     )
     renderAt('/')
-    expect(await screen.findByText('היו הראשונים לשתף זיכרון')).toBeInTheDocument()
-    expect(screen.getByText(/הזיכרון הראשון יכול להיות שלכם/)).toBeInTheDocument()
+    expect(await screen.findByText('היו הראשונים לשתף סיפור')).toBeInTheDocument()
+    expect(screen.getByText(/הסיפור הראשון יכול להיות שלכם/)).toBeInTheDocument()
   })
 
   it('offers a retry when the server can’t be reached', async () => {
@@ -73,17 +73,17 @@ describe('Corner', () => {
     renderAt('/corner/travels')
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('טיולים בארץ ובעולם')
     expect(screen.getByText('שאלה על טיולים בארץ ובעולם')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'הוסיפו זיכרון לפינה הזו' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'הוסיפו סיפור לפינה הזו' })).toHaveAttribute(
       'href',
       '/add?corner=travels',
     )
     expect(screen.getByText('הטרמפ לאילת')).toBeInTheDocument()
-    expect(screen.queryByText('זיכרון מדני')).not.toBeInTheDocument()
+    expect(screen.queryByText('סיפור מדני')).not.toBeInTheDocument()
   })
 
   it('says so when a corner is empty or unknown', async () => {
     renderAt('/corner/protest')
-    expect(await screen.findByText(/עוד אין זיכרונות בפינה הזו/)).toBeInTheDocument()
+    expect(await screen.findByText(/עוד אין סיפורים בפינה הזו/)).toBeInTheDocument()
   })
 
   it('handles a corner that does not exist', async () => {
@@ -111,7 +111,7 @@ describe('Story', () => {
   it('handles a memory that is not there', async () => {
     vi.spyOn(api, 'story').mockRejectedValue(new ApiError('not_found', 'nope'))
     renderAt('/story/st_missing00')
-    expect(await screen.findByText('הזיכרון הזה לא נמצא.')).toBeInTheDocument()
+    expect(await screen.findByText('הסיפור הזה לא נמצא.')).toBeInTheDocument()
   })
 })
 

@@ -25,7 +25,7 @@ export default function Story() {
     }
     return (
       <Message>
-        <p>הזיכרון הזה לא נמצא.</p>
+        <p>הסיפור הזה לא נמצא.</p>
         <Link to="/">לדף הבית</Link>
       </Message>
     )
@@ -40,7 +40,7 @@ export default function Story() {
       </Link>
       <StoryCard story={story} category={category} linked={false} full headingLevel={1} />
       {story.view === 'teaser' && birthday && (
-        <Message>הזיכרון המלא, עם התמונות, ייחשף ב-{formatDay(birthday)}.</Message>
+        <Message>הסיפור המלא, עם התמונות, ייחשף ב-{formatDay(birthday)}.</Message>
       )}
     </div>
   )

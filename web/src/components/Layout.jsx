@@ -13,7 +13,7 @@ export function Layout() {
         </Link>
         {!pathname.startsWith('/add') && (
           <Button as={Link} to="/add" variant="secondary" size="small">
-            הוסיפו זיכרון
+            הוסיפו סיפור
           </Button>
         )}
       </header>

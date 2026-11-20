@@ -4,23 +4,23 @@ import {
   birthdayStart,
   countdownParts,
   formatDay,
-  memoriesText,
+  storiesText,
   peopleText,
   timeAgo,
 } from './format.js'
 
 describe('Hebrew counts', () => {
   it('uses the singular form for one', () => {
-    expect(memoriesText(1)).toBe('זיכרון אחד')
+    expect(storiesText(1)).toBe('סיפור אחד')
     expect(peopleText(1)).toBe('אדם אחד')
     expect(attachedPhotosText(1)).toBe('תמונה אחת מצורפת')
   })
 
   it('uses digits and the plural otherwise', () => {
-    expect(memoriesText(47)).toBe('47 זיכרונות')
+    expect(storiesText(47)).toBe('47 סיפורים')
     expect(peopleText(23)).toBe('23 אנשים')
     expect(attachedPhotosText(3)).toBe('3 תמונות מצורפות')
-    expect(memoriesText(1200)).toBe('1,200 זיכרונות')
+    expect(storiesText(1200)).toBe('1,200 סיפורים')
   })
 })
 

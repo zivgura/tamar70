@@ -11,6 +11,24 @@ const SEEDED_TONE = Object.fromEntries(DEFAULT_CATEGORIES.map((c) => [c.id, c.co
  * in order, for every version between the Sheet's and SCHEMA_VERSION. A fresh Sheet is
  * seeded in the newest shape, so these are no-ops there.
  */
+// Version 3: the site says "סיפור" (story), not "זיכרון" (memory), which sounds like a
+// memorial. Seeded texts still worded the old way get the new wording; texts edited in the
+// Sheet are left alone.
+const V3_WORDING = [
+  {
+    id: 'journey',
+    field: 'description',
+    from: 'ילדות, נעורים, רגעים משמעותיים וזיכרונות משפחתיים',
+    to: 'ילדות, נעורים, רגעים משמעותיים וסיפורים משפחתיים',
+  },
+  {
+    id: 'general',
+    field: 'prompt_hint',
+    from: 'שתפו כל זיכרון, סיפור או תמונה',
+    to: 'שתפו כל סיפור, משפט או תמונה',
+  },
+]
+
 const UPGRADES = {
   2(db) {
     for (const category of db.all('Categories')) {
@@ -18,6 +36,13 @@ const UPGRADES = {
       if (CATEGORY_TONES.includes(color)) continue
       const tone = SEEDED_TONE[category.id] ?? V1_HEX_TONES[color.toLowerCase()] ?? DEFAULT_TONE
       db.update('Categories', 'id', category.id, { color: tone })
+    }
+  },
+  3(db) {
+    const categories = db.all('Categories')
+    for (const { id, field, from, to } of V3_WORDING) {
+      const category = categories.find((c) => c.id === id)
+      if (category && category[field] === from) db.update('Categories', 'id', id, { [field]: to })
     }
   },
 }

@@ -5,8 +5,8 @@ import { Message } from '../components'
 export default function AddSoon() {
   return (
     <Message>
-      <h1>הוספת זיכרון</h1>
-      <p>האפשרות להוסיף זיכרונות תיפתח בקרוב.</p>
+      <h1>הוספת סיפור</h1>
+      <p>האפשרות להוסיף סיפורים תיפתח בקרוב.</p>
       <Link to="/">לדף הבית</Link>
     </Message>
   )

@@ -11,16 +11,16 @@ import {
   Polaroid,
   StoryCard,
 } from '../components'
-import { birthdayStart, formatDay, memoriesText, peopleText } from '../lib/format.js'
+import { birthdayStart, formatDay, storiesText, peopleText } from '../lib/format.js'
 import styles from './Home.module.css'
 
 const LATEST = 10
 
 function Counter({ stats }) {
-  if (!stats.stories) return <p className={styles.counter}>היו הראשונים לשתף זיכרון</p>
+  if (!stats.stories) return <p className={styles.counter}>היו הראשונים לשתף סיפור</p>
   return (
     <p className={styles.counter}>
-      כבר נאספו <strong>{memoriesText(stats.stories)}</strong> מ-
+      כבר נאספו <strong>{storiesText(stats.stories)}</strong> מ-
       <strong>{peopleText(stats.contributors)}</strong>
     </p>
   )
@@ -38,13 +38,13 @@ export default function Home() {
         <Polaroid className={styles.photo} caption="תמר" handwritten taped tilt="leftStrong" />
         <h1 className={styles.title}>תמר בת 70</h1>
         <p className={styles.lead}>
-          אוספים סיפורים, תמונות וזיכרונות לקראת יום ההולדת.
+          אוספים סיפורים ותמונות לקראת יום ההולדת.
           {site?.birthday_date && ` כל מה שתשתפו ייחשף ב-${formatDay(site.birthday_date)}.`}
         </p>
         {site && <Countdown target={birthdayStart(site.birthday_date)} />}
         {site && <Counter stats={site.stats} />}
         <Button as={Link} to="/add" block>
-          הוסיפו זיכרון
+          הוסיפו סיפור
         </Button>
       </section>
 
@@ -74,12 +74,12 @@ export default function Home() {
 
           <section className={styles.section} aria-labelledby="latest-title">
             <h2 id="latest-title" className={styles.sectionTitle}>
-              זיכרונות אחרונים
+              סיפורים אחרונים
             </h2>
             {isPending ? (
               <LoadingCards />
             ) : data.stories.length === 0 ? (
-              <Message>עוד אין זיכרונות. הזיכרון הראשון יכול להיות שלכם.</Message>
+              <Message>עוד אין סיפורים. הסיפור הראשון יכול להיות שלכם.</Message>
             ) : (
               <div className={styles.feed}>
                 {data.stories.slice(0, LATEST).map((s) => (
