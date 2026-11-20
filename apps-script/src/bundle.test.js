@@ -84,6 +84,23 @@ describe('bundle', () => {
     expect(list.data.stories[0]).not.toHaveProperty('content')
   })
 
+  it('reads a date Sheets converted on its own as that same day', () => {
+    post({ action: 'site.get' })
+    const settings = gas.spreadsheet.getSheetByName('Settings')
+    const row = settings.cells.find((r) => r[0] === 'birthday_date')
+    // What Sheets stores for "2027-02-07" in Asia/Jerusalem: local midnight.
+    row[1] = new Date('2027-02-06T22:00:00.000Z')
+    expect(post({ action: 'site.get' }).data.birthday_date).toBe('2027-02-07')
+  })
+
+  it('writes every cell as text', () => {
+    post({ action: 'site.get' })
+    const row = gas.spreadsheet
+      .getSheetByName('Settings')
+      .cells.find((r) => r[0] === 'birthday_date')
+    expect(row[1]).toBe('2027-02-07')
+  })
+
   it('returns validation errors from zod inside the bundle', () => {
     const res = post({ action: 'stories.submit', payload: { kind: 'text' } })
     expect(res.ok).toBe(false)

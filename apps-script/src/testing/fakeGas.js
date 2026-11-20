@@ -66,6 +66,9 @@ class FakeSheet {
 }
 
 class FakeSpreadsheet {
+  getSpreadsheetTimeZone() {
+    return 'Asia/Jerusalem'
+  }
   constructor() {
     this.sheets = [new FakeSheet('Sheet1')]
   }
@@ -122,6 +125,26 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     },
     Utilities: {
       getUuid: () => randomUUID(),
+      // Only the two patterns the code uses.
+      formatDate: (date, timeZone, pattern) => {
+        const parts = Object.fromEntries(
+          new Intl.DateTimeFormat('en-CA', {
+            timeZone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hourCycle: 'h23',
+          })
+            .formatToParts(date)
+            .map((p) => [p.type, p.value]),
+        )
+        if (pattern === 'yyyy-MM-dd') return `${parts.year}-${parts.month}-${parts.day}`
+        if (pattern === 'HH:mm:ss') return `${parts.hour}:${parts.minute}:${parts.second}`
+        throw new Error(`Unsupported pattern ${pattern}`)
+      },
       DigestAlgorithm: { SHA_256: 'sha256' },
       Charset: { UTF_8: 'utf8' },
       // Apps Script returns signed bytes (-128..127).

@@ -17,13 +17,30 @@ export function createSheetsDb(spreadsheetId) {
     return sheet
   }
 
+  // Sheets sometimes turns text into a Date (cells typed by hand, or rows written before
+  // the column was plain text). Read those back in the Sheet's own time zone, so a date
+  // typed as 2027-02-07 stays that day instead of shifting when converted to UTC.
+  function fromSheetDate(value) {
+    if (Object.prototype.toString.call(value) !== '[object Date]') return value
+    const tz = ss().getSpreadsheetTimeZone()
+    const isMidnight = Utilities.formatDate(value, tz, 'HH:mm:ss') === '00:00:00'
+    return isMidnight ? Utilities.formatDate(value, tz, 'yyyy-MM-dd') : value.toISOString()
+  }
+
   function load(table) {
     if (!memo.has(table)) {
       const values = sheetOf(table).getDataRange().getValues()
       const headers = (values[0] || []).map(String)
-      memo.set(table, { headers, rows: values.slice(1) })
+      const rows = values.slice(1).map((r) => r.map(fromSheetDate))
+      memo.set(table, { headers, rows })
     }
     return memo.get(table)
+  }
+
+  // Writes one row as plain text. appendRow would let Sheets turn "2027-02-07" into a date
+  // or "1970" into a number regardless of the column's format.
+  function writeRow(sheet, rowNumber, cells) {
+    sheet.getRange(rowNumber, 1, 1, cells.length).setNumberFormat('@').setValues([cells])
   }
 
   return {
@@ -34,7 +51,8 @@ export function createSheetsDb(spreadsheetId) {
 
     insert(table, obj) {
       const { headers } = load(table)
-      sheetOf(table).appendRow(encodeRow(table, headers, obj))
+      const sheet = sheetOf(table)
+      writeRow(sheet, sheet.getLastRow() + 1, encodeRow(table, headers, obj))
       memo.delete(table)
     },
 
@@ -45,9 +63,7 @@ export function createSheetsDb(spreadsheetId) {
       const i = rows.findIndex((r) => String(r[k]) === String(keyValue))
       if (k === -1 || i === -1) return false
       const merged = { ...decodeRow(table, headers, rows[i]), ...patch }
-      sheetOf(table)
-        .getRange(i + 2, 1, 1, headers.length)
-        .setValues([encodeRow(table, headers, merged)])
+      writeRow(sheetOf(table), i + 2, encodeRow(table, headers, merged))
       memo.delete(table)
       return true
     },
