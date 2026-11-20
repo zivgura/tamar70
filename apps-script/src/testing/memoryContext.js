@@ -77,6 +77,11 @@ export function createFakeDrive({ folderId = 'folder-originals' } = {}) {
       return id
     },
     getFile: (id) => files.get(id) ?? null,
+    trashed: new Set(),
+    thumbnail: (id) => (files.has(id) ? `data:image/png;base64,${id}` : null),
+    trash(id) {
+      this.trashed.add(id)
+    },
   }
 }
 

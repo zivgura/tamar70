@@ -16,6 +16,7 @@ export function ContentStep({
   onOpenPhoto,
   errors,
   photosLostFromDraft,
+  withHeading = true,
 }) {
   const wantsText = draft.kind !== STORY_KIND.PHOTOS
   const wantsPhotos = draft.kind !== STORY_KIND.TEXT
@@ -23,7 +24,7 @@ export function ContentStep({
 
   return (
     <>
-      <h1 className={styles.title}>ספרו לנו</h1>
+      {withHeading && <h1 className={styles.title}>ספרו לנו</h1>}
 
       <fieldset className={styles.group}>
         <legend className={styles.legend}>לאיזו פינה זה שייך?</legend>

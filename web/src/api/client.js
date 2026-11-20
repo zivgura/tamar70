@@ -81,6 +81,12 @@ export const api = {
   submitStory: (submission, opts) => apiCall(ACTIONS.STORIES_SUBMIT, submission, opts),
   startUpload: (request, opts) => apiCall(ACTIONS.MEDIA_START, request, opts),
   finishUpload: (request, opts) => apiCall(ACTIONS.MEDIA_FINISH, request, opts),
+  // The contributor's own story, from the device that sent it
+  getOwn: (request, opts) => apiCall(ACTIONS.OWN_GET, request, opts),
+  updateOwn: (request, opts) => apiCall(ACTIONS.OWN_UPDATE, request, opts),
+  deleteOwn: (request, opts) => apiCall(ACTIONS.OWN_DELETE, request, opts),
+  updateOwnPhoto: (request, opts) => apiCall(ACTIONS.OWN_MEDIA_UPDATE, request, opts),
+  removeOwnPhoto: (request, opts) => apiCall(ACTIONS.OWN_MEDIA_REMOVE, request, opts),
 }
 
 /** A private token for editing one's own story later. Kept on the device, never shown. */

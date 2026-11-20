@@ -14,6 +14,11 @@ export const ACTIONS = Object.freeze({
   STORIES_SUBMIT: 'stories.submit',
   MEDIA_START: 'media.start',
   MEDIA_FINISH: 'media.finish',
+  OWN_GET: 'stories.getOwn',
+  OWN_UPDATE: 'stories.update',
+  OWN_DELETE: 'stories.delete',
+  OWN_MEDIA_UPDATE: 'media.update',
+  OWN_MEDIA_REMOVE: 'media.remove',
 })
 
 export const ERROR_CODES = Object.freeze({
@@ -24,6 +29,7 @@ export const ERROR_CODES = Object.freeze({
   SUBMISSIONS_CLOSED: 'submissions_closed',
   NOT_FOUND: 'not_found',
   FORBIDDEN: 'forbidden',
+  EDITING_CLOSED: 'editing_closed',
   TOO_MANY_PHOTOS: 'too_many_photos',
   UPLOAD_FAILED: 'upload_failed',
   BUSY: 'busy',

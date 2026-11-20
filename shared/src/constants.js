@@ -32,6 +32,7 @@ export const UPLOAD_STATUS = Object.freeze({
   PENDING: 'pending',
   DONE: 'done',
   FAILED: 'failed',
+  REMOVED: 'removed', // taken out by its author; the Drive file is in the trash
 })
 
 export const DEFAULT_CATEGORY_ID = 'general'

@@ -53,6 +53,25 @@ export const mediaStartSchema = object({
   sort_order: number().int().min(0).max(999).optional(),
 })
 
+export const mediaUpdateSchema = object({
+  story_id: storyId,
+  edit_token: editToken,
+  media_id: mediaId,
+  caption: shortText(200),
+  place: shortText(80),
+  year_approx: number().int().min(1940).max(2030).nullable().optional(),
+  people: array(string().trim().min(1).max(60))
+    .max(20)
+    .optional()
+    .transform((v) => v ?? []),
+})
+
+export const mediaRemoveSchema = object({
+  story_id: storyId,
+  edit_token: editToken,
+  media_id: mediaId,
+})
+
 export const mediaFinishSchema = object({
   story_id: storyId,
   edit_token: editToken,

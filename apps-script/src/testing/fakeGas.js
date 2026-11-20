@@ -95,6 +95,7 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     ['ORIGINALS_FOLDER_ID', 'folder-originals'],
   ])
   const fetches = []
+  const trashed = []
   const cache = new Map()
   const logs = []
 
@@ -152,16 +153,38 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
       DigestAlgorithm: { SHA_256: 'sha256' },
       Charset: { UTF_8: 'utf8' },
       // Apps Script returns signed bytes (-128..127).
+      base64Encode: (bytes) => Buffer.from(bytes.map((b) => (b + 256) % 256)).toString('base64'),
       computeDigest: (alg, text) =>
         Array.from(createHash(alg).update(text, 'utf8').digest(), (b) => (b > 127 ? b - 256 : b)),
     },
     ScriptApp: { getOAuthToken: () => 'owner-token' },
+    DriveApp: {
+      getFileById: (id) => ({
+        getThumbnail: () => ({
+          getContentType: () => 'image/png',
+          getBytes: () => [1, 2, 3],
+        }),
+        setTrashed: (v) => v && trashed.push(id),
+      }),
+    },
     // Answers like Drive: a session URL for an upload request, file metadata for a GET.
     UrlFetchApp: {
       fetch: (url, options = {}) => {
         fetches.push({ url, options })
         const isUpload = url.startsWith('https://www.googleapis.com/upload/drive/v3/files')
-        const body = isUpload ? '' : JSON.stringify({ id: url.split('/').pop().split('?')[0] })
+        const id = url.split('/').pop().split('?')[0]
+        const session = fetches.find((f) => f.url.includes('uploadType=resumable'))
+        const meta = session ? JSON.parse(session.options.payload) : {}
+        const body = isUpload
+          ? ''
+          : JSON.stringify({
+              id,
+              parents: meta.parents,
+              size: '1234',
+              mimeType: 'image/jpeg',
+              appProperties: meta.appProperties,
+              imageMediaMetadata: { width: 10, height: 10 },
+            })
         return {
           getResponseCode: () => 200,
           getHeaders: () => (isUpload ? { location: 'https://upload.example/session-1' } : {}),
@@ -187,5 +210,5 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     },
   }
 
-  return { globals, spreadsheet, properties, cache, logs, fetches }
+  return { globals, spreadsheet, properties, cache, logs, fetches, trashed }
 }

@@ -15,6 +15,13 @@ import {
 } from '@tamar70/shared'
 import { ApiError, notFound } from './errors.js'
 import { finishUpload, invalidatePublicCache, startUpload } from './media.js'
+import {
+  deleteOwnStory,
+  getOwnStory,
+  removeOwnMedia,
+  updateOwnMedia,
+  updateOwnStory,
+} from './own.js'
 import { readSettings, siteConfig } from './settings.js'
 
 const LIST_CACHE_KEY = 'stories.list'
@@ -178,4 +185,9 @@ export const handlers = {
   [ACTIONS.STORIES_SUBMIT]: submitStory,
   [ACTIONS.MEDIA_START]: startUpload,
   [ACTIONS.MEDIA_FINISH]: finishUpload,
+  [ACTIONS.OWN_GET]: getOwnStory,
+  [ACTIONS.OWN_UPDATE]: updateOwnStory,
+  [ACTIONS.OWN_DELETE]: deleteOwnStory,
+  [ACTIONS.OWN_MEDIA_UPDATE]: updateOwnMedia,
+  [ACTIONS.OWN_MEDIA_REMOVE]: removeOwnMedia,
 }

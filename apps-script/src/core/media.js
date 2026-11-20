@@ -5,36 +5,16 @@ import {
   mediaFinishSchema,
   mediaStartSchema,
   safeFilename,
-  STORY_STATUS,
   UPLOAD_STATUS,
 } from '@tamar70/shared'
 import { ApiError } from './errors.js'
-import { readSettings, siteConfig } from './settings.js'
+import { ownStory, requireSubmissionsOpen } from './ownership.js'
 
 // Public reads are cached for a minute; every write clears them.
 export const PUBLIC_CACHE_KEYS = ['stories.list', 'site.bootstrap']
 export const invalidatePublicCache = (ctx) => PUBLIC_CACHE_KEYS.forEach((k) => ctx.cache.remove(k))
 
-/**
- * The contributor's own story, proven by the edit token their device kept. A wrong token and
- * a missing story get the same answer, so the API doesn't reveal which stories exist.
- */
-function ownStory(ctx, storyId, editToken) {
-  const hash = ctx.crypto.sha256(editToken)
-  const story = ctx.db.all('Stories').find((s) => s.id === storyId)
-  if (!story || story.status !== STORY_STATUS.ACTIVE || story.edit_token_hash !== hash) {
-    throw new ApiError(ERROR_CODES.FORBIDDEN, 'Not your story')
-  }
-  return story
-}
-
-function requireSubmissionsOpen(ctx) {
-  if (!siteConfig(readSettings(ctx.db)).submissions_open) {
-    throw new ApiError(ERROR_CODES.SUBMISSIONS_CLOSED, 'Submissions are closed')
-  }
-}
-
-const mediaOf = (ctx, storyId) => ctx.db.all('Media').filter((m) => m.story_id === storyId)
+export const mediaOf = (ctx, storyId) => ctx.db.all('Media').filter((m) => m.story_id === storyId)
 
 /**
  * Step 1 of a photo upload: checks the contributor may add a photo to this story, opens a
@@ -46,7 +26,9 @@ export function startUpload(ctx, payload) {
   requireSubmissionsOpen(ctx)
   const story = ownStory(ctx, input.story_id, input.edit_token)
 
-  const used = mediaOf(ctx, story.id).filter((m) => m.upload_status !== UPLOAD_STATUS.FAILED)
+  const used = mediaOf(ctx, story.id).filter(
+    (m) => m.upload_status !== UPLOAD_STATUS.FAILED && m.upload_status !== UPLOAD_STATUS.REMOVED,
+  )
   if (used.length >= MAX_PHOTOS_PER_STORY) {
     throw new ApiError(
       ERROR_CODES.TOO_MANY_PHOTOS,

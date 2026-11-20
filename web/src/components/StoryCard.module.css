@@ -97,3 +97,27 @@
   line-height: var(--leading-relaxed);
   white-space: pre-line;
 }
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Above the card-wide story link, so it can be tapped on its own. */
+.edit {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  margin-inline-start: auto;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent);
+  text-decoration: none;
+  border: var(--border-medium) solid var(--color-accent);
+  border-radius: var(--radius-full);
+}

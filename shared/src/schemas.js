@@ -15,16 +15,18 @@ const nameList = array(trimmed(60).min(1))
   .optional()
   .transform((v) => v ?? [])
 
+const storyId = string().regex(/^st_[A-Za-z0-9]{6,40}$/)
+// Private random token the contributor's device creates and keeps, to edit the story later.
+// The server stores only its hash.
+const editToken = string().regex(/^[A-Za-z0-9_-]{32,128}$/)
+
 export const apiRequestSchema = object({
   action: string().min(1).max(50),
   payload: record(string(), unknown()).optional().default({}),
 })
 
-export const storySubmissionSchema = object({
-  // Private random token the contributor's device creates and keeps, to edit the story later.
-  // The server stores only its hash. A retried submission with the same token isn't saved twice.
-  edit_token: string().regex(/^[A-Za-z0-9_-]{32,128}$/),
-  family_code: string().trim().min(1).max(64),
+// What a contributor writes, the same for a new story and an edit.
+const storyFields = {
   kind: oneOf(Object.values(STORY_KIND)),
   author_name: trimmed(60).min(1),
   author_relation: optionalText(80),
@@ -40,13 +42,28 @@ export const storySubmissionSchema = object({
   places: nameList,
   people: nameList,
   tags: nameList,
+}
+
+const needsText = [
+  (s) => s.kind === STORY_KIND.PHOTOS || s.content.length > 0,
+  { path: ['content'], message: 'Content is required unless the story is photos only' },
+]
+
+export const storySubmissionSchema = object({
+  ...storyFields,
+  // A retried submission with the same token isn't saved twice.
+  edit_token: editToken,
+  family_code: string().trim().min(1).max(64),
   // Honeypot: a hidden field real people leave empty.
   website: string().max(0, 'honeypot').optional(),
-}).refine((s) => s.kind === STORY_KIND.PHOTOS || s.content.length > 0, {
-  path: ['content'],
-  message: 'Content is required unless the submission is photos only',
-})
+}).refine(...needsText)
 
-export const storyIdSchema = object({
-  id: string().regex(/^st_[A-Za-z0-9]{6,40}$/),
-})
+export const storyUpdateSchema = object({
+  ...storyFields,
+  id: storyId,
+  edit_token: editToken,
+}).refine(...needsText)
+
+export const ownStorySchema = object({ id: storyId, edit_token: editToken })
+
+export const storyIdSchema = object({ id: storyId })

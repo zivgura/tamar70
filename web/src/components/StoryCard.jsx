@@ -9,7 +9,14 @@ import styles from './StoryCard.module.css'
  * fading out, photo count on a wax seal, and "revealed soon". `linked` makes the whole
  * card open the story page; `full` shows the whole text when the server sent it.
  */
-export function StoryCard({ story, category, linked = true, full = false, headingLevel = 3 }) {
+export function StoryCard({
+  story,
+  category,
+  linked = true,
+  full = false,
+  headingLevel = 3,
+  editable = false,
+}) {
   const Heading = `h${headingLevel}`
   const title = storyTitle(story)
   const isFull = full && story.view === 'full'
@@ -54,7 +61,16 @@ export function StoryCard({ story, category, linked = true, full = false, headin
         <span>{timeAgo(story.created_at)}</span>
       </div>
 
-      {story.view === 'teaser' && <p className={styles.sealed}>הסיפור המלא ייחשף בקרוב</p>}
+      {(story.view === 'teaser' || editable) && (
+        <div className={styles.foot}>
+          {story.view === 'teaser' && <p className={styles.sealed}>הסיפור המלא ייחשף בקרוב</p>}
+          {editable && (
+            <Link to={`/edit/${story.id}`} className={styles.edit}>
+              עריכה
+            </Link>
+          )}
+        </div>
+      )}
     </Card>
   )
 }
