@@ -69,6 +69,37 @@ describe('migration', () => {
     )
   })
 
+  it('gives every corner a design-system tone', () => {
+    const tones = Object.fromEntries(ok('categories.list').map((c) => [c.id, c.tone]))
+    expect(tones).toMatchObject({ journey: 'rose', protest: 'sage', general: 'sand' })
+    expect(ok('categories.list')[0]).not.toHaveProperty('color')
+  })
+
+  it('upgrades a version 1 Sheet: hex category colors become tone names', () => {
+    const v1 = createMemoryContext()
+    v1.db.ensureTable(
+      'Categories',
+      TABLES.Categories.map((c) => c.name),
+    )
+    v1.db.insert('Categories', { id: 'travels', name: 'טיולים', color: '#C0745A', active: true })
+    v1.db.insert('Categories', { id: 'custom', name: 'משלי', color: '#9CAF88', active: true })
+    v1.db.insert('Categories', { id: 'odd', name: 'אחר', color: 'purple', active: true })
+    v1.db.insert('Categories', { id: 'kept', name: 'נשמר', color: 'terracotta', active: true })
+    v1.schemaVersion.set(1)
+    ctx = v1
+    ok('site.get')
+
+    const colors = Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c.color]))
+    // A known corner gets its mockup tone; others map by hex; unknown values become neutral.
+    expect(colors).toEqual({ travels: 'sage', custom: 'sage', odd: 'sand', kept: 'terracotta' })
+    expect(ctx.schemaVersion.get()).toBe(SCHEMA_VERSION)
+  })
+
+  it('maps an unknown tone in the Sheet to the neutral tone in the API', () => {
+    ctx.db.update('Categories', 'id', 'journey', { color: '#123456' })
+    expect(ok('categories.list').find((c) => c.id === 'journey').tone).toBe('sand')
+  })
+
   it('does not overwrite settings edited in the Sheet', () => {
     writeSetting(ctx.db, SETTING_KEYS.BIRTHDAY_DATE, '2027-02-08')
     ctx.schemaVersion.set(0)

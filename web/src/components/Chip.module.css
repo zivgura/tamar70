@@ -1,0 +1,30 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-md);
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.chip[aria-pressed='true'] {
+  font-weight: var(--weight-semibold);
+  color: var(--color-selected-text);
+  background: var(--color-selected-bg);
+  border-color: var(--color-selected-bg);
+}
+
+.dashed {
+  color: var(--color-text-secondary);
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+}

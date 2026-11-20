@@ -1,0 +1,17 @@
+.card {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+/* Category stripe across the top, in the card's tone (data-tone on the card). */
+.toned::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  content: '';
+  background: var(--tone-strong);
+}

@@ -26,6 +26,25 @@ const appsScriptGlobals = Object.fromEntries(
   ].map((name) => [name, 'readonly']),
 )
 
+// A color written in JS: "#a55a40", "1px solid #fff", "rgb(0 0 0)", "hsl(...)".
+const RAW_COLOR =
+  '/(^|[\\s(,])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})($|[\\s),;])|\\b(rgba?|hsla?|oklch)\\(/'
+const DS_MESSAGE =
+  'Design system: use a CSS Module class built from theme tokens (web/src/theme/tokens.css), or data-tone for category colors.'
+const designSystemRules = [
+  {
+    selector: `Literal[value=${RAW_COLOR}]:not(JSXAttribute[name.name="href"] > Literal)`,
+    message: DS_MESSAGE,
+  },
+  { selector: `TemplateElement[value.raw=${RAW_COLOR}]`, message: DS_MESSAGE },
+  {
+    // Inline styles may carry layout values (a progress width), never visual design.
+    selector:
+      "JSXAttribute[name.name='style'] Property[key.name=/^(color|background|backgroundColor|borderColor|fill|stroke|fontFamily|fontSize|fontWeight|boxShadow|borderRadius)$/]",
+    message: DS_MESSAGE,
+  },
+]
+
 export default defineConfig([
   globalIgnores(['**/dist', '**/coverage', '**/node_modules', '.firebase']),
 
@@ -65,6 +84,8 @@ export default defineConfig([
     rules: {
       // Plain JS project: no prop-types, Zod validates data at the edges instead.
       'react/prop-types': 'off',
+      // Design system: visual values live in web/src/theme/tokens.css, not in JS.
+      'no-restricted-syntax': ['error', ...designSystemRules],
     },
   },
 
