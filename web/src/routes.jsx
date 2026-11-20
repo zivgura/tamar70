@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- route config, not a component module */
 import { lazy, Suspense } from 'react'
 import { Layout } from './components'
-import AddSoon from './pages/AddSoon.jsx'
+import AddStory from './add/AddStory.jsx'
 import Corner from './pages/Corner.jsx'
 import Gallery from './pages/Gallery.jsx'
 import Home from './pages/Home.jsx'
@@ -24,7 +24,7 @@ export const routes = [
       { path: '/corner/:slug', element: <Corner /> },
       { path: '/story/:id', element: <Story /> },
       { path: '/gallery', element: <Gallery /> },
-      { path: '/add', element: <AddSoon /> },
+      { path: '/add', element: <AddStory /> },
       { path: '*', element: <Home /> },
     ],
   },

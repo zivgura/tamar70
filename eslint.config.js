@@ -85,7 +85,17 @@ export default defineConfig([
       // Plain JS project: no prop-types, Zod validates data at the edges instead.
       'react/prop-types': 'off',
       // Design system: visual values live in web/src/theme/tokens.css, not in JS.
-      'no-restricted-syntax': ['error', ...designSystemRules],
+      'no-restricted-syntax': [
+        'error',
+        ...designSystemRules,
+        {
+          // An effect may only return a cleanup function. `() => window.scrollTo(0, 0)` returns
+          // a Promise in Chrome, which React then calls as cleanup and crashes.
+          selector:
+            "CallExpression[callee.name=/^use(Layout)?Effect$/] > ArrowFunctionExpression[expression=true][body.type!='ArrowFunctionExpression']",
+          message: 'Use a block body: an effect must return nothing or a cleanup function.',
+        },
+      ],
     },
   },
 
