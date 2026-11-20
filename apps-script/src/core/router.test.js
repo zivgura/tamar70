@@ -113,6 +113,14 @@ describe('migration', () => {
       prompt_hint: 'זיכרון שכתבתי בעצמי',
       active: true,
     })
+    v2.db.insert('Categories', {
+      id: 'protest',
+      name: 'תקופת המחאה',
+      color: 'sage',
+      description: 'סיפורים, חוויות ואנשים מתקופת המחאה',
+      prompt_hint: 'איפה הייתם עם תמר בתקופת המחאה?',
+      active: true,
+    })
     v2.schemaVersion.set(2)
     ctx = v2
     ok('site.get')
@@ -120,10 +128,17 @@ describe('migration', () => {
     const byId = Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c]))
     expect(byId.journey.description).toBe('ילדות, נעורים, רגעים משמעותיים וסיפורים משפחתיים')
     expect(byId.general.prompt_hint).toBe('זיכרון שכתבתי בעצמי')
+    expect(byId.protest).toMatchObject({
+      name: 'מחאות פוליטיות',
+      description: 'סיפורים, חוויות ואנשים מהמחאות שתמר השתתפה בהן',
+      prompt_hint: 'באיזו מחאה הייתם יחד עם תמר?',
+    })
   })
 
-  it('seeds a new Sheet without the word "זיכרון"', () => {
-    expect(JSON.stringify(ok('categories.list'))).not.toMatch(/זיכרו/)
+  it('seeds a new Sheet without memorial wording', () => {
+    const text = JSON.stringify(ok('categories.list'))
+    expect(text).not.toMatch(/זיכרו|תשכחו|תקופת המחאה/)
+    expect(text).toContain('מחאות פוליטיות')
   })
 
   it('maps an unknown tone in the Sheet to the neutral tone in the API', () => {

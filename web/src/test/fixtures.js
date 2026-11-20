@@ -1,7 +1,7 @@
 // A bootstrap response shaped like the live API's.
 export const categories = [
   ['journey', 'מסע בזמן', 'rose'],
-  ['protest', 'תקופת המחאה', 'sage'],
+  ['protest', 'מחאות פוליטיות', 'sage'],
   ['travels', 'טיולים בארץ ובעולם', 'sage'],
   ['sayings', 'המשפטים של תמר', 'rose'],
   ['fun-fact', 'עובדה מעניינת על תמר', 'rose'],

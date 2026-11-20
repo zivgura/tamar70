@@ -11,15 +11,34 @@ const SEEDED_TONE = Object.fromEntries(DEFAULT_CATEGORIES.map((c) => [c.id, c.co
  * in order, for every version between the Sheet's and SCHEMA_VERSION. A fresh Sheet is
  * seeded in the newest shape, so these are no-ops there.
  */
-// Version 3: the site says "סיפור" (story), not "זיכרון" (memory), which sounds like a
-// memorial. Seeded texts still worded the old way get the new wording; texts edited in the
-// Sheet are left alone.
+// Version 3: wording that sounded like a memorial ("זיכרון", "שלא תשכחו") and the
+// renamed protest corner. Seeded texts still worded the old way get the new wording; texts
+// edited in the Sheet are left alone.
 const V3_WORDING = [
   {
     id: 'journey',
     field: 'description',
     from: 'ילדות, נעורים, רגעים משמעותיים וזיכרונות משפחתיים',
     to: 'ילדות, נעורים, רגעים משמעותיים וסיפורים משפחתיים',
+  },
+  {
+    id: 'journey',
+    field: 'prompt_hint',
+    from: 'ספרו על רגע מחייה של תמר שלא תשכחו',
+    to: 'ספרו על חוויה משותפת מהעבר',
+  },
+  { id: 'protest', field: 'name', from: 'תקופת המחאה', to: 'מחאות פוליטיות' },
+  {
+    id: 'protest',
+    field: 'description',
+    from: 'סיפורים, חוויות ואנשים מתקופת המחאה',
+    to: 'סיפורים, חוויות ואנשים מהמחאות שתמר השתתפה בהן',
+  },
+  {
+    id: 'protest',
+    field: 'prompt_hint',
+    from: 'איפה הייתם עם תמר בתקופת המחאה?',
+    to: 'באיזו מחאה הייתם יחד עם תמר?',
   },
   {
     id: 'general',
@@ -39,9 +58,8 @@ const UPGRADES = {
     }
   },
   3(db) {
-    const categories = db.all('Categories')
     for (const { id, field, from, to } of V3_WORDING) {
-      const category = categories.find((c) => c.id === id)
+      const category = db.all('Categories').find((c) => c.id === id)
       if (category && category[field] === from) db.update('Categories', 'id', id, { [field]: to })
     }
   },

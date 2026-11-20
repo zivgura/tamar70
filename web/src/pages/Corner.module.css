@@ -21,7 +21,6 @@
 /* The writing prompt, as a note pinned in the corner's tone */
 .prompt {
   padding: var(--space-4) var(--space-5);
-  font-family: var(--font-display);
   font-size: var(--text-lg);
   color: var(--tone-ink);
   background: var(--tone-soft);

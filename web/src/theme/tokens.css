@@ -88,8 +88,7 @@
 
   /* Typography ---------------------------------------------------------------------- */
 
-  --font-display: 'Frank Ruhl Libre', 'David', serif; /* headings, story body */
-  --font-body: 'Assistant', system-ui, sans-serif; /* UI and short text */
+  --font-body: 'Assistant', system-ui, sans-serif; /* everything, titles included */
   --font-hand: 'Amatic SC', cursive; /* polaroid captions */
 
   --text-xs: 0.8125rem; /* 13px */
@@ -109,6 +108,7 @@
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
+  --weight-heading: 800; /* titles: same font as the text, heavier */
 
   --leading-tight: 1.1;
   --leading-snug: 1.2;

@@ -70,12 +70,12 @@ export default function Styleguide() {
       </Section>
 
       <Section title="טיפוגרפיה">
-        <p className={`${styles.typeRow} ${styles.display}`}>
-          <span className={styles.typeToken}>--font-display</span>
+        <h3 className={styles.typeRow}>
+          <span className={styles.typeToken}>--weight-heading</span>
           <span className={styles.typeSample} style={tokenVar('--text-3xl')}>
-            Frank Ruhl Libre · תמר בת 70
+            כותרת · תמר בת 70
           </span>
-        </p>
+        </h3>
         <p className={styles.typeRow}>
           <span className={styles.typeToken}>--font-body</span>
           <span className={styles.typeSample} style={tokenVar('--text-xl')}>

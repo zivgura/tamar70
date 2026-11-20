@@ -10,14 +10,14 @@ export const DEFAULT_CATEGORIES = [
     id: 'journey',
     name: 'מסע בזמן',
     description: 'ילדות, נעורים, רגעים משמעותיים וסיפורים משפחתיים',
-    prompt_hint: 'ספרו על רגע מחייה של תמר שלא תשכחו',
+    prompt_hint: 'ספרו על חוויה משותפת מהעבר',
     color: 'rose',
   },
   {
     id: 'protest',
-    name: 'תקופת המחאה',
-    description: 'סיפורים, חוויות ואנשים מתקופת המחאה',
-    prompt_hint: 'איפה הייתם עם תמר בתקופת המחאה?',
+    name: 'מחאות פוליטיות',
+    description: 'סיפורים, חוויות ואנשים מהמחאות שתמר השתתפה בהן',
+    prompt_hint: 'באיזו מחאה הייתם יחד עם תמר?',
     color: 'sage',
   },
   {
