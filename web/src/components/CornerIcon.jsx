@@ -12,7 +12,7 @@ import Suitcase from '../assets/icons/suitcase.svg?react'
 
 const CORNER_ICONS = {
   journey: Hourglass, // מסע בזמן
-  protest: Megaphone, // תקופת המחאה
+  protest: Megaphone, // מחאות פוליטיות
   travels: Suitcase, // טיולים בארץ ובעולם
   sayings: SpeechBubble, // המשפטים של תמר
   'fun-fact': LightBulb, // עובדה מעניינת על תמר

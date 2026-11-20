@@ -30,7 +30,7 @@ const TONE_NAMES = { rose: 'ורוד עתיק', sage: 'ירוק מרווה', ter
 
 const CORNERS = [
   ['journey', 'מסע בזמן', 'rose'],
-  ['protest', 'תקופת המחאה', 'sage'],
+  ['protest', 'מחאות פוליטיות', 'sage'],
   ['travels', 'טיולים בארץ ובעולם', 'sage'],
   ['sayings', 'המשפטים של תמר', 'rose'],
   ['fun-fact', 'עובדה מעניינת על תמר', 'rose'],
