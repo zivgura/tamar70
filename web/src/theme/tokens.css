@@ -168,6 +168,7 @@
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-slow: 600ms;
+  --duration-spin: 900ms; /* one turn of the loading spinner */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 

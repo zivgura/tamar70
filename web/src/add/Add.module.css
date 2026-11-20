@@ -1,0 +1,364 @@
+/* The add-a-story flow, from the mockups' "add" screens. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 80px);
+}
+
+/* Step header: back or close, "step 2 of 3", three bars */
+.stepHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3) 0 var(--layout-gutter);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: 0;
+  color: var(--color-text);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-full);
+}
+
+.iconButton svg {
+  width: 22px;
+  height: 22px;
+}
+
+.stepCount {
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-2) var(--layout-gutter) 0;
+}
+
+.bar {
+  height: 5px;
+  background: var(--color-border);
+  border-radius: var(--radius-xs);
+}
+
+.barDone {
+  background: var(--color-accent);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-7);
+  padding: var(--space-6) var(--layout-gutter) 0;
+}
+
+.title {
+  font-size: var(--text-4xl);
+}
+
+.lead {
+  margin-top: calc(var(--space-4) * -1);
+  color: var(--color-text-secondary);
+}
+
+.footer {
+  padding: var(--space-6) var(--layout-gutter) var(--space-7);
+}
+
+.footerNote {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Step 1: what to share */
+.tiles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 96px;
+  padding: var(--space-4);
+  color: var(--color-text);
+  text-align: start;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: var(--border-medium) solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.tile[aria-pressed='true'] {
+  border: var(--border-thick) solid var(--color-accent);
+}
+
+.tileIcon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  color: var(--tone-ink);
+  background: var(--tone-soft);
+  border-radius: var(--radius-lg);
+}
+
+.tileIcon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.tileText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tileTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.tileHint {
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
+}
+
+/* Step 2: content */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-weight: var(--weight-bold);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.counter {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: left;
+  direction: ltr;
+}
+
+.error {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.details {
+  padding: 0 var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.details summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 64px;
+  cursor: pointer;
+}
+
+.summaryTitle {
+  font-weight: var(--weight-bold);
+}
+
+.detailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-bottom: var(--space-4);
+}
+
+/* Photos */
+.photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.photo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.photoButton {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-lg);
+}
+
+.thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--pattern-placeholder);
+  border-radius: var(--radius-lg);
+}
+
+.photoNote {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.photoNoteDone {
+  color: var(--color-success);
+}
+
+.photoNoteError {
+  color: var(--color-danger);
+}
+
+.addPhoto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.addPhoto svg {
+  width: 26px;
+  height: 26px;
+}
+
+.addPhoto:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Photo details dialog */
+.dialog {
+  width: min(calc(100% - var(--space-8)), var(--layout-max));
+  padding: var(--space-5);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 0;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-photo-lifted);
+}
+
+.dialog::backdrop {
+  background: var(--color-text);
+  opacity: 0.4;
+}
+
+.dialogForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dialogPhoto {
+  width: 100%;
+  max-height: 40dvh;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+}
+
+.dialogActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+/* Step 3 */
+.consent {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+}
+
+/* Sending and thank you */
+.center {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-8) var(--layout-gutter) var(--space-10);
+}
+
+.sendingHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  padding-top: var(--space-6);
+  text-align: center;
+}
+
+.bigSpinner {
+  --spinner-size: 56px;
+}
+
+.status {
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-10) var(--layout-gutter);
+  text-align: center;
+}

@@ -1,5 +1,14 @@
 import { CATEGORY_TONES } from '@tamar70/shared'
-import { Button, Card, Chip, CornerTile, Polaroid, ProgressBar, TextField } from '../components'
+import {
+  Button,
+  Card,
+  Chip,
+  CornerTile,
+  Polaroid,
+  ProgressBar,
+  Spinner,
+  TextField,
+} from '../components'
 import styles from './Styleguide.module.css'
 
 // A living reference of the design system, at /_styleguide (not linked from the site).
@@ -171,6 +180,10 @@ export default function Styleguide() {
           <ProgressBar value={0.6} label="מעלה" />
           <ProgressBar value={1} state="done" label="הועלתה" />
           <ProgressBar value={0.3} state="error" label="נכשלה" />
+          <div className={styles.row}>
+            <Spinner label="טוען" />
+            <Spinner label="טוען" size="small" />
+          </div>
         </div>
       </Section>
 
