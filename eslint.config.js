@@ -68,16 +68,33 @@ export default defineConfig([
     },
   },
 
-  // Apps Script: classic scripts sharing one global scope. Top-level functions like
-  // doPost() and setup() are entry points called by Google, so they look unused here.
+  // Node scripts and tests: build/deploy scripts, test fakes, every *.test.js.
   {
-    files: ['apps-script/**/*.js'],
-    languageOptions: {
-      sourceType: 'script',
-      globals: appsScriptGlobals,
-    },
+    files: ['apps-script/*.js', '**/*.test.{js,jsx}', 'apps-script/src/testing/**/*.js'],
+    languageOptions: { globals: globals.node },
+  },
+
+  // Apps Script: only the adapters and entry points may use Google's services. Everything in
+  // src/core stays plain JS, so it runs (and is tested) without Google.
+  {
+    files: ['apps-script/src/gas/**/*.js', 'apps-script/src/main.js'],
+    languageOptions: { globals: { ...appsScriptGlobals, console: 'readonly' } },
+  },
+  {
+    files: ['apps-script/src/core/**/*.js'],
+    ignores: ['**/*.test.js'],
     rules: {
-      'no-unused-vars': ['error', { vars: 'local', argsIgnorePattern: '^_' }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/gas/*', '**/testing/*'],
+              message: 'core must not depend on Apps Script adapters or test fakes',
+            },
+          ],
+        },
+      ],
     },
   },
 

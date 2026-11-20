@@ -7,7 +7,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded PR runs are cancelled; runs on main always finish, so a deploy is never cut off.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -70,10 +71,58 @@ jobs:
           projectId: tamar70
           expires: 14d
 
+  # Pushes the Apps Script API and updates its web app deployment (same URL), but only when
+  # apps-script/ or shared/ changed. Runs before the site deploy, so new API actions are live
+  # before the site that calls them.
+  apps-script:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: deploy-apps-script
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'apps-script/**'
+              - 'shared/**'
+              - 'package-lock.json'
+
+      - if: steps.changes.outputs.backend == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - if: steps.changes.outputs.backend == 'true'
+        run: npm ci
+
+      # The secret holds the owner account's clasp login (~/.clasprc.json). It is written to the
+      # runner only for this step and deleted right after, even if the deploy fails.
+      - if: steps.changes.outputs.backend == 'true'
+        name: Push and deploy
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          if [ -z "$CLASPRC_JSON" ]; then
+            echo "::error::Repository secret CLASPRC_JSON is missing"
+            exit 1
+          fi
+          umask 077
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          trap 'rm -f "$HOME/.clasprc.json"' EXIT
+          npm run deploy -w apps-script
+
   # Every merge to main goes live at tamar70.web.app, only after the checks pass.
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: checks
+    needs: [checks, apps-script]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
