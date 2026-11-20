@@ -1,5 +1,6 @@
 import { ERROR_CODES } from '@tamar70/shared'
 import { ApiError } from '../core/errors.js'
+import { createDrive } from './drive.js'
 import { createSheetsDb } from './sheetsDb.js'
 
 const LOCK_WAIT_MS = 10_000
@@ -29,8 +30,13 @@ export function createContext() {
   if (!sheetId) throw new Error('SHEET_ID is not set. Run setup() once from the editor.')
   const cache = CacheService.getScriptCache()
 
+  let drive = null
   return {
     db: createSheetsDb(sheetId),
+    // Created on first use, so requests that don't touch Drive don't need its folder.
+    get drive() {
+      return (drive ??= createDrive(props().getProperty('ORIGINALS_FOLDER_ID')))
+    },
     now: () => new Date().toISOString(),
     // The script runs as its owner ("Execute as: Me"), so this is the owner account.
     ownerEmail: () => Session.getEffectiveUser().getEmail(),

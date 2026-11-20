@@ -78,6 +78,8 @@ export const api = {
   stories: (opts) => apiCall(ACTIONS.STORIES_LIST, {}, opts),
   story: (id, opts) => apiCall(ACTIONS.STORIES_GET, { id }, opts),
   submitStory: (submission, opts) => apiCall(ACTIONS.STORIES_SUBMIT, submission, opts),
+  startUpload: (request, opts) => apiCall(ACTIONS.MEDIA_START, request, opts),
+  finishUpload: (request, opts) => apiCall(ACTIONS.MEDIA_FINISH, request, opts),
 }
 
 /** A private token for editing one's own story later. Kept on the device, never shown. */
