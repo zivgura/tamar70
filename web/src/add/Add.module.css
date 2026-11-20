@@ -234,6 +234,7 @@
 }
 
 .thumb {
+  display: block;
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
@@ -361,4 +362,28 @@
   gap: var(--space-4);
   padding: var(--space-10) var(--layout-gutter);
   text-align: center;
+}
+
+/* Editing */
+.backLink {
+  align-self: flex-start;
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+}
+
+.dialogTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-heading);
+}
+
+.dangerButton {
+  margin-top: var(--space-3);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.dangerFill {
+  color: var(--color-on-accent);
+  background: var(--color-danger);
+  border-color: var(--color-danger);
 }

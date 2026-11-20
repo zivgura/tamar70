@@ -117,7 +117,13 @@ export default function AddStory() {
       const url = URL.createObjectURL(file)
       urls.current.push(url)
       const reason = rejectReason(file)
-      return { key: ++nextPhotoKey, file, url, rejected: reason ? REJECT_MESSAGES[reason] : null }
+      return {
+        key: ++nextPhotoKey,
+        file,
+        name: file.name,
+        url,
+        rejected: reason ? REJECT_MESSAGES[reason] : null,
+      }
     })
     setPhotos((list) => [...list, ...added])
     setErrors((e) => ({ ...e, photos: undefined }))

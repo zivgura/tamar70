@@ -14,9 +14,12 @@ const STAGE_TEXT = {
   error: 'לא הועלתה',
 }
 
-function PhotoNote({ photo }) {
+function PhotoNote({ photo, sending }) {
   if (photo.rejected) {
     return <span className={`${styles.photoNote} ${styles.photoNoteError}`}>{photo.rejected}</span>
+  }
+  if (!photo.stage && sending) {
+    return <span className={styles.photoNote}>{STAGE_TEXT.queued}</span>
   }
   if (!photo.stage) {
     const details = [photo.caption, photo.year].filter(Boolean).join(' · ')
@@ -41,6 +44,8 @@ function PhotoNote({ photo }) {
  */
 export function PhotoGrid({ photos, onAdd, onOpen, sending = false }) {
   const room = MAX_PHOTOS_PER_STORY - photos.length
+  // Each photo: { key, name, url, caption?, year?, ... }; `url` may be missing for a photo
+  // Drive couldn't make a thumbnail for.
   return (
     <div className={styles.photos}>
       {photos.map((photo) => (
@@ -50,18 +55,22 @@ export function PhotoGrid({ photos, onAdd, onOpen, sending = false }) {
             className={styles.photoButton}
             onClick={() => onOpen?.(photo)}
             disabled={sending}
-            aria-label={`פרטי התמונה ${photo.file.name}`}
+            aria-label={`פרטי התמונה ${photo.name}`}
           >
-            <img className={styles.thumb} src={photo.url} alt="" />
+            {photo.url ? (
+              <img className={styles.thumb} src={photo.url} alt="" />
+            ) : (
+              <span className={styles.thumb} />
+            )}
           </button>
           {photo.stage && (
             <ProgressBar
               value={photo.progress ?? 0}
-              label={photo.file.name}
+              label={photo.name}
               state={photo.stage === 'done' ? 'done' : photo.stage === 'error' ? 'error' : 'active'}
             />
           )}
-          <PhotoNote photo={photo} />
+          <PhotoNote photo={photo} sending={sending} />
         </div>
       ))}
       {!sending && room > 0 && (

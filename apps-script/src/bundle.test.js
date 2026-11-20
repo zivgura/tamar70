@@ -144,6 +144,42 @@ describe('bundle', () => {
     })
   })
 
+  it('lets the owner read back a story with Drive thumbnails, and trash a photo', () => {
+    script.rotateFamilyCode()
+    const code = gas.logs
+      .map(([, msg]) => msg)
+      .find((m) => m.startsWith('New family code: '))
+      .slice('New family code: '.length)
+    const edit_token = 'c'.repeat(40)
+    const { id } = post({
+      action: 'stories.submit',
+      payload: { edit_token, family_code: code, kind: 'photos', author_name: 'רונית' },
+    }).data
+    const { media_id } = post({
+      action: 'media.start',
+      payload: {
+        story_id: id,
+        edit_token,
+        origin: 'https://tamar70.web.app',
+        filename: 'a.jpg',
+        mime: 'image/jpeg',
+        bytes: 1234,
+      },
+    }).data
+    expect(
+      post({
+        action: 'media.finish',
+        payload: { story_id: id, edit_token, media_id, drive_file_id: 'drivefile0001' },
+      }).ok,
+    ).toBe(true)
+
+    const own = post({ action: 'stories.getOwn', payload: { id, edit_token } }).data
+    expect(own.photos[0].thumbnail).toBe('data:image/png;base64,AQID')
+
+    post({ action: 'media.remove', payload: { story_id: id, edit_token, media_id } })
+    expect(gas.trashed).toEqual(['drivefile0001'])
+  })
+
   it('returns validation errors from zod inside the bundle', () => {
     const res = post({ action: 'stories.submit', payload: { kind: 'text' } })
     expect(res.ok).toBe(false)

@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useStory } from '../api/queries.js'
 import { ErrorMessage, LoadingCards, Message, StoryCard } from '../components'
 import { formatDay } from '../lib/format.js'
@@ -11,6 +12,7 @@ import styles from './Corner.module.css'
 export default function Story() {
   const { id } = useParams()
   const { story, isPending, error, boot } = useStory(id)
+  const canEdit = useCanEdit(boot.data?.site)
 
   if (isPending) {
     return (
@@ -38,7 +40,14 @@ export default function Story() {
       <Link to={category ? `/corner/${category.id}` : '/'} className={styles.back}>
         → {category?.name ?? 'לדף הבית'}
       </Link>
-      <StoryCard story={story} category={category} linked={false} full headingLevel={1} />
+      <StoryCard
+        story={story}
+        category={category}
+        linked={false}
+        full
+        headingLevel={1}
+        editable={canEdit(story.id)}
+      />
       {story.view === 'teaser' && birthday && (
         <Message>הסיפור המלא, עם התמונות, ייחשף ב-{formatDay(birthday)}.</Message>
       )}

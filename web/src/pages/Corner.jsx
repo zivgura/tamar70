@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
 import { Button, CornerIcon, ErrorMessage, LoadingCards, Message, StoryCard } from '../components'
 import styles from './Corner.module.css'
@@ -7,6 +8,7 @@ import styles from './Corner.module.css'
 export default function Corner() {
   const { slug } = useParams()
   const { data, error, isPending, refetch } = useBootstrap()
+  const canEdit = useCanEdit(data?.site)
 
   if (error) return <ErrorMessage error={error} onRetry={refetch} />
   if (isPending) {
@@ -50,7 +52,7 @@ export default function Corner() {
       ) : (
         <div className={styles.feed}>
           {stories.map((s) => (
-            <StoryCard key={s.id} story={s} category={category} />
+            <StoryCard key={s.id} story={s} category={category} editable={canEdit(s.id)} />
           ))}
         </div>
       )}

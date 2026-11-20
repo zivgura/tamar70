@@ -48,6 +48,16 @@ export function rememberMine(storyId, token) {
   writeStored(MINE, { ...loadMine(), [storyId]: { token, created_at: new Date().toISOString() } })
 }
 
+/** The private edit token for a story written on this device, or null. */
+export function tokenFor(storyId) {
+  return loadMine()[storyId]?.token ?? null
+}
+
+export function forgetMine(storyId) {
+  const { [storyId]: _gone, ...rest } = loadMine()
+  writeStored(MINE, rest)
+}
+
 /** "חיפה, ירושלים" → ['חיפה', 'ירושלים'] */
 export function splitList(text) {
   return String(text ?? '')

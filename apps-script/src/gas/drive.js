@@ -45,6 +45,21 @@ export function createDrive(folderId) {
       return location
     },
 
+    /** A small thumbnail as a data URL, or null (Drive makes them for photos it can read). */
+    thumbnail(id) {
+      try {
+        const blob = DriveApp.getFileById(id).getThumbnail()
+        if (!blob) return null
+        return `data:${blob.getContentType()};base64,${Utilities.base64Encode(blob.getBytes())}`
+      } catch {
+        return null
+      }
+    },
+
+    trash(id) {
+      DriveApp.getFileById(id).setTrashed(true)
+    },
+
     /** The file's metadata, or null if Drive doesn't have it. */
     getFile(id) {
       const response = UrlFetchApp.fetch(

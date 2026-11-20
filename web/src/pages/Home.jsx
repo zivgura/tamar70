@@ -1,5 +1,6 @@
 import { DEFAULT_CATEGORY_ID } from '@tamar70/shared'
 import { Link } from 'react-router-dom'
+import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
 import {
   Button,
@@ -30,6 +31,7 @@ function Counter({ stats }) {
 export default function Home() {
   const { data, error, isPending, refetch } = useBootstrap()
   const site = data?.site
+  const canEdit = useCanEdit(site)
   const corners = data?.categories.filter((c) => c.id !== DEFAULT_CATEGORY_ID) ?? []
 
   return (
@@ -87,6 +89,7 @@ export default function Home() {
                     key={s.id}
                     story={s}
                     category={findCategory(data.categories, s.category_id)}
+                    editable={canEdit(s.id)}
                   />
                 ))}
               </div>
