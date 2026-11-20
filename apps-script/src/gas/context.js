@@ -1,5 +1,6 @@
 import { ERROR_CODES } from '@tamar70/shared'
 import { ApiError } from '../core/errors.js'
+import { HOUSEKEEPING_MINUTES } from '../core/housekeeping.js'
 import { createDrive } from './drive.js'
 import { createSheetsDb } from './sheetsDb.js'
 
@@ -74,6 +75,36 @@ export function createContext() {
         randomBytes(n)
           .map((b) => ID_ALPHABET[b % ID_ALPHABET.length])
           .join(''),
+    },
+
+    mail: {
+      send: ({ to, subject, body }) => MailApp.sendEmail({ to, subject, body, name: 'תמר בת 70' }),
+    },
+
+    schedule: {
+      /** Installs the housekeeping timer unless it's already there. */
+      ensure() {
+        const exists = ScriptApp.getProjectTriggers().some(
+          (t) => t.getHandlerFunction() === 'housekeeping',
+        )
+        if (exists) return false
+        ScriptApp.newTrigger('housekeeping').timeBased().everyMinutes(HOUSEKEEPING_MINUTES).create()
+        return true
+      },
+    },
+
+    google: {
+      /** Google's own check of a sign-in ID token: its claims, or null if Google rejects it. */
+      tokenInfo(idToken) {
+        const response = UrlFetchApp.fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+          { muteHttpExceptions: true },
+        )
+        const code = response.getResponseCode()
+        if (code === 400) return null
+        if (code !== 200) throw new Error(`tokeninfo ${code}`)
+        return JSON.parse(response.getContentText())
+      },
     },
 
     schemaVersion: {

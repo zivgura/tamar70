@@ -67,6 +67,7 @@ export function createFakeDrive({ folderId = 'folder-originals' } = {}) {
       const id = `drivefile${String(++n).padStart(6, '0')}`
       files.set(id, {
         id,
+        created: this.clock?.() ?? '2026-12-01T10:00:00.000Z',
         parents: [folderId],
         size: bytes ?? s.bytes,
         mimeType: s.mime,
@@ -77,6 +78,11 @@ export function createFakeDrive({ folderId = 'folder-originals' } = {}) {
       return id
     },
     getFile: (id) => files.get(id) ?? null,
+    listFiles() {
+      return [...files.values()]
+        .filter((f) => !this.trashed.has(f.id))
+        .map((f) => ({ id: f.id, created: f.created }))
+    },
     trashed: new Set(),
     thumbnail: (id) => (files.has(id) ? `data:image/png;base64,${id}` : null),
     trash(id) {
@@ -91,7 +97,19 @@ export function createMemoryContext({ now = '2026-12-01T10:00:00.000Z' } = {}) {
   let clock = now
   return {
     db: createMemoryDb(),
-    drive: createFakeDrive(),
+    drive: Object.assign(createFakeDrive(), { clock: () => clock }),
+    mail: {
+      sent: [],
+      send(message) {
+        this.sent.push(message)
+      },
+    },
+    schedule: {
+      installs: 0,
+      ensure() {
+        this.installs++
+      },
+    },
     now: () => clock,
     ownerEmail: () => 'owner@example.test',
     setNow: (iso) => (clock = iso),
@@ -109,5 +127,14 @@ export function createMemoryContext({ now = '2026-12-01T10:00:00.000Z' } = {}) {
       randomId: (n) => randomBytes(n).toString('hex').slice(0, n),
     },
     schemaVersion: { get: () => version, set: (v) => (version = v) },
+    // Tests register tokens: google.tokens.set(token, claims). Unknown tokens are rejected.
+    google: {
+      tokens: new Map(),
+      calls: 0,
+      tokenInfo(token) {
+        this.calls++
+        return this.tokens.get(token) ?? null
+      },
+    },
   }
 }

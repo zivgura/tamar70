@@ -10,6 +10,10 @@ import Story from './pages/Story.jsx'
 
 const Styleguide = lazy(() => import('./pages/Styleguide.jsx'))
 const UploadTest = lazy(() => import('./pages/UploadTest.jsx'))
+// The admin pages load only for admins, so visitors never download them.
+const AdminLayout = lazy(() => import('./admin/AdminLayout.jsx'))
+const AdminStories = lazy(() => import('./admin/AdminStories.jsx'))
+const AdminStory = lazy(() => import('./admin/AdminStory.jsx'))
 
 const later = (Page) => (
   <Suspense fallback={null}>
@@ -28,6 +32,14 @@ export const routes = [
       { path: '/add', element: <AddStory /> },
       { path: '/edit/:id', element: <EditStory /> },
       { path: '*', element: <Home /> },
+    ],
+  },
+  {
+    path: '/admin',
+    element: later(AdminLayout),
+    children: [
+      { index: true, element: later(AdminStories) },
+      { path: 'story/:id', element: later(AdminStory) },
     ],
   },
   // Not linked from the site.

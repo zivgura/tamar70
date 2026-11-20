@@ -19,6 +19,14 @@ export const ACTIONS = Object.freeze({
   OWN_DELETE: 'stories.delete',
   OWN_MEDIA_UPDATE: 'media.update',
   OWN_MEDIA_REMOVE: 'media.remove',
+  // Admins only (Google sign-in):
+  ADMIN_ME: 'admin.me',
+  ADMIN_STORIES: 'admin.stories',
+  ADMIN_STORY: 'admin.story',
+  ADMIN_STORY_UPDATE: 'admin.storyUpdate',
+  ADMIN_VISIBILITY: 'admin.setVisibility',
+  ADMIN_STORY_DELETE: 'admin.storyDelete',
+  ADMIN_MEDIA_REMOVE: 'admin.mediaRemove',
 })
 
 export const ERROR_CODES = Object.freeze({
@@ -30,6 +38,8 @@ export const ERROR_CODES = Object.freeze({
   NOT_FOUND: 'not_found',
   FORBIDDEN: 'forbidden',
   EDITING_CLOSED: 'editing_closed',
+  SIGN_IN_REQUIRED: 'sign_in_required', // no Google sign-in, or it expired
+  NOT_ADMIN: 'not_admin', // signed in, but not in AdminUsers
   TOO_MANY_PHOTOS: 'too_many_photos',
   UPLOAD_FAILED: 'upload_failed',
   BUSY: 'busy',

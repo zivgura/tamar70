@@ -15,7 +15,7 @@ import { ApiError } from './errors.js'
 import { invalidatePublicCache, mediaOf } from './media.js'
 import { ownStory, requireEditable } from './ownership.js'
 
-const livePhotos = (ctx, storyId) =>
+export const livePhotos = (ctx, storyId) =>
   mediaOf(ctx, storyId)
     .filter((m) => m.upload_status === UPLOAD_STATUS.DONE)
     .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -28,7 +28,7 @@ function ownMedia(ctx, story, mediaId) {
   return media
 }
 
-function recountPhotos(ctx, story) {
+export function recountPhotos(ctx, story) {
   ctx.db.update('Stories', 'id', story.id, {
     media_count: livePhotos(ctx, story.id).length,
     updated_at: ctx.now(),
@@ -144,7 +144,7 @@ export function removeOwnMedia(ctx, payload) {
 }
 
 // The Media row is what the site goes by; a file that can't be trashed now is cleaned up later.
-function trashQuietly(ctx, fileId) {
+export function trashQuietly(ctx, fileId) {
   if (!fileId) return
   try {
     ctx.drive.trash(fileId)
