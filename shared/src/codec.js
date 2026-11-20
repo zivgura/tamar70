@@ -23,7 +23,7 @@ function encodeValue(value, type) {
 }
 
 function decodeValue(cell, type) {
-  if (cell instanceof Date) return cell.toISOString()
+  if (Object.prototype.toString.call(cell) === '[object Date]') return cell.toISOString()
   if (cell === '' || cell === null || cell === undefined) {
     return type === T.JSON ? [] : type === T.BOOLEAN ? false : null
   }
