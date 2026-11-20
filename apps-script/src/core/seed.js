@@ -1,6 +1,8 @@
 import { DEFAULT_CATEGORY_ID, SETTING_KEYS, SITE_STATUS } from '@tamar70/shared'
 
-// First-run content for the Sheet. Written only into empty tabs (or missing settings), so
+// First-run content for the Sheet. Category colors are tone names from the design system
+// (rose, sage, terracotta, sand), matching the approved mockups.
+// Written only into empty tabs (or missing settings), so
 // edits made in the Sheet afterwards are never overwritten.
 
 export const DEFAULT_CATEGORIES = [
@@ -9,56 +11,56 @@ export const DEFAULT_CATEGORIES = [
     name: 'מסע בזמן',
     description: 'ילדות, נעורים, רגעים משמעותיים וזיכרונות משפחתיים',
     prompt_hint: 'ספרו על רגע מחייה של תמר שלא תשכחו',
-    color: '#D4A5A0',
+    color: 'rose',
   },
   {
     id: 'protest',
     name: 'תקופת המחאה',
     description: 'סיפורים, חוויות ואנשים מתקופת המחאה',
     prompt_hint: 'איפה הייתם עם תמר בתקופת המחאה?',
-    color: '#9CAF88',
+    color: 'sage',
   },
   {
     id: 'travels',
     name: 'טיולים בארץ ובעולם',
     description: 'הרפתקאות, טיולים ומקומות מיוחדים',
     prompt_hint: 'לאן טיילתם יחד, ומה קרה שם?',
-    color: '#C0745A',
+    color: 'sage',
   },
   {
     id: 'sayings',
     name: 'המשפטים של תמר',
     description: 'משפטים, ביטויים ואמירות שתמר נוהגת לומר',
     prompt_hint: 'מה תמר תמיד אומרת כש...?',
-    color: '#D4A5A0',
+    color: 'rose',
   },
   {
     id: 'fun-fact',
     name: 'עובדה מעניינת על תמר',
     description: 'עובדות מפתיעות ומעניינות',
     prompt_hint: 'איזו עובדה על תמר תפתיע את כולם?',
-    color: '#9CAF88',
+    color: 'rose',
   },
   {
     id: 'did-you-know',
     name: 'לא ידעתם על תמר',
     description: 'כישרונות חבויים, הרגלים, אנקדוטות וסודות משעשעים',
     prompt_hint: 'מה רק מעטים יודעים על תמר?',
-    color: '#C0745A',
+    color: 'sage',
   },
   {
     id: 'wishes',
     name: 'כמה מילים לתמר',
     description: 'ברכות, איחולים והבעת הערכה',
     prompt_hint: 'מה הייתם רוצים לאחל לתמר?',
-    color: '#D4A5A0',
+    color: 'rose',
   },
   {
     id: DEFAULT_CATEGORY_ID,
     name: 'לא בטוחים – כללי',
     description: 'כל מה שלא מתאים לפינה אחרת',
     prompt_hint: 'שתפו כל זיכרון, סיפור או תמונה',
-    color: '#9CAF88',
+    color: 'sand',
   },
 ].map((c, i) => ({ ...c, order: i + 1, active: true }))
 

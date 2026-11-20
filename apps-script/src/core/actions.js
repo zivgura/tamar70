@@ -1,6 +1,8 @@
 import {
   ACTIONS,
+  CATEGORY_TONES,
   DEFAULT_CATEGORY_ID,
+  DEFAULT_TONE,
   ERROR_CODES,
   getStoryView,
   makeExcerpt,
@@ -59,7 +61,8 @@ function listCategories(ctx) {
       name,
       description,
       prompt_hint,
-      color,
+      // A design-system tone name; anything else in the Sheet falls back to the neutral tone.
+      tone: CATEGORY_TONES.includes(color) ? color : DEFAULT_TONE,
     }))
 }
 

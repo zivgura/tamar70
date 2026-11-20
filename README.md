@@ -24,7 +24,11 @@ npm run check        # everything CI runs: lint, format check, tests, build
 npm run build -w apps-script    # bundle the API into apps-script/dist/Code.js
 ```
 
-The pre-commit hook runs ESLint and Prettier on staged files.
+The pre-commit hook runs ESLint, Stylelint and Prettier on staged files.
+
+## Design system
+
+All colors, fonts, sizes, radii and shadows live in [`web/src/theme/tokens.css`](web/src/theme/tokens.css), taken from the approved mockups. Lint rejects raw colors and font values anywhere else. Rules and usage: [`web/src/theme/README.md`](web/src/theme/README.md). Rendered reference: `/_styleguide`.
 
 ## The API (apps-script/)
 

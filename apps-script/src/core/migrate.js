@@ -1,18 +1,40 @@
-import { SCHEMA_VERSION, SETTING_KEYS, TABLES } from '@tamar70/shared'
+import { CATEGORY_TONES, DEFAULT_TONE, SCHEMA_VERSION, SETTING_KEYS, TABLES } from '@tamar70/shared'
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS } from './seed.js'
 import { readSettings } from './settings.js'
 
+// Version 1 seeded category colors as hex values. The design system names them instead.
+const V1_HEX_TONES = { '#d4a5a0': 'rose', '#9caf88': 'sage', '#c0745a': 'terracotta' }
+const SEEDED_TONE = Object.fromEntries(DEFAULT_CATEGORIES.map((c) => [c.id, c.color]))
+
 /**
- * Brings the Sheet up to SCHEMA_VERSION: creates missing tabs and columns, then seeds
- * empty tabs. Safe to run any number of times. Runs automatically on the first request after
- * a deploy that bumped the version, so no one has to run anything by hand.
+ * Data changes for an existing Sheet, keyed by the version they bring it to. They run once,
+ * in order, for every version between the Sheet's and SCHEMA_VERSION. A fresh Sheet is
+ * seeded in the newest shape, so these are no-ops there.
+ */
+const UPGRADES = {
+  2(db) {
+    for (const category of db.all('Categories')) {
+      const color = String(category.color || '').trim()
+      if (CATEGORY_TONES.includes(color)) continue
+      const tone = SEEDED_TONE[category.id] ?? V1_HEX_TONES[color.toLowerCase()] ?? DEFAULT_TONE
+      db.update('Categories', 'id', category.id, { color: tone })
+    }
+  },
+}
+
+/**
+ * Brings the Sheet up to SCHEMA_VERSION: creates missing tabs and columns, seeds empty tabs,
+ * then runs the data upgrades the Sheet hasn't had yet. Safe to run any number of times.
+ * Runs automatically on the first request after a deploy that bumped the version, so no one
+ * has to run anything by hand.
  */
 export function migrate(ctx) {
   const { db, schemaVersion, now } = ctx
   if (schemaVersion.get() >= SCHEMA_VERSION) return false
 
   return ctx.lock.run(() => {
-    if (schemaVersion.get() >= SCHEMA_VERSION) return false // another request got here first
+    const from = schemaVersion.get()
+    if (from >= SCHEMA_VERSION) return false // another request got here first
 
     for (const [name, columns] of Object.entries(TABLES)) {
       db.ensureTable(
@@ -35,6 +57,10 @@ export function migrate(ctx) {
 
     if (db.all('AdminUsers').length === 0 && owner) {
       db.insert('AdminUsers', { email: owner, name: 'Owner', added_at: now() })
+    }
+
+    for (let version = Math.max(from, 1) + 1; version <= SCHEMA_VERSION; version++) {
+      UPGRADES[version]?.(db)
     }
 
     schemaVersion.set(SCHEMA_VERSION)

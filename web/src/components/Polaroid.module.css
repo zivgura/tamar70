@@ -1,0 +1,60 @@
+.polaroid {
+  position: relative;
+  margin: 0;
+  padding: var(--space-3) var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-photo);
+  transform: rotate(var(--polaroid-tilt, 0deg));
+}
+
+.left {
+  --polaroid-tilt: var(--tilt-left);
+}
+
+.right {
+  --polaroid-tilt: var(--tilt-right);
+}
+
+.leftStrong {
+  --polaroid-tilt: var(--tilt-left-strong);
+
+  box-shadow: var(--shadow-photo-lifted);
+}
+
+.rightStrong {
+  --polaroid-tilt: var(--tilt-right-strong);
+}
+
+/* Washi tape across the top edge. */
+.taped::before {
+  position: absolute;
+  inset-block-start: calc(var(--space-3) * -1);
+  inset-inline-start: 50%;
+  width: 96px;
+  height: 26px;
+  content: '';
+  background: var(--color-tape);
+  opacity: 0.75;
+  transform: translateX(50%) rotate(4deg);
+}
+
+.photo {
+  width: 100%;
+  aspect-ratio: var(--polaroid-ratio, 1);
+  object-fit: cover;
+  background: var(--pattern-placeholder);
+}
+
+.caption {
+  margin-top: var(--space-2);
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+}
+
+.hand {
+  font-family: var(--font-hand);
+  font-size: var(--text-hand);
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+  text-align: center;
+}

@@ -36,6 +36,11 @@ export const UPLOAD_STATUS = Object.freeze({
 
 export const DEFAULT_CATEGORY_ID = 'general'
 
+// A category's accent is a tone name from the design system (web/src/theme/tokens.css),
+// never a color value. The Sheet's Categories.color column holds one of these.
+export const CATEGORY_TONES = Object.freeze(['rose', 'sage', 'terracotta', 'sand'])
+export const DEFAULT_TONE = 'sand'
+
 export const LIMITS = Object.freeze({
   STORY_CONTENT_MAX: 10_000,
   COMMENT_CONTENT_MAX: 1_000,
