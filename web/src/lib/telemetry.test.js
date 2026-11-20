@@ -18,7 +18,7 @@ describe('telemetry', () => {
     expect(report).toMatchObject({
       message: 'x is undefined',
       path: '/story/st_1',
-      release: 'dev',
+      release: import.meta.env.VITE_RELEASE,
       device: deviceId(),
     })
     expect(report.stack).toContain('TypeError')
