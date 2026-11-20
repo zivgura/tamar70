@@ -19,6 +19,7 @@ import { ApiError, notFound } from './errors.js'
 import { invalidatePublicCache, mediaOf } from './media.js'
 import { livePhotos, recountPhotos, trashQuietly } from './own.js'
 import { readSettings, siteConfig } from './settings.js'
+import { stats } from './telemetry.js'
 
 // A checked token is remembered for a while, so each admin call doesn't ask Google again.
 const VERIFIED_CACHE_SECONDS = 600
@@ -224,6 +225,12 @@ function removeMedia(ctx, payload) {
   }
 }
 
+function adminStats(ctx, payload) {
+  const { id_token } = adminAuthSchema.parse(payload)
+  requireAdmin(ctx, id_token)
+  return stats(ctx)
+}
+
 export const adminHandlers = {
   [ACTIONS.ADMIN_ME]: me,
   [ACTIONS.ADMIN_STORIES]: listStories,
@@ -232,4 +239,5 @@ export const adminHandlers = {
   [ACTIONS.ADMIN_VISIBILITY]: setVisibility,
   [ACTIONS.ADMIN_STORY_DELETE]: deleteStory,
   [ACTIONS.ADMIN_MEDIA_REMOVE]: removeMedia,
+  [ACTIONS.ADMIN_STATS]: adminStats,
 }

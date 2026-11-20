@@ -19,3 +19,12 @@ export function useAdminStory(id) {
     retry: false,
   })
 }
+
+export function useAdminStats() {
+  const { token, call } = useAdmin()
+  return useQuery({
+    queryKey: ['admin', 'stats', token],
+    queryFn: () => call(ACTIONS.ADMIN_STATS),
+    retry: false,
+  })
+}

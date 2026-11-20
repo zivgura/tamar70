@@ -333,3 +333,74 @@
   gap: var(--space-3);
   justify-content: space-between;
 }
+
+/* Stats */
+.totals {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.totals > div {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.totals dt {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.totals dd {
+  margin: 0;
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-heading);
+}
+
+.table {
+  width: 100%;
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-1);
+  text-align: start;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table thead th {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-muted);
+}
+
+.errorRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.errorRow .rowTitle {
+  overflow-wrap: anywhere;
+  font-size: var(--text-md);
+}
+
+.stack {
+  max-height: 40dvh;
+  padding: var(--space-3);
+  overflow: auto;
+  font-size: var(--text-xs);
+  white-space: pre-wrap;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
