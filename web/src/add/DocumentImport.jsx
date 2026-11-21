@@ -2,6 +2,7 @@ import { googleDocId, LIMITS } from '@tamar70/shared'
 import { useRef, useState } from 'react'
 import { api } from '../api/client.js'
 import { errorMessage } from '../api/messages.js'
+import { ChevronDownIcon, DocumentUploadIcon } from '../components/icons.js'
 import { isDocx, readDocx } from '../lib/readDocx.js'
 import styles from './Add.module.css'
 
@@ -67,10 +68,18 @@ export function DocumentImport({ content, onText, onDocument }) {
 
   // Closed by default: most people type here; those who already wrote open it.
   return (
-    <details className={styles.details}>
-      <summary>
-        <span className={styles.summaryTitle}>כבר כתבתם את הסיפור?</span>
-        <span className={styles.hint}>העלו מסמך Word או הדביקו קישור ל-Google Docs</span>
+    <details className={styles.docPanel}>
+      <summary className={styles.docSummary}>
+        <span className={styles.docIcon} aria-hidden="true">
+          <DocumentUploadIcon />
+        </span>
+        <span className={styles.docSummaryText}>
+          <span className={styles.summaryTitle}>
+            כבר כתבתם את הסיפור? <span className={styles.optionalTag}>רשות</span>
+          </span>
+          <span className={styles.hint}>העלו מסמך Word או קישור ל-Google Docs</span>
+        </span>
+        <ChevronDownIcon className={styles.docChevron} aria-hidden="true" />
       </summary>
       <div className={styles.docImport}>
         <input
