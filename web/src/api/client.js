@@ -83,6 +83,7 @@ export const api = {
   finishUpload: (request, opts) => apiCall(ACTIONS.MEDIA_FINISH, request, opts),
   // The contributor's own story, from the device that sent it
   gallery: () => apiCall(ACTIONS.GALLERY),
+  importGoogleDoc: (url) => apiCall(ACTIONS.GOOGLE_DOC_IMPORT, { url }),
   getOwn: (request, opts) => apiCall(ACTIONS.OWN_GET, request, opts),
   updateOwn: (request, opts) => apiCall(ACTIONS.OWN_UPDATE, request, opts),
   deleteOwn: (request, opts) => apiCall(ACTIONS.OWN_DELETE, request, opts),

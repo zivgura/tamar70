@@ -69,6 +69,31 @@ describe('adding a story', () => {
     expect(uploadPhoto.mock.calls[0][0]).toMatchObject({ file, storyId: 'st_new000001' })
   })
 
+  it('takes the story from a Google Docs link, and explains an unshared one', async () => {
+    const link = 'https://docs.google.com/document/d/1AbCdEfGhIjKlMnOpQrStUvWxYz012345/edit'
+    vi.spyOn(api, 'importGoogleDoc')
+      .mockRejectedValueOnce(new ApiError('doc_not_shared'))
+      .mockResolvedValueOnce({ text: 'מהגוגל דוקס.' })
+    renderAdd()
+    await user.click(await screen.findByRole('button', { name: 'כתיבה' }))
+    await user.type(screen.getByLabelText('השם שלכם'), 'ענת')
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
+
+    await user.type(screen.getByLabelText('או קישור ל-Google Docs:'), 'not a link')
+    await user.click(screen.getByRole('button', { name: 'ייבוא' }))
+    expect(screen.getByText('זה לא קישור למסמך Google Docs.')).toBeInTheDocument()
+    expect(api.importGoogleDoc).not.toHaveBeenCalled()
+
+    await user.clear(screen.getByLabelText('או קישור ל-Google Docs:'))
+    await user.type(screen.getByLabelText('או קישור ל-Google Docs:'), link)
+    await user.click(screen.getByRole('button', { name: 'ייבוא' }))
+    expect(await screen.findByText(/כל מי שיש לו את הקישור" ונסו שוב/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'ייבוא' }))
+    expect(await screen.findByLabelText('הסיפור')).toHaveValue('מהגוגל דוקס.')
+    expect(api.importGoogleDoc).toHaveBeenLastCalledWith(link)
+  })
+
   it('says so when submissions are closed', async () => {
     api.bootstrap.mockResolvedValue(
       bootstrap({ site: { ...bootstrap().site, submissions_open: false } }),

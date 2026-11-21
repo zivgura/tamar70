@@ -128,6 +128,37 @@ export function createContext() {
         if (code !== 200) throw new Error(`tokeninfo ${code}`)
         return JSON.parse(response.getContentText())
       },
+
+      /**
+       * A Google Doc's text, fetched like any visitor would: no credentials, so only docs
+       * shared "anyone with the link" can be read. Null when Google won't hand it out.
+       */
+      docText(docId) {
+        // Shared docs answer with a redirect to a googleusercontent.com download; private
+        // ones redirect to the Google sign-in page. Follow only the first kind.
+        let url = `https://docs.google.com/document/d/${encodeURIComponent(docId)}/export?format=txt`
+        for (let hop = 0; hop < 4; hop++) {
+          const response = UrlFetchApp.fetch(url, {
+            muteHttpExceptions: true,
+            followRedirects: false,
+          })
+          const code = response.getResponseCode()
+          const headers = response.getHeaders()
+          if (code >= 300 && code < 400) {
+            const next = String(headers.Location ?? headers.location ?? '')
+            if (!/^https:\/\/[a-z0-9-]+\.(googleusercontent\.com|google\.com)\//.test(next))
+              return null
+            if (/^https:\/\/accounts\.google\.com\//.test(next)) return null
+            url = next
+            continue
+          }
+          if (code !== 200) return null
+          const type = String(headers['Content-Type'] ?? headers['content-type'] ?? '')
+          if (!type.startsWith('text/plain')) return null
+          return response.getContentText('UTF-8')
+        }
+        return null
+      },
     },
 
     schemaVersion: {

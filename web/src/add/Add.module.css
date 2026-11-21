@@ -428,6 +428,47 @@
   border-color: var(--color-border);
 }
 
+.docLink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-self: stretch;
+  margin-top: var(--space-3);
+}
+
+.docLinkRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.docLinkRow .docButton {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.docLinkInput {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: var(--text-md);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.docLinkInput:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.docSmall {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
 .docStatus {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);

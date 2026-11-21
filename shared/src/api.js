@@ -21,6 +21,8 @@ export const ACTIONS = Object.freeze({
   OWN_MEDIA_REMOVE: 'media.remove',
   // Every shared photo of the visible stories, for the gallery (after the reveal).
   GALLERY: 'gallery.list',
+  // A Google Docs link pasted instead of typing: returns the doc's text.
+  GOOGLE_DOC_IMPORT: 'docs.import',
   // The site reporting about itself (sent with sendBeacon, nobody waits for the answer):
   CLIENT_ERROR: 'client.error',
   CLIENT_VISIT: 'client.visit',
@@ -49,6 +51,8 @@ export const ERROR_CODES = Object.freeze({
   NOT_FOUND: 'not_found',
   FORBIDDEN: 'forbidden',
   EDITING_CLOSED: 'editing_closed',
+  DOC_NOT_SHARED: 'doc_not_shared', // the Google Doc isn't shared "anyone with the link"
+  DOC_BAD_LINK: 'doc_bad_link', // not a Google Docs document link
   SIGN_IN_REQUIRED: 'sign_in_required', // no Google sign-in, or it expired
   NOT_ADMIN: 'not_admin', // signed in, but not in AdminUsers
   TOO_MANY_PHOTOS: 'too_many_photos',
