@@ -1,7 +1,7 @@
 // Uploads one photo: the API opens a Drive session, the browser sends the original file
 // straight to Drive (with progress), then the API confirms it. A failed attempt starts over
 // with a fresh session, so a flaky connection doesn't lose the photo or the story.
-import { MAX_PHOTO_BYTES, PHOTO_TYPES } from '@tamar70/shared'
+import { DOCX_TYPE, MAX_PHOTO_BYTES, PHOTO_TYPES } from '@tamar70/shared'
 import { api, ApiError } from '../api/client.js'
 
 const EXTENSION_TYPES = {
@@ -19,6 +19,14 @@ export function photoType(file) {
   if (PHOTO_TYPES.includes(file.type)) return file.type
   const ext = String(file.name).split('.').pop().toLowerCase()
   return EXTENSION_TYPES[ext] ?? null
+}
+
+/** The upload type of any file we keep: a photo, or a Word document. */
+export function uploadType(file) {
+  const photo = photoType(file)
+  if (photo) return photo
+  if (file.type === DOCX_TYPE || /\.docx$/i.test(String(file.name))) return DOCX_TYPE
+  return null
 }
 
 /** Why a file can't be uploaded, or null if it can. */
@@ -77,7 +85,7 @@ export async function uploadPhoto({
   putImpl = putToDrive,
   origin = window.location.origin,
 }) {
-  const type = photoType(file)
+  const type = uploadType(file)
   if (!type) throw new ApiError('validation', 'Not a supported photo type')
 
   for (let attempt = 1; ; attempt++) {

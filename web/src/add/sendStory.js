@@ -77,3 +77,17 @@ export async function uploadPhotos({
   }
   return failed
 }
+
+/**
+ * Keeps the Word files a story's text came from, in Drive with its photos. Best effort: the
+ * text is already in the story, so a failed upload is only logged by the browser.
+ */
+export async function uploadDocuments({ storyId, editToken, files, uploadImpl = uploadPhoto }) {
+  for (const [index, file] of files.entries()) {
+    try {
+      await uploadImpl({ file, storyId, editToken, details: { sort_order: 900 + index } })
+    } catch {
+      // Nothing to show: the story's text doesn't depend on the file.
+    }
+  }
+}

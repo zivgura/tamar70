@@ -10,6 +10,11 @@ import { routes } from '../routes.jsx'
 import { bootstrap } from '../test/fixtures.js'
 import { uploadPhoto } from '../upload/uploadPhoto.js'
 
+vi.mock('../lib/readDocx.js', async (original) => ({
+  ...(await original()),
+  readDocx: vi.fn(async () => 'הטקסט מהמסמך.\n\nפסקה שנייה.'),
+}))
+
 vi.mock('../upload/uploadPhoto.js', async (original) => ({
   ...(await original()),
   uploadPhoto: vi.fn(),
@@ -43,6 +48,27 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('adding a story', () => {
+  it('takes the story from a Word document and keeps the file', async () => {
+    uploadPhoto.mockResolvedValue({})
+    renderAdd()
+    await user.click(await screen.findByRole('button', { name: 'כתיבה' }))
+    await user.type(screen.getByLabelText('השם שלכם'), 'ענת')
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
+
+    const file = new File(['x'], 'הסיפור שלי.docx', {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    })
+    await user.upload(screen.getByLabelText('בחירת מסמך Word'), file)
+    expect(await screen.findByLabelText('הסיפור')).toHaveValue('הטקסט מהמסמך.\n\nפסקה שנייה.')
+    expect(screen.getByText(/נכנס לסיפור/)).toHaveTextContent('הסיפור שלי.docx')
+
+    await user.click(screen.getByRole('button', { name: 'שליחה' }))
+    expect(await screen.findByRole('heading', { name: 'תודה!' })).toBeInTheDocument()
+    expect(api.submitStory.mock.calls[0][0].content).toBe('הטקסט מהמסמך.\n\nפסקה שנייה.')
+    expect(uploadPhoto).toHaveBeenCalledTimes(1)
+    expect(uploadPhoto.mock.calls[0][0]).toMatchObject({ file, storyId: 'st_new000001' })
+  })
+
   it('says so when submissions are closed', async () => {
     api.bootstrap.mockResolvedValue(
       bootstrap({ site: { ...bootstrap().site, submissions_open: false } }),

@@ -15,6 +15,7 @@ import {
   ERROR_CODES,
   GOOGLE_CLIENT_ID,
   GOOGLE_ISSUERS,
+  isPhotoMedia,
   makeExcerpt,
   STORY_STATUS,
   UPLOAD_STATUS,
@@ -134,25 +135,34 @@ function getStory(ctx, payload) {
   const { id_token, id } = adminStorySchema.parse(payload)
   requireAdmin(ctx, id_token)
   const story = findStory(ctx, id, { allowDeleted: true })
-  const photos = mediaOf(ctx, story.id)
+  const media = mediaOf(ctx, story.id)
     .filter((m) => m.upload_status !== UPLOAD_STATUS.REMOVED)
     .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+  // Word files the story's text came from: a link to open them in Drive.
+  const documents = media
+    .filter((m) => !isPhotoMedia(m) && m.upload_status === UPLOAD_STATUS.DONE)
     .map((m) => ({
       id: m.id,
       filename: m.filename,
-      caption: m.caption,
-      year_approx: m.year_approx,
-      people: m.people,
-      place: m.place,
       bytes: m.bytes,
-      upload_status: m.upload_status,
-      uploaded_at: m.uploaded_at,
-      thumbnail:
-        m.upload_status === UPLOAD_STATUS.DONE && m.drive_file_id
-          ? ctx.drive.thumbnail(m.drive_file_id)
-          : null,
+      link: `https://drive.google.com/file/d/${m.drive_file_id}/view`,
     }))
-  return { story: adminView(story), photos, categories: categories(ctx) }
+  const photos = media.filter(isPhotoMedia).map((m) => ({
+    id: m.id,
+    filename: m.filename,
+    caption: m.caption,
+    year_approx: m.year_approx,
+    people: m.people,
+    place: m.place,
+    bytes: m.bytes,
+    upload_status: m.upload_status,
+    uploaded_at: m.uploaded_at,
+    thumbnail:
+      m.upload_status === UPLOAD_STATUS.DONE && m.drive_file_id
+        ? ctx.drive.thumbnail(m.drive_file_id)
+        : null,
+  }))
+  return { story: adminView(story), photos, documents, categories: categories(ctx) }
 }
 
 function updateStory(ctx, payload) {

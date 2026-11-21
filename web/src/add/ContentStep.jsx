@@ -1,6 +1,7 @@
 import { DEFAULT_CATEGORY_ID, LIMITS, STORY_KIND } from '@tamar70/shared'
 import { Chip, TextField } from '../components'
 import styles from './Add.module.css'
+import { DocumentImport } from './DocumentImport.jsx'
 import { PhotoGrid } from './PhotoGrid.jsx'
 
 const DECADES = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020]
@@ -16,6 +17,7 @@ export function ContentStep({
   onOpenPhoto,
   errors,
   photosLostFromDraft,
+  onDocument,
   withHeading = true,
 }) {
   const wantsText = draft.kind !== STORY_KIND.PHOTOS
@@ -66,6 +68,11 @@ export function ContentStep({
               {draft.content.length.toLocaleString('en-US')} /{' '}
               {LIMITS.STORY_CONTENT_MAX.toLocaleString('en-US')}
             </p>
+            <DocumentImport
+              content={draft.content}
+              onText={(content) => update({ content })}
+              onDocument={onDocument}
+            />
           </div>
         </>
       )}

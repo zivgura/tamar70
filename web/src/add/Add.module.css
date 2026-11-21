@@ -387,3 +387,43 @@
   background: var(--color-danger);
   border-color: var(--color-danger);
 }
+
+/* "Already wrote it in Word?" */
+.docImport {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+}
+
+.docButton {
+  padding: var(--space-2) 0;
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
+  text-align: start;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.docButton:disabled {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  cursor: default;
+}
+
+.docStatus {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.docStatus:empty {
+  display: none;
+}
+
+.docError {
+  color: var(--color-danger);
+}
