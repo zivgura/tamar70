@@ -1,12 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryContext } from '../testing/memoryContext.js'
-import { rotateFamilyCode } from './familyCode.js'
 import { cleanUp, housekeeping, notifyNewStories, recipients } from './housekeeping.js'
 import { handleRequest } from './router.js'
 import { readSettings, writeSetting } from './settings.js'
 
 let ctx
-let code
 let n = 0
 
 const ok = (action, payload) => {
@@ -26,7 +24,6 @@ function submit(title, editToken = token()) {
     content: 'זה היה בקיץ.',
     category_id: 'travels',
     edit_token: editToken,
-    family_code: code,
   }).id
 }
 
@@ -34,7 +31,6 @@ beforeEach(() => {
   n = 0
   ctx = createMemoryContext({ now: '2026-12-01T10:00:00.000Z' })
   ok('site.get')
-  code = rotateFamilyCode(ctx).code
 })
 
 describe('new-story emails', () => {

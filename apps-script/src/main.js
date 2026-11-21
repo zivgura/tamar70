@@ -1,7 +1,6 @@
 // Entry points. esbuild bundles this file into dist/Code.js; build.js adds top-level
 // function declarations that call these, because Apps Script only sees declared functions.
 import { SCHEMA_VERSION } from '@tamar70/shared'
-import { rotateFamilyCode as rotateFamilyCodeCore } from './core/familyCode.js'
 import { housekeeping as housekeepingCore } from './core/housekeeping.js'
 import { migrate } from './core/migrate.js'
 import { handleRequest } from './core/router.js'
@@ -77,16 +76,6 @@ export function setup() {
   console.log(`Done. Schema version ${SCHEMA_VERSION}.`)
   console.log(`Folder: ${root.getUrl()}`)
   console.log(`Sheet: https://docs.google.com/spreadsheets/d/${sheetId}`)
-}
-
-/** Run from the editor to create a new family code. The log shows the link to share. */
-export function rotateFamilyCode() {
-  const ctx = createContext()
-  migrate(ctx)
-  const { code, link } = rotateFamilyCodeCore(ctx)
-  console.log(`New family code: ${code}`)
-  console.log(`Link to share: ${link}`)
-  console.log('The previous link no longer works for adding memories.')
 }
 
 /** Run by a timer every 15 minutes: emails about new stories, daily cleanup. */

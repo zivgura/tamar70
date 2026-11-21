@@ -6,7 +6,6 @@ import { newEditToken } from '../api/client.js'
 import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
 import { Button, ErrorMessage, LoadingCards, Spinner, StoryCard } from '../components'
-import { readFamilyCode } from '../lib/familyCode.js'
 import { formatDay } from '../lib/format.js'
 import { rejectReason } from '../upload/uploadPhoto.js'
 import styles from './Add.module.css'
@@ -70,7 +69,6 @@ export default function AddStory() {
   const [params] = useSearchParams()
   const { data, error: bootError, isPending, refetch } = useBootstrap()
   const queryClient = useQueryClient()
-  const familyCode = readFamilyCode()
 
   const [draft, setDraft] = useState(() => initialDraft(params.get('corner')))
   const [author, setAuthor] = useState(loadAuthor)
@@ -148,7 +146,7 @@ export default function AddStory() {
       const storyId =
         sent?.storyId ??
         (await createStory(
-          submission({ draft, author, photos: toUpload, familyCode, editToken: editToken.current }),
+          submission({ draft, author, photos: toUpload, editToken: editToken.current }),
         ))
       rememberMine(storyId, editToken.current)
       setSent({ storyId, editToken: editToken.current })
@@ -188,15 +186,7 @@ export default function AddStory() {
     setPhase('edit')
   }
 
-  // Gates: no family link, server unreachable, still loading, submissions closed.
-  if (!familyCode) {
-    return (
-      <Gate>
-        <h1 className={styles.title}>צריך את הקישור המשפחתי</h1>
-        <p>כדי להוסיף סיפור, היכנסו לאתר מהקישור ששלחו לכם. אם אין לכם אותו, בקשו אותו מהמשפחה.</p>
-      </Gate>
-    )
-  }
+  // Gates: server unreachable, still loading, submissions closed.
   if (bootError) return <ErrorMessage error={bootError} onRetry={refetch} />
   if (isPending) {
     return (

@@ -25,12 +25,10 @@ describe('submission', () => {
       },
       author: { name: ' רונית ', relation: 'חברה' },
       photos: [{}],
-      familyCode: 'abc',
       editToken: 'tok',
     })
     expect(payload).toEqual({
       edit_token: 'tok',
-      family_code: 'abc',
       kind: 'mixed',
       author_name: 'רונית',
       author_relation: 'חברה',
@@ -48,7 +46,6 @@ describe('submission', () => {
       draft: { ...EMPTY_DRAFT, content: 'x' },
       author: { name: 'a', relation: '' },
       photos: [],
-      familyCode: 'c',
       editToken: 't',
     })
     expect(payload).not.toHaveProperty('decade')

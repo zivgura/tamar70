@@ -14,10 +14,9 @@ export function storyKind(content, photoCount) {
 }
 
 /** The stories.submit payload for a draft. */
-export function submission({ draft, author, photos, familyCode, editToken }) {
+export function submission({ draft, author, photos, editToken }) {
   return {
     edit_token: editToken,
-    family_code: familyCode,
     kind: storyKind(draft.content, photos.length),
     author_name: author.name.trim(),
     author_relation: author.relation.trim(),

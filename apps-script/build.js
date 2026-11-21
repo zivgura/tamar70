@@ -10,8 +10,8 @@ const here = dirname(fileURLToPath(import.meta.url))
 const GLOBAL = 'Tamar70'
 
 // Called by Google (doGet, doPost, the housekeeping timer) or run by hand from the editor
-// (setup, rotateFamilyCode).
-export const ENTRY_POINTS = ['doGet', 'doPost', 'setup', 'rotateFamilyCode', 'housekeeping']
+// (setup).
+export const ENTRY_POINTS = ['doGet', 'doPost', 'setup', 'housekeeping']
 
 export async function buildBundle(outdir = join(here, 'dist')) {
   rmSync(outdir, { recursive: true, force: true })

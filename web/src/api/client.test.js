@@ -19,11 +19,11 @@ describe('apiCall', () => {
 
   it('turns an error envelope into an ApiError without retrying', async () => {
     const fetchImpl = vi.fn(() =>
-      reply({ ok: false, error: { code: 'bad_family_code', message: 'wrong' } }),
+      reply({ ok: false, error: { code: 'submissions_closed', message: 'wrong' } }),
     )
     const err = await apiCall('stories.submit', {}, opts(fetchImpl)).catch((e) => e)
     expect(err).toBeInstanceOf(ApiError)
-    expect(err.code).toBe('bad_family_code')
+    expect(err.code).toBe('submissions_closed')
     expect(fetchImpl).toHaveBeenCalledTimes(1)
   })
 

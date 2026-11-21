@@ -2,10 +2,10 @@
 // - emails the admins about each new story, so nobody has to watch the Sheet;
 // - once a day, cleans up photo uploads that never finished.
 import { SETTING_KEYS, STORY_STATUS, UPLOAD_STATUS } from '@tamar70/shared'
-import { SITE_URL } from './familyCode.js'
 import { readSettings, writeSetting } from './settings.js'
 
 export const HOUSEKEEPING_MINUTES = 15
+const SITE_URL = 'https://tamar70.web.app'
 // A story is announced once its photos have had time to arrive.
 const SETTLE_MS = 5 * 60 * 1000
 const MAX_EMAILS_PER_RUN = 20

@@ -66,7 +66,7 @@ function answer(action, payload) {
       }
     case 'admin.stats':
       return {
-        totals: { devices: 12, with_code: 9 },
+        totals: { devices: 12 },
         days: [{ date: '2026-12-02', devices: 5, new_devices: 3, stories: 2, photos: 7 }],
         errors: [
           {

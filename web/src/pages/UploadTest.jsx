@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { api, newEditToken } from '../api/client.js'
 import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
 import { Button, ProgressBar, TextField } from '../components'
@@ -22,8 +21,6 @@ const STAGE_TEXT = {
 let nextKey = 0
 
 export default function UploadTest() {
-  const [params] = useSearchParams()
-  const [code, setCode] = useState(params.get('k') ?? '')
   const [name, setName] = useState('בדיקת העלאה')
   const [photos, setPhotos] = useState([])
   const [running, setRunning] = useState(false)
@@ -65,7 +62,6 @@ export default function UploadTest() {
       const t0 = performance.now()
       const { id: storyId } = await api.submitStory({
         edit_token: editToken,
-        family_code: code,
         kind: 'photos',
         author_name: name,
         title: 'בדיקת העלאה',
@@ -107,14 +103,6 @@ export default function UploadTest() {
       </p>
 
       <form className={styles.form} onSubmit={run}>
-        <TextField
-          label="קוד משפחה"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          autoComplete="off"
-          dir="ltr"
-          required
-        />
         <TextField label="שם" value={name} onChange={(e) => setName(e.target.value)} required />
 
         <div className={styles.photos}>

@@ -141,7 +141,6 @@ export const TABLES = Object.freeze({
 export const SETTING_KEYS = Object.freeze({
   SITE_STATUS: 'site_status',
   BIRTHDAY_DATE: 'birthday_date',
-  FAMILY_CODE_HASH: 'family_code_hash',
   SUBMISSIONS_OPEN: 'submissions_open',
   COMMENTS_OPEN: 'comments_open',
   REVEAL_MESSAGE: 'reveal_message',

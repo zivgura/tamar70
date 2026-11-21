@@ -54,7 +54,7 @@ describe('client errors', () => {
 
 describe('visits', () => {
   it('counts a device once a day, by the Israel date', () => {
-    const visit = { device: 'dev_aaaaaaaa', path: '/', has_code: true, first_visit: true }
+    const visit = { device: 'dev_aaaaaaaa', path: '/', first_visit: true }
     expect(ok('client.visit', visit)).toEqual({ saved: true })
     expect(ok('client.visit', visit)).toEqual({ saved: false })
     // 22:30 UTC is already the next day in Israel.
@@ -69,7 +69,7 @@ describe('visits', () => {
 
 describe('stats', () => {
   it('adds up devices, new devices, stories and photos per day', () => {
-    ok('client.visit', { device: 'dev_aaaaaaaa', first_visit: true, has_code: true })
+    ok('client.visit', { device: 'dev_aaaaaaaa', first_visit: true })
     ok('client.visit', { device: 'dev_bbbbbbbb' })
     ctx.db.insert('Stories', { id: 'st_1', status: 'active', created_at: '2026-12-01T23:00:00Z' })
     ctx.db.insert('Stories', { id: 'st_2', status: 'deleted', created_at: '2026-12-01T23:00:00Z' })

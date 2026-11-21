@@ -54,7 +54,6 @@ function renderEdit() {
 
 beforeEach(() => {
   window.localStorage.clear()
-  writeStored('familyCode', '9u44tmn4')
   writeStored('mine', { [ID]: { token: TOKEN, created_at: '2026-11-20T10:00:00Z' } })
   vi.spyOn(api, 'bootstrap').mockResolvedValue(bootstrap())
   vi.spyOn(api, 'getOwn').mockResolvedValue(own)

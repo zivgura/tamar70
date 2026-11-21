@@ -14,7 +14,7 @@ import {
   VISIBILITY,
 } from '@tamar70/shared'
 import { adminHandlers } from './admin.js'
-import { telemetryHandlers } from './telemetry.js'
+import { telemetryHandlers, underHourlyLimit } from './telemetry.js'
 import { ApiError, notFound } from './errors.js'
 import { finishUpload, invalidatePublicCache, startUpload } from './media.js'
 import {
@@ -117,6 +117,8 @@ function getStory(ctx, payload) {
   return out
 }
 
+const SUBMISSIONS_PER_HOUR = 60
+
 function submitStory(ctx, payload) {
   // Bots that fill the hidden field get a convincing success and nothing is saved.
   if (typeof payload.website === 'string' && payload.website.trim() !== '') {
@@ -126,11 +128,10 @@ function submitStory(ctx, payload) {
   const input = storySubmissionSchema.parse(payload)
   const config = siteConfig(readSettings(ctx.db))
 
-  if (
-    !config.family_code_hash ||
-    ctx.crypto.sha256(input.family_code) !== config.family_code_hash
-  ) {
-    throw new ApiError(ERROR_CODES.BAD_FAMILY_CODE, 'The family code is missing or wrong')
+  // Anyone with the address can add a story. What keeps it tidy: the hidden honeypot field
+  // above, this hourly cap, an email to the admins for each story, and hide/delete in admin.
+  if (!underHourlyLimit(ctx, 'submissions', SUBMISSIONS_PER_HOUR)) {
+    throw new ApiError(ERROR_CODES.BUSY, 'Too many stories this hour, try again later')
   }
   if (!config.submissions_open) {
     throw new ApiError(ERROR_CODES.SUBMISSIONS_CLOSED, 'Submissions are closed')

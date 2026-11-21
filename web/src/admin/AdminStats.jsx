@@ -29,8 +29,8 @@ export default function AdminStats() {
           <dd>{totals.devices}</dd>
         </div>
         <div>
-          <dt>מהם עם הקישור המשפחתי</dt>
-          <dd>{totals.with_code}</dd>
+          <dt>סיפורים</dt>
+          <dd>{days.reduce((n, d) => n + d.stories, 0)}</dd>
         </div>
       </dl>
 

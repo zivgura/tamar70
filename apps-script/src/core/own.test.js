@@ -1,7 +1,6 @@
 import { SETTING_KEYS } from '@tamar70/shared'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryContext } from '../testing/memoryContext.js'
-import { rotateFamilyCode } from './familyCode.js'
 import { handleRequest } from './router.js'
 import { writeSetting } from './settings.js'
 
@@ -47,10 +46,8 @@ const edit = (overrides = {}) => ({
 beforeEach(() => {
   ctx = createMemoryContext()
   ok('site.get')
-  const { code } = rotateFamilyCode(ctx)
   story = ok('stories.submit', {
     edit_token: token,
-    family_code: code,
     kind: 'text',
     author_name: 'ענת',
     title: 'כותרת',

@@ -1,6 +1,5 @@
 // What to tell people when something fails, by API error code. Plain, kind Hebrew.
 const MESSAGES = {
-  bad_family_code: 'הקישור לא תקין. בקשו מהמשפחה את הקישור המלא.',
   submissions_closed: 'ההוספה סגורה כרגע.',
   too_many_photos: 'אפשר לצרף עד 20 תמונות לכל סיפור.',
   validation: 'משהו בפרטים לא תקין. בדקו ונסו שוב.',

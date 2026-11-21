@@ -37,7 +37,6 @@ export const ERROR_CODES = Object.freeze({
   BAD_REQUEST: 'bad_request',
   UNKNOWN_ACTION: 'unknown_action',
   VALIDATION: 'validation',
-  BAD_FAMILY_CODE: 'bad_family_code',
   SUBMISSIONS_CLOSED: 'submissions_closed',
   NOT_FOUND: 'not_found',
   FORBIDDEN: 'forbidden',

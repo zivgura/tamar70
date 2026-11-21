@@ -18,7 +18,7 @@ export function israelDay(iso) {
 }
 
 /** Counts calls in this hour; false once `limit` is passed. */
-function underHourlyLimit(ctx, name, limit) {
+export function underHourlyLimit(ctx, name, limit) {
   const hour = String(ctx.now()).slice(0, 13)
   const key = `rate:${name}:${hour}`
   const used = Number(ctx.cache.get(key) ?? 0)
@@ -82,7 +82,6 @@ function logVisit(ctx, payload) {
       date,
       device: input.device,
       path: input.path,
-      has_code: input.has_code,
       first_visit: input.first_visit,
     }),
   )
@@ -128,7 +127,6 @@ export function stats(ctx) {
     days: dailyStats(ctx).slice(0, 60),
     totals: {
       devices: new Set(visits.map((v) => v.device)).size,
-      with_code: new Set(visits.filter((v) => v.has_code).map((v) => v.device)).size,
     },
     errors,
   }
