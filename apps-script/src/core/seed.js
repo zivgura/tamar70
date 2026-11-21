@@ -77,6 +77,7 @@ export const DEFAULT_SETTINGS = {
   [SETTING_KEYS.NOTIFY_MODE]: 'each',
   [SETTING_KEYS.DIGEST_SENT_ON]: '',
   [SETTING_KEYS.HOUSEKEEPING_RAN_AT]: '',
+  [SETTING_KEYS.BACKED_UP_AT]: '',
 }
 
 // No email addresses live in the code. The account that owns the script becomes the first

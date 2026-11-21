@@ -8,6 +8,7 @@ import { useAdmin } from './adminContext.js'
 import { formatDateTime } from './adminFormat.js'
 import { useAdminSettings } from './adminQueries.js'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
+import { download, storiesCsv, storiesHtml } from './exportFiles.js'
 
 const MODES = [
   {
@@ -96,7 +97,90 @@ function RevealSection({ settings, onChange }) {
   )
 }
 
-/** /admin/settings: the reveal, and how admins hear about new stories. */
+const stamp = () => new Date().toLocaleDateString('en-CA')
+
+/** Backups of the Sheet in Drive, and downloads of every story. */
+function BackupSection({ backup, onBackedUp }) {
+  const { call } = useAdmin()
+  const [state, setState] = useState({ busy: null, error: null, done: null })
+
+  async function backupNow() {
+    setState({ busy: 'גיבוי', error: null, done: null })
+    try {
+      onBackedUp(await call(ACTIONS.ADMIN_BACKUP))
+      setState({ busy: null, error: null, done: 'הגיבוי נשמר בתיקיית הגיבויים.' })
+    } catch (error) {
+      setState({ busy: null, error, done: null })
+    }
+  }
+
+  async function exportAs(kind) {
+    setState({ busy: 'הורדה', error: null, done: null })
+    try {
+      const data = await call(ACTIONS.ADMIN_EXPORT)
+      if (kind === 'html') {
+        download(`tamar70-stories-${stamp()}.html`, storiesHtml(data), 'text/html;charset=utf-8')
+      } else if (kind === 'csv') {
+        download(`tamar70-stories-${stamp()}.csv`, storiesCsv(data), 'text/csv;charset=utf-8')
+      } else {
+        download(
+          `tamar70-backup-${stamp()}.json`,
+          JSON.stringify(data, null, 2),
+          'application/json',
+        )
+      }
+      setState({ busy: null, error: null, done: `ירדו ${data.stories.length} סיפורים.` })
+    } catch (error) {
+      setState({ busy: null, error, done: null })
+    }
+  }
+
+  const busy = Boolean(state.busy)
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>גיבוי והורדה</h2>
+      <p className={styles.meta}>
+        פעם בשבוע נשמר עותק של כל הגיליון בתיקיית הגיבויים ב-Drive (10 האחרונים נשמרים).{' '}
+        {backup.backed_up_at
+          ? `גיבוי אחרון: ${formatDateTime(backup.backed_up_at)}.`
+          : 'עוד לא נעשה גיבוי.'}{' '}
+        {backup.folder_url && (
+          <a href={backup.folder_url} target="_blank" rel="noreferrer">
+            לתיקיית הגיבויים
+          </a>
+        )}
+      </p>
+      <Button variant="secondary" onClick={backupNow} disabled={busy}>
+        גיבוי עכשיו
+      </Button>
+      <p className={styles.meta}>
+        הורדת כל הסיפורים למחשב. התמונות נשארות ב-Drive, ולכל אחת יש קישור.
+      </p>
+      <div className={styles.downloads}>
+        <Button variant="quiet" size="small" onClick={() => exportAs('html')} disabled={busy}>
+          קובץ לקריאה והדפסה
+        </Button>
+        <Button variant="quiet" size="small" onClick={() => exportAs('csv')} disabled={busy}>
+          גיליון (CSV)
+        </Button>
+        <Button variant="quiet" size="small" onClick={() => exportAs('json')} disabled={busy}>
+          גיבוי מלא (JSON)
+        </Button>
+      </div>
+      <div className={styles.statusSlot} aria-live="polite">
+        {busy && <Spinner label={state.busy} size="small" />}
+        {state.done && <span>{state.done}</span>}
+        {state.error && (
+          <span className={styles.error} role="alert">
+            {errorMessage(state.error)}
+          </span>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/** /admin/settings: the reveal, how admins hear about new stories, and backups. */
 export default function AdminSettings() {
   const { call } = useAdmin()
   const queryClient = useQueryClient()
@@ -221,6 +305,17 @@ export default function AdminSettings() {
           )}
         </div>
       </section>
+
+      {data.backup && (
+        <BackupSection
+          backup={data.backup}
+          onBackedUp={(result) =>
+            queryClient.setQueriesData({ queryKey: ['admin', 'settings'] }, (old) =>
+              old ? { ...old, backup: { ...old.backup, backed_up_at: result.backed_up_at } } : old,
+            )
+          }
+        />
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>הבדיקה האוטומטית</h2>

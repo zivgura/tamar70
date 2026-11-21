@@ -39,6 +39,29 @@ export function createContext() {
       return (drive ??= createDrive(props().getProperty('ORIGINALS_FOLDER_ID')))
     },
     now: () => new Date().toISOString(),
+
+    // Copies of the whole Sheet in the Backups folder.
+    backups: {
+      folderUrl: () => DriveApp.getFolderById(props().getProperty('BACKUPS_FOLDER_ID')).getUrl(),
+      copySheet(name) {
+        const folder = DriveApp.getFolderById(props().getProperty('BACKUPS_FOLDER_ID'))
+        const copy = DriveApp.getFileById(sheetId).makeCopy(name, folder)
+        return { id: copy.getId(), url: copy.getUrl() }
+      },
+      /** Sheets in the Backups folder: [{ id, created }]. */
+      list() {
+        const out = []
+        const it = DriveApp.getFolderById(props().getProperty('BACKUPS_FOLDER_ID')).searchFiles(
+          "trashed = false and mimeType = 'application/vnd.google-apps.spreadsheet'",
+        )
+        while (it.hasNext()) {
+          const f = it.next()
+          out.push({ id: f.getId(), created: f.getDateCreated().toISOString() })
+        }
+        return out
+      },
+      trash: (id) => DriveApp.getFileById(id).setTrashed(true),
+    },
     // The script runs as its owner ("Execute as: Me"), so this is the owner account.
     ownerEmail: () => Session.getEffectiveUser().getEmail(),
     log: { error: (msg) => console.error(msg), info: (msg) => console.log(msg) },

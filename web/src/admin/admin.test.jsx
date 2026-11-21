@@ -79,7 +79,10 @@ function answer(action, payload) {
         notify_mode: 'each',
         recipients: ['owner@example.test'],
         housekeeping_ran_at: '2026-12-02T10:00:00Z',
+        backup: { backed_up_at: null, folder_url: 'https://drive/folder' },
       }
+    case 'admin.backup':
+      return { backed_up_at: '2026-12-02T12:00:00Z', url: 'https://sheet' }
     case 'admin.settingsUpdate':
       return {
         site_status: 'collecting',
@@ -277,6 +280,19 @@ describe('admin pages', () => {
     expect(await screen.findByLabelText(/סיכום יומי/)).toBeChecked()
     await user.click(screen.getByRole('button', { name: 'שליחת מייל בדיקה' }))
     expect(await screen.findByText(/נשלח אל/)).toHaveTextContent('owner@example.test')
+  })
+
+  it('backs up now and shows when', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/settings')
+    expect(await screen.findByText(/עוד לא נעשה גיבוי/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'גיבוי עכשיו' }))
+    expect(await screen.findByText('הגיבוי נשמר בתיקיית הגיבויים.')).toBeInTheDocument()
+    expect(screen.getByText(/גיבוי אחרון: 2 בדצמבר/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'לתיקיית הגיבויים' })).toHaveAttribute(
+      'href',
+      'https://drive/folder',
+    )
   })
 
   it('publishes all the stories after confirming', async () => {

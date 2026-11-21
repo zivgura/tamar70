@@ -132,6 +132,26 @@ export function createMemoryContext({ now = '2026-12-01T10:00:00.000Z' } = {}) {
       randomId: (n) => randomBytes(n).toString('hex').slice(0, n),
     },
     schemaVersion: { get: () => version, set: (v) => (version = v) },
+    backups: {
+      copies: [],
+      folderUrl: () => 'https://drive.google.com/drive/folders/backups',
+      copySheet(name) {
+        const copy = {
+          id: `bk_${this.copies.length}`,
+          name,
+          created: clock,
+          url: `https://sheet/${this.copies.length}`,
+        }
+        this.copies.push(copy)
+        return copy
+      },
+      list() {
+        return this.copies.filter((c) => !c.trashed)
+      },
+      trash(id) {
+        this.copies.find((c) => c.id === id).trashed = true
+      },
+    },
     // Tests register tokens: google.tokens.set(token, claims). Unknown tokens are rejected.
     google: {
       tokens: new Map(),

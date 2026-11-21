@@ -107,6 +107,7 @@ describe('admin settings', () => {
       notify_mode: 'each',
       recipients: ['owner@example.test'],
       housekeeping_ran_at: null,
+      backup: { backed_up_at: null, folder_url: 'https://drive.google.com/drive/folders/backups' },
     })
     expect(ok('admin.settingsUpdate', { id_token: ADMIN, notify_mode: 'daily' }).notify_mode).toBe(
       'daily',
@@ -280,5 +281,46 @@ describe('the reveal', () => {
     expect(
       call('admin.setSiteStatus', { id_token: OUTSIDER, site_status: 'published' }).error.code,
     ).toBe('not_admin')
+  })
+})
+
+describe('backup and export', () => {
+  it('copies the Sheet on demand and weekly, keeping the newest ten', async () => {
+    const { weeklyBackup } = await import('./backup.js')
+    const res = ok('admin.backup', { id_token: ADMIN })
+    expect(res).toEqual({ backed_up_at: '2026-12-01T10:00:00.000Z', url: 'https://sheet/0' })
+    expect(ctx.backups.copies[0].name).toBe('גיבוי תמר בת 70 2026-12-01')
+    expect(ok('admin.settings', { id_token: ADMIN }).backup).toEqual({
+      backed_up_at: '2026-12-01T10:00:00.000Z',
+      folder_url: 'https://drive.google.com/drive/folders/backups',
+    })
+
+    ctx.setNow('2026-12-05T10:00:00.000Z')
+    expect(weeklyBackup(ctx)).toBeNull() // not a week yet
+    for (let week = 1; week <= 11; week++) {
+      ctx.setNow(new Date(Date.parse('2026-12-01T10:00:00Z') + week * 7.1 * 864e5).toISOString())
+      weeklyBackup(ctx)
+    }
+    expect(ctx.backups.list()).toHaveLength(10)
+    expect(ctx.backups.copies[0].trashed).toBe(true)
+  })
+
+  it('exports every story that was not deleted, with photo links', () => {
+    const id = submit()
+    const { drive_file_id } = addPhoto(id)
+    const gone = submit({ edit_token: 'g'.repeat(40) })
+    ok('admin.storyDelete', { id_token: ADMIN, id: gone })
+    const { stories, exported_at } = ok('admin.export', { id_token: ADMIN })
+    expect(exported_at).toBe('2026-12-01T10:00:00.000Z')
+    expect(stories).toHaveLength(1)
+    expect(stories[0]).toMatchObject({
+      id,
+      corner: 'טיולים בארץ ובעולם',
+      content: 'זה היה בקיץ. ואז עוד.',
+      photos: [
+        { filename: 'p.jpg', link: `https://drive.google.com/file/d/${drive_file_id}/view` },
+      ],
+    })
+    expect(call('admin.export', { id_token: OUTSIDER }).error.code).toBe('not_admin')
   })
 })
