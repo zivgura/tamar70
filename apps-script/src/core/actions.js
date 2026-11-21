@@ -24,6 +24,7 @@ import {
   updateOwnMedia,
   updateOwnStory,
 } from './own.js'
+import { importGoogleDoc } from './googleDocs.js'
 import { galleryPhotos, sharedPhotosByStory } from './reveal.js'
 import { readSettings, siteConfig } from './settings.js'
 
@@ -206,6 +207,7 @@ export const handlers = {
   [ACTIONS.STORIES_LIST]: listStories,
   [ACTIONS.STORIES_GET]: getStory,
   [ACTIONS.GALLERY]: listGallery,
+  [ACTIONS.GOOGLE_DOC_IMPORT]: importGoogleDoc,
   [ACTIONS.STORIES_SUBMIT]: submitStory,
   [ACTIONS.MEDIA_START]: startUpload,
   [ACTIONS.MEDIA_FINISH]: finishUpload,

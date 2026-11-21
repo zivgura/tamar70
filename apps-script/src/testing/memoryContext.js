@@ -155,6 +155,11 @@ export function createMemoryContext({ now = '2026-12-01T10:00:00.000Z' } = {}) {
     // Tests register tokens: google.tokens.set(token, claims). Unknown tokens are rejected.
     google: {
       tokens: new Map(),
+      // Shared docs by id; any other id answers like a private doc.
+      docs: new Map(),
+      docText(id) {
+        return this.docs.get(id) ?? null
+      },
       calls: 0,
       tokenInfo(token) {
         this.calls++

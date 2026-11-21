@@ -70,6 +70,7 @@
   --color-selected-text: var(--palette-cream-100);
 
   --color-success: var(--palette-sage-700);
+  --color-success-subtle: var(--palette-sage-100); /* "רשות" (optional) tags */
   --color-danger: var(--palette-rose-700);
   --color-tape: var(--palette-sage-400); /* washi tape on polaroids */
   --color-focus: var(--palette-terracotta-600);
