@@ -8,6 +8,7 @@ import {
   STORY_STATUS,
   UPLOAD_STATUS,
 } from '@tamar70/shared'
+import { weeklyBackup } from './backup.js'
 import { invalidatePublicCache } from './media.js'
 import { syncSharing } from './reveal.js'
 import { readSettings, writeSetting } from './settings.js'
@@ -201,6 +202,11 @@ export function housekeeping(ctx) {
   const shared = syncSharing(ctx)
   if (shared) invalidatePublicCache(ctx)
   const emailed = notifyNewStories(ctx)
+  try {
+    weeklyBackup(ctx)
+  } catch (err) {
+    ctx.log.error(`Weekly backup failed: ${err && err.message}`)
+  }
   const cleaned = cleanUp(ctx)
   ctx.log.info(
     `Housekeeping: ${emailed} emails${cleaned ? `, cleanup ${JSON.stringify(cleaned)}` : ''}`,

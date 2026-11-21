@@ -37,6 +37,8 @@ export const ACTIONS = Object.freeze({
   ADMIN_SETTINGS_UPDATE: 'admin.settingsUpdate',
   ADMIN_TEST_EMAIL: 'admin.testEmail',
   ADMIN_SITE_STATUS: 'admin.setSiteStatus',
+  ADMIN_BACKUP: 'admin.backup',
+  ADMIN_EXPORT: 'admin.export',
 })
 
 export const ERROR_CODES = Object.freeze({

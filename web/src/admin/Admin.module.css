@@ -500,3 +500,9 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

@@ -22,6 +22,7 @@ import {
 import { ApiError, notFound } from './errors.js'
 import { invalidatePublicCache, mediaOf } from './media.js'
 import { livePhotos, recountPhotos, trashQuietly } from './own.js'
+import { backupNow, backupStatus, exportAll } from './backup.js'
 import { recipients, sendTestEmail } from './housekeeping.js'
 import { sharingProgress, syncSharing } from './reveal.js'
 import { readSettings, siteConfig, writeSetting } from './settings.js'
@@ -248,6 +249,7 @@ function settingsView(ctx) {
     recipients: recipients(ctx),
     // When the 15-minute timer last ran, so a stopped timer shows up on the settings page.
     housekeeping_ran_at: settings[SETTING_KEYS.HOUSEKEEPING_RAN_AT] || null,
+    backup: backupStatus(ctx),
   }
 }
 
@@ -284,6 +286,20 @@ function setSiteStatus(ctx, payload) {
   return settingsView(ctx)
 }
 
+function backup(ctx, payload) {
+  const { id_token } = adminAuthSchema.parse(payload)
+  const admin = requireAdmin(ctx, id_token)
+  const result = backupNow(ctx)
+  audit(ctx, admin, 'backup', SETTING_KEYS.BACKED_UP_AT)
+  return result
+}
+
+function exportStories(ctx, payload) {
+  const { id_token } = adminAuthSchema.parse(payload)
+  requireAdmin(ctx, id_token)
+  return exportAll(ctx)
+}
+
 function testEmail(ctx, payload) {
   const { id_token } = adminAuthSchema.parse(payload)
   const admin = requireAdmin(ctx, id_token)
@@ -303,4 +319,6 @@ export const adminHandlers = {
   [ACTIONS.ADMIN_SETTINGS_UPDATE]: updateSettings,
   [ACTIONS.ADMIN_TEST_EMAIL]: testEmail,
   [ACTIONS.ADMIN_SITE_STATUS]: setSiteStatus,
+  [ACTIONS.ADMIN_BACKUP]: backup,
+  [ACTIONS.ADMIN_EXPORT]: exportStories,
 }
