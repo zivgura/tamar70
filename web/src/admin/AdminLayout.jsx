@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { apiCall } from '../api/client.js'
-import { Button, ErrorMessage, LoadingCards, Message } from '../components'
+import { Button, ErrorMessage, CardsSkeleton, Message } from '../components'
 import styles from './Admin.module.css'
 import { AdminContext } from './adminContext.js'
 import { loadGoogleIdentity } from './googleSignIn.js'
@@ -141,7 +141,7 @@ export default function AdminLayout() {
       <SignIn onToken={signIn} note={expired ? 'הכניסה פגה. היכנסו שוב כדי להמשיך.' : null} />
     )
   } else if (me.isPending) {
-    content = <LoadingCards count={3} />
+    content = <CardsSkeleton count={3} />
   } else if (me.error?.code === 'not_admin') {
     content = (
       <Message>

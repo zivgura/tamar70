@@ -1,4 +1,4 @@
-import { ErrorMessage, LoadingCards } from '../components'
+import { ErrorMessage, CardsSkeleton } from '../components'
 import styles from './Admin.module.css'
 import { formatDateTime } from './adminFormat.js'
 import { useAdminStats } from './adminQueries.js'
@@ -12,7 +12,7 @@ const shortDay = (date) => {
 /** /admin/stats: who's been visiting, what came in, and what broke. */
 export default function AdminStats() {
   const { data, isPending, error, refetch } = useAdminStats()
-  if (isPending) return <LoadingCards count={3} />
+  if (isPending) return <CardsSkeleton count={3} />
   if (error) return <ErrorMessage error={error} onRetry={refetch} />
 
   const { days, totals, errors } = data

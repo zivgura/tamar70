@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
 import { useBootstrap } from '../api/queries.js'
-import { Button, ErrorMessage, LoadingCards, Spinner } from '../components'
+import { Button, ErrorMessage, FormSkeleton, Spinner } from '../components'
 import { rejectReason } from '../upload/uploadPhoto.js'
 import styles from './Add.module.css'
 import { AuthorStep } from './AuthorStep.jsx'
@@ -325,7 +325,7 @@ export default function EditStory() {
   if (own.isPending || boot.isPending) {
     return (
       <Shell>
-        <LoadingCards count={2} />
+        <FormSkeleton fields={3} />
       </Shell>
     )
   }

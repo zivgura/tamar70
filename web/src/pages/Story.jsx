@@ -2,7 +2,15 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useStory } from '../api/queries.js'
-import { ErrorMessage, LoadingCards, Message, PhotoMosaic, StoryCard } from '../components'
+import {
+  ErrorMessage,
+  Message,
+  PhotoMosaic,
+  Skeleton,
+  SkeletonGroup,
+  StoryCard,
+  StoryCardSkeleton,
+} from '../components'
 import { ShareIcon } from '../components/icons.js'
 import { formatDay } from '../lib/format.js'
 import styles from './Corner.module.css'
@@ -42,9 +50,10 @@ export default function Story() {
 
   if (isPending) {
     return (
-      <div className={styles.page}>
-        <LoadingCards count={1} />
-      </div>
+      <SkeletonGroup className={styles.page}>
+        <Skeleton size="md" width="1/4" />
+        <StoryCardSkeleton full />
+      </SkeletonGroup>
     )
   }
   if (!story) {
@@ -74,7 +83,13 @@ export default function Story() {
         headingLevel={1}
         editable={canEdit(story.id)}
       />
-      {story.view === 'full' && loadingFull && <LoadingCards count={1} />}
+      {story.view === 'full' && loadingFull && (
+        <SkeletonGroup label="טוען את הסיפור המלא" className={styles.feed}>
+          <Skeleton size="lg" />
+          <Skeleton size="lg" />
+          <Skeleton size="lg" width="2/3" />
+        </SkeletonGroup>
+      )}
       {story.photos?.length > 0 && <PhotoMosaic photos={story.photos} label="התמונות של הסיפור" />}
       {story.view === 'full' && <ShareButton title={story.title || 'סיפור על תמר'} />}
       {story.view === 'teaser' && birthday && (
