@@ -1,0 +1,209 @@
+/*
+ * Loading placeholders. A line is exactly one line of text tall (1lh at its text size), with
+ * the bar in the middle, so swapping in the real text moves nothing.
+ */
+.skeleton {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* The bar itself */
+.line::before,
+.circle,
+.block {
+  background: var(--color-surface-sunken);
+  animation: pulse 1.4s var(--ease-out) infinite alternate;
+}
+
+.line {
+  width: 100%;
+  height: 1lh;
+}
+
+.line::before {
+  display: block;
+  height: 0.75em;
+  margin-top: calc((1lh - 0.75em) / 2);
+  content: '';
+  border-radius: var(--radius-xs);
+}
+
+/* Text sizes (each sets the line's 1lh) */
+.lineSm {
+  font-size: var(--text-sm);
+}
+
+.lineMd {
+  font-size: var(--text-md);
+}
+
+.lineBase {
+  font-size: var(--text-base);
+}
+
+.lineLg {
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+}
+
+.lineXl {
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+}
+
+.line3xl {
+  font-size: var(--text-3xl);
+  line-height: var(--leading-snug);
+}
+
+.line4xl {
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+}
+
+.line5xl {
+  font-size: var(--text-5xl);
+  line-height: var(--leading-snug);
+}
+
+.line6xl {
+  font-size: var(--text-6xl);
+  line-height: var(--leading-snug);
+}
+
+/* Widths */
+.wFull {
+  width: 100%;
+}
+
+.w34 {
+  width: 75%;
+}
+
+.w23 {
+  width: 66%;
+}
+
+.w12 {
+  width: 50%;
+}
+
+.w13 {
+  width: 33%;
+}
+
+.w14 {
+  width: 25%;
+}
+
+.center {
+  margin-inline: auto;
+}
+
+/* Circles */
+.circle {
+  border-radius: var(--radius-full);
+}
+
+.circleAvatar {
+  width: var(--tap-min);
+  height: var(--tap-min);
+}
+
+.circleSeal {
+  width: 28px;
+  height: 28px;
+}
+
+/* Blocks */
+.block {
+  width: 100%;
+  border-radius: var(--radius-sm);
+}
+
+.blockStamp {
+  width: 44px;
+  height: 52px;
+  border-radius: var(--radius-xs);
+}
+
+.blockCornerStamp {
+  width: 60px;
+  height: 70px;
+  border-radius: var(--radius-xs);
+}
+
+.blockTile {
+  height: 116px;
+}
+
+.blockPhoto {
+  aspect-ratio: 1;
+}
+
+.blockCover {
+  aspect-ratio: 4 / 3;
+}
+
+.blockField {
+  height: 52px;
+  border-radius: var(--radius-md);
+}
+
+.blockArea {
+  height: 180px;
+  border-radius: var(--radius-md);
+}
+
+.blockButton {
+  height: 56px;
+  border-radius: var(--radius-md);
+}
+
+.blockChoice {
+  height: 96px;
+  border-radius: var(--radius-md);
+}
+
+/* Layouts used by the composite skeletons */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@keyframes pulse {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line::before,
+  .circle,
+  .block {
+    animation: none;
+  }
+}

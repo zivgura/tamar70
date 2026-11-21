@@ -7,7 +7,10 @@ import {
   CornerTile,
   Countdown,
   ErrorMessage,
-  LoadingCards,
+  CornerTilesSkeleton,
+  CountdownSkeleton,
+  Skeleton,
+  StoryFeedSkeleton,
   Message,
   Polaroid,
   StoryCard,
@@ -74,8 +77,17 @@ export default function Home() {
               אוספים סיפורים ותמונות לקראת יום ההולדת.
               {site?.birthday_date && ` כל מה שתשתפו ייחשף ב-${formatDay(site.birthday_date)}.`}
             </p>
-            {site && <Countdown target={birthdayStart(site.birthday_date)} />}
-            {site && <Counter stats={site.stats} />}
+            {site ? (
+              <>
+                <Countdown target={birthdayStart(site.birthday_date)} />
+                <Counter stats={site.stats} />
+              </>
+            ) : (
+              <>
+                <CountdownSkeleton />
+                <Skeleton size="md" width="2/3" center />
+              </>
+            )}
             <Button as={Link} to="/add" block>
               הוסיפו סיפור
             </Button>
@@ -93,7 +105,7 @@ export default function Home() {
             </h2>
             <p className={styles.sectionLead}>בחרו פינה, או פשוט כתבו, ואנחנו נסדר.</p>
             {isPending ? (
-              <LoadingCards count={1} />
+              <CornerTilesSkeleton className={styles.corners} />
             ) : (
               <div className={styles.corners}>
                 {corners.map((c, i) => (
@@ -112,7 +124,7 @@ export default function Home() {
               סיפורים אחרונים
             </h2>
             {isPending ? (
-              <LoadingCards />
+              <StoryFeedSkeleton className={styles.feed} />
             ) : data.stories.length === 0 ? (
               <Message>עוד אין סיפורים. הסיפור הראשון יכול להיות שלכם.</Message>
             ) : (

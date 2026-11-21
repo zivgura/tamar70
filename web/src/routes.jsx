@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- route config, not a component module */
 import { lazy, Suspense } from 'react'
-import { LoadingCards, Layout, RouteError } from './components'
+import addStyles from './add/Add.module.css'
+import { FormSkeleton, Layout, RouteError } from './components'
 import Corner from './pages/Corner.jsx'
 import Gallery from './pages/Gallery.jsx'
 import Home from './pages/Home.jsx'
@@ -40,7 +41,13 @@ const later = (Page) => (
 
 // Visitor pages show the usual loading cards while their code arrives.
 const loading = (Page) => (
-  <Suspense fallback={<LoadingCards count={2} />}>
+  <Suspense
+    fallback={
+      <div className={addStyles.center}>
+        <FormSkeleton />
+      </div>
+    }
+  >
     <Page />
   </Suspense>
 )

@@ -8,7 +8,18 @@ export { Layout } from './Layout.jsx'
 export { Polaroid } from './Polaroid.jsx'
 export { ProgressBar } from './ProgressBar.jsx'
 export { Spinner } from './Spinner.jsx'
-export { ErrorMessage, LoadingCards, Message } from './Status.jsx'
+export {
+  CardsSkeleton,
+  CornerTilesSkeleton,
+  CountdownSkeleton,
+  FormSkeleton,
+  MosaicSkeleton,
+  Skeleton,
+  SkeletonGroup,
+  StoryCardSkeleton,
+  StoryFeedSkeleton,
+} from './Skeleton.jsx'
+export { ErrorMessage, Message } from './Status.jsx'
 export { StoryCard } from './StoryCard.jsx'
 export { TextField } from './TextField.jsx'
 export { RouteError } from './RouteError.jsx'
