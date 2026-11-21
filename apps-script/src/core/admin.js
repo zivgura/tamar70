@@ -4,10 +4,13 @@ import {
   ACTIONS,
   adminAuthSchema,
   adminMediaSchema,
+  adminCommentSchema,
   adminSettingsSchema,
+  COMMENT_STATUS,
   adminSiteStatusSchema,
   NOTIFY_MODE,
   SETTING_KEYS,
+  SITE_STATUS,
   adminStorySchema,
   adminStoryUpdateSchema,
   adminVisibilitySchema,
@@ -152,7 +155,11 @@ function getStory(ctx, payload) {
           ? ctx.drive.thumbnail(m.drive_file_id)
           : null,
     }))
-  return { story: adminView(story), photos, categories: categories(ctx) }
+  const comments = ctx.db
+    .all('Comments')
+    .filter((c) => c.story_id === story.id && c.status === COMMENT_STATUS.VISIBLE)
+    .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
+  return { story: adminView(story), photos, comments, categories: categories(ctx) }
 }
 
 function updateStory(ctx, payload) {
@@ -244,6 +251,7 @@ function settingsView(ctx) {
   const settings = readSettings(ctx.db)
   return {
     site_status: siteConfig(settings).site_status,
+    comments_open: siteConfig(settings).comments_open,
     sharing: sharingProgress(ctx),
     notify_mode: settings[SETTING_KEYS.NOTIFY_MODE] || NOTIFY_MODE.EACH,
     recipients: recipients(ctx),
@@ -260,13 +268,33 @@ function getSettings(ctx, payload) {
 }
 
 function updateSettings(ctx, payload) {
-  const { id_token, notify_mode } = adminSettingsSchema.parse(payload)
+  const { id_token, notify_mode, comments_open } = adminSettingsSchema.parse(payload)
   const admin = requireAdmin(ctx, id_token)
   ctx.lock.run(() => {
-    writeSetting(ctx.db, SETTING_KEYS.NOTIFY_MODE, notify_mode)
-    audit(ctx, admin, 'settings.notify_mode', SETTING_KEYS.NOTIFY_MODE, { notify_mode })
+    if (notify_mode) {
+      writeSetting(ctx.db, SETTING_KEYS.NOTIFY_MODE, notify_mode)
+      audit(ctx, admin, 'settings.notify_mode', SETTING_KEYS.NOTIFY_MODE, { notify_mode })
+    }
+    if (comments_open !== undefined) {
+      writeSetting(ctx.db, SETTING_KEYS.COMMENTS_OPEN, comments_open ? 'TRUE' : 'FALSE')
+      audit(ctx, admin, 'settings.comments_open', SETTING_KEYS.COMMENTS_OPEN, { comments_open })
+    }
   })
+  if (comments_open !== undefined) invalidatePublicCache(ctx)
   return settingsView(ctx)
+}
+
+function deleteComment(ctx, payload) {
+  const { id_token, comment_id } = adminCommentSchema.parse(payload)
+  const admin = requireAdmin(ctx, id_token)
+  const comment = ctx.db.all('Comments').find((c) => c.id === comment_id)
+  if (!comment || comment.status === COMMENT_STATUS.DELETED) throw notFound('Comment not found')
+  ctx.lock.run(() => {
+    ctx.db.update('Comments', 'id', comment.id, { status: COMMENT_STATUS.DELETED })
+    audit(ctx, admin, 'comment.delete', comment.id, { story_id: comment.story_id })
+  })
+  invalidatePublicCache(ctx)
+  return { id: comment.id, deleted: true }
 }
 
 /**
@@ -278,6 +306,12 @@ function setSiteStatus(ctx, payload) {
   const admin = requireAdmin(ctx, id_token)
   ctx.lock.run(() => {
     writeSetting(ctx.db, SETTING_KEYS.SITE_STATUS, site_status)
+    // Comments open with the reveal and close with its undo (admins can still switch them).
+    writeSetting(
+      ctx.db,
+      SETTING_KEYS.COMMENTS_OPEN,
+      site_status === SITE_STATUS.PUBLISHED ? 'TRUE' : 'FALSE',
+    )
     audit(ctx, admin, 'site.status', SETTING_KEYS.SITE_STATUS, { site_status })
   })
   invalidatePublicCache(ctx)
@@ -321,4 +355,5 @@ export const adminHandlers = {
   [ACTIONS.ADMIN_SITE_STATUS]: setSiteStatus,
   [ACTIONS.ADMIN_BACKUP]: backup,
   [ACTIONS.ADMIN_EXPORT]: exportStories,
+  [ACTIONS.ADMIN_COMMENT_DELETE]: deleteComment,
 }

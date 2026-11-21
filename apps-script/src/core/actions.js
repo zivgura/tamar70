@@ -24,6 +24,7 @@ import {
   updateOwnMedia,
   updateOwnStory,
 } from './own.js'
+import { addComment, commentCounts, commentsOf } from './comments.js'
 import { galleryPhotos, sharedPhotosByStory } from './reveal.js'
 import { readSettings, siteConfig } from './settings.js'
 
@@ -42,6 +43,7 @@ const byNewest = (a, b) => String(b.created_at).localeCompare(String(a.created_a
  */
 function publicStories(ctx, config) {
   let photos = null // read once, only if some story is shown in full
+  let comments = null
   return ctx.db
     .all('Stories')
     .sort(byNewest)
@@ -51,8 +53,9 @@ function publicStories(ctx, config) {
       if (s.view !== STORY_VIEW.FULL) return s
       const { content: _text, ...card } = s
       photos ??= sharedPhotosByStory(ctx)
+      comments ??= commentCounts(ctx)
       const first = photos.get(s.id)?.[0]
-      return { ...card, cover: first ? first.thumb : null }
+      return { ...card, cover: first ? first.thumb : null, comment_count: comments.get(s.id) ?? 0 }
     })
 }
 
@@ -128,7 +131,10 @@ function getStory(ctx, payload) {
   const config = siteConfig(readSettings(ctx.db))
   const out = toPublicStory(story, getStoryView(story, config.site_status))
   if (!out) throw notFound('Story not found')
-  if (out.view === STORY_VIEW.FULL) out.photos = sharedPhotosByStory(ctx).get(story.id) ?? []
+  if (out.view === STORY_VIEW.FULL) {
+    out.photos = sharedPhotosByStory(ctx).get(story.id) ?? []
+    out.comments = commentsOf(ctx, story.id)
+  }
   return out
 }
 
@@ -206,6 +212,7 @@ export const handlers = {
   [ACTIONS.STORIES_LIST]: listStories,
   [ACTIONS.STORIES_GET]: getStory,
   [ACTIONS.GALLERY]: listGallery,
+  [ACTIONS.COMMENT_ADD]: addComment,
   [ACTIONS.STORIES_SUBMIT]: submitStory,
   [ACTIONS.MEDIA_START]: startUpload,
   [ACTIONS.MEDIA_FINISH]: finishUpload,

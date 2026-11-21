@@ -103,6 +103,7 @@ describe('admin settings', () => {
   it('shows and changes how often emails go out, and sends a test email', () => {
     expect(ok('admin.settings', { id_token: ADMIN })).toEqual({
       site_status: 'collecting',
+      comments_open: false,
       sharing: { shared: 0, total: 0, to_close: 0 },
       notify_mode: 'each',
       recipients: ['owner@example.test'],
@@ -322,5 +323,58 @@ describe('backup and export', () => {
       ],
     })
     expect(call('admin.export', { id_token: OUTSIDER }).error.code).toBe('not_admin')
+  })
+})
+
+describe('comments', () => {
+  const comment = (id, overrides = {}) =>
+    call('comments.add', { story_id: id, author_name: 'רון', content: 'איזה סיפור!', ...overrides })
+
+  it('open with the reveal, show under the story, and close with the undo', () => {
+    const id = submit()
+    expect(comment(id).error.code).toBe('comments_closed')
+
+    expect(
+      ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'published' }).comments_open,
+    ).toBe(true)
+    const added = comment(id).data
+    expect(added).toMatchObject({ author_name: 'רון', content: 'איזה סיפור!' })
+    expect(added.id).toMatch(/^cm_/)
+    expect(ok('stories.get', { id }).comments).toEqual([added])
+    expect(ok('site.bootstrap').stories[0].comment_count).toBe(1)
+    expect(ok('site.bootstrap').site.comments_open).toBe(true)
+
+    ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'collecting' })
+    expect(comment(id).error.code).toBe('comments_closed')
+  })
+
+  it('can be switched off by an admin after the reveal', () => {
+    const id = submit()
+    ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'published' })
+    expect(
+      ok('admin.settingsUpdate', { id_token: ADMIN, comments_open: false }).comments_open,
+    ).toBe(false)
+    expect(comment(id).error.code).toBe('comments_closed')
+  })
+
+  it('needs a name and some text, and ignores bots', () => {
+    const id = submit()
+    ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'published' })
+    expect(comment(id, { author_name: ' ' }).error.code).toBe('validation')
+    expect(comment(id, { content: '' }).error.code).toBe('validation')
+    expect(comment(id, { website: 'spam.example' }).ok).toBe(true)
+    expect(ctx.db.all('Comments')).toHaveLength(0)
+  })
+
+  it('are listed for admins and deleted by them', () => {
+    const id = submit()
+    ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'published' })
+    const { id: commentId } = comment(id).data
+    expect(ok('admin.story', { id_token: ADMIN, id }).comments).toHaveLength(1)
+    ok('admin.commentDelete', { id_token: ADMIN, comment_id: commentId })
+    expect(ok('stories.get', { id }).comments).toEqual([])
+    expect(
+      call('admin.commentDelete', { id_token: OUTSIDER, comment_id: commentId }).error.code,
+    ).toBe('not_admin')
   })
 })

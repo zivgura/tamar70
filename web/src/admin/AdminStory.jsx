@@ -115,6 +115,8 @@ export default function AdminStory() {
   const [actionError, setActionError] = useState(null)
   const [done, setDone] = useState(null)
   const [photoToRemove, setPhotoToRemove] = useState(null)
+  const [commentToDelete, setCommentToDelete] = useState(null)
+  const commentRef = useRef(null)
   const deleteRef = useRef(null)
   const photoRef = useRef(null)
 
@@ -152,7 +154,7 @@ export default function AdminStory() {
     return <ErrorMessage error={error} onRetry={refetch} />
   }
 
-  const { story, photos, categories } = data
+  const { story, photos, categories, comments = [] } = data
   const state = storyState(story)
   const category = categories.find((c) => c.id === story.category_id)
 
@@ -270,6 +272,34 @@ export default function AdminStory() {
         )}
       </section>
 
+      {comments.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>תגובות ({comments.length})</h2>
+          <ul className={styles.list}>
+            {comments.map((c) => (
+              <li key={c.id} className={styles.commentRow}>
+                <span className={styles.rowMeta}>
+                  <strong>{c.author_name}</strong> · {formatDateTime(c.created_at)}
+                </span>
+                <span className={styles.content}>{c.content}</span>
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  aria-label={`מחיקת התגובה של ${c.author_name}`}
+                  disabled={Boolean(busy)}
+                  onClick={() => {
+                    setCommentToDelete(c)
+                    commentRef.current?.showModal?.()
+                  }}
+                >
+                  מחיקה
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {state !== 'deleted' && !editing && (
         <div className={styles.actions}>
           <Button block onClick={() => setEditing(true)} disabled={Boolean(busy)}>
@@ -378,6 +408,24 @@ export default function AdminStory() {
           <img src={photoToRemove.thumbnail} alt="" className={styles.dialogPhoto} />
         )}
         התמונה תעבור לפח של Drive ולא תופיע באתר.
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        ref={commentRef}
+        title="למחוק את התגובה?"
+        confirmLabel="מחיקה"
+        onConfirm={() =>
+          commentToDelete &&
+          run(
+            'מוחקים',
+            ACTIONS.ADMIN_COMMENT_DELETE,
+            { comment_id: commentToDelete.id },
+            'התגובה נמחקה.',
+          )
+        }
+      >
+        {commentToDelete &&
+          `"${commentToDelete.content.slice(0, 120)}" — ${commentToDelete.author_name}`}
       </ConfirmDialog>
     </div>
   )

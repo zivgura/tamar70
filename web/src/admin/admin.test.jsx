@@ -53,6 +53,14 @@ function answer(action, payload) {
       return {
         story: stories.find((s) => s.id === payload.id),
         categories: adminCategories,
+        comments: [
+          {
+            id: 'cm_aaaaaa1',
+            author_name: 'רון',
+            content: 'איזה יופי',
+            created_at: '2026-12-01T10:00:00Z',
+          },
+        ],
         photos: [
           {
             id: 'md_photo0001',
@@ -241,6 +249,19 @@ describe('admin pages', () => {
     expect(await screen.findByText('הסיפור נמחק.')).toBeInTheDocument()
     expect(apiCall).toHaveBeenCalledWith('admin.storyDelete', {
       id: 'st_aaaaaa01',
+      id_token: TOKEN,
+    })
+  })
+
+  it('deletes a comment after confirming', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/story/st_aaaaaa01')
+    await user.click(await screen.findByRole('button', { name: 'מחיקת התגובה של רון' }))
+    const dialog = screen.getByRole('dialog', { name: 'למחוק את התגובה?' })
+    await user.click(within(dialog).getByRole('button', { name: 'מחיקה' }))
+    expect(await screen.findByText('התגובה נמחקה.')).toBeInTheDocument()
+    expect(apiCall).toHaveBeenCalledWith('admin.commentDelete', {
+      comment_id: 'cm_aaaaaa1',
       id_token: TOKEN,
     })
   })

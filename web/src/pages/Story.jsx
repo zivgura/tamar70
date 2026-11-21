@@ -4,6 +4,7 @@ import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useStory } from '../api/queries.js'
 import { ErrorMessage, LoadingCards, Message, PhotoMosaic, StoryCard } from '../components'
 import { ShareIcon } from '../components/icons.js'
+import { StoryComments } from './StoryComments.jsx'
 import { formatDay } from '../lib/format.js'
 import styles from './Corner.module.css'
 
@@ -77,6 +78,13 @@ export default function Story() {
       {story.view === 'full' && loadingFull && <LoadingCards count={1} />}
       {story.photos?.length > 0 && <PhotoMosaic photos={story.photos} label="התמונות של הסיפור" />}
       {story.view === 'full' && <ShareButton title={story.title || 'סיפור על תמר'} />}
+      {story.view === 'full' && story.comments && (
+        <StoryComments
+          storyId={story.id}
+          comments={story.comments}
+          open={Boolean(boot.data?.site.comments_open)}
+        />
+      )}
       {story.view === 'teaser' && birthday && (
         <Message>הסיפור המלא, עם התמונות, ייחשף ב-{formatDay(birthday)}.</Message>
       )}

@@ -48,6 +48,18 @@ function RevealSection({ settings, onChange }) {
     }
   }
 
+  async function toggleComments(open) {
+    setBusy(true)
+    setError(null)
+    try {
+      onChange(await call(ACTIONS.ADMIN_SETTINGS_UPDATE, { comments_open: open }))
+    } catch (err) {
+      setError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>חשיפת הסיפורים</h2>
@@ -64,6 +76,18 @@ function RevealSection({ settings, onChange }) {
           <strong>שלב האיסוף.</strong> באתר רואים רק את תחילת כל סיפור, והתמונות פרטיות.
           {toClose > 0 && ` ${toClose} תמונות עוד נסגרות, תוך רבע שעה.`}
         </p>
+      )}
+      {published && (
+        <label className={styles.toggle} htmlFor="comments-open">
+          <input
+            id="comments-open"
+            type="checkbox"
+            checked={settings.comments_open}
+            disabled={busy}
+            onChange={(e) => toggleComments(e.target.checked)}
+          />
+          <span>אפשר להגיב על סיפורים</span>
+        </label>
       )}
       <Button
         block
@@ -90,8 +114,8 @@ function RevealSection({ settings, onChange }) {
         onConfirm={() => change(published ? SITE_STATUS.COLLECTING : SITE_STATUS.PUBLISHED)}
       >
         {published
-          ? 'הסיפורים יחזרו להיות טיזרים, התמונות ייסגרו, והכותבים יוכלו שוב לערוך את הסיפורים שלהם.'
-          : 'כל הסיפורים והתמונות ייפתחו לכל מי שיש לו את כתובת האתר, והכותבים כבר לא יוכלו לערוך. אפשר לחזור לשלב האיסוף אם צריך.'}
+          ? 'הסיפורים יחזרו להיות טיזרים, התמונות והתגובות ייסגרו, והכותבים יוכלו שוב לערוך את הסיפורים שלהם.'
+          : 'כל הסיפורים והתמונות ייפתחו לכל מי שיש לו את כתובת האתר, ואפשר יהיה להגיב עליהם. הכותבים כבר לא יוכלו לערוך. אפשר לחזור לשלב האיסוף אם צריך.'}
       </ConfirmDialog>
     </section>
   )

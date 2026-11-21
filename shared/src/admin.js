@@ -1,4 +1,4 @@
-import { enum as oneOf, object, string } from 'zod'
+import { boolean, enum as oneOf, object, string } from 'zod'
 import { LIMITS, SITE_STATUS, VISIBILITY } from './constants.js'
 import { NOTIFY_MODE } from './tables.js'
 
@@ -36,7 +36,12 @@ export const adminStoryUpdateSchema = object({
 })
 export const adminSettingsSchema = object({
   id_token: idToken,
-  notify_mode: oneOf(Object.values(NOTIFY_MODE)),
+  notify_mode: oneOf(Object.values(NOTIFY_MODE)).optional(),
+  comments_open: boolean().optional(),
+})
+export const adminCommentSchema = object({
+  id_token: idToken,
+  comment_id: string().regex(/^cm_[A-Za-z0-9]{6,40}$/),
 })
 export const adminSiteStatusSchema = object({
   id_token: idToken,
