@@ -1,41 +1,8 @@
 import { array, number, object, string } from 'zod'
+import { isDocumentMime, isPhotoMime, isSiteOrigin, MAX_PHOTO_BYTES } from './files.js'
 
 // Photos go from the browser straight to Drive (originals, no compression). Apps Script only
 // opens the upload session and confirms the result.
-
-export const MAX_PHOTO_BYTES = 25 * 1024 * 1024
-export const MAX_PHOTOS_PER_STORY = 20
-
-// What phones and cameras produce. iPhone galleries usually hand Safari a JPEG; HEIC is
-// accepted in case one arrives as-is.
-export const PHOTO_TYPES = Object.freeze([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-  'image/heic',
-  'image/heif',
-])
-
-// A Word document someone wrote instead of typing: its text goes into the story, and the
-// original file is kept in Drive with the photos (never shown publicly).
-export const DOCX_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-export const DOCUMENT_TYPES = Object.freeze([DOCX_TYPE])
-export const MAX_DOCUMENTS_PER_STORY = 3
-
-export const isPhotoMime = (mime) => PHOTO_TYPES.includes(mime)
-export const isDocumentMime = (mime) => DOCUMENT_TYPES.includes(mime)
-/** A Media row is a photo unless it's a document (older rows have no other kind). */
-export const isPhotoMedia = (media) => !isDocumentMime(media.mime)
-
-// The site's own origins: live, Firebase preview channels, local dev. A Drive upload session
-// only accepts the browser upload from the origin it was opened for.
-const SITE_ORIGIN =
-  /^(https:\/\/tamar70(--[a-z0-9-]+)?\.(web\.app|firebaseapp\.com)|http:\/\/localhost:5173)$/
-
-export function isSiteOrigin(origin) {
-  return SITE_ORIGIN.test(String(origin ?? ''))
-}
 
 const storyId = string().regex(/^st_[A-Za-z0-9]{6,40}$/)
 const mediaId = string().regex(/^md_[A-Za-z0-9]{6,40}$/)

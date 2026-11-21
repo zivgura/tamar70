@@ -1,12 +1,27 @@
 /* eslint-disable react-refresh/only-export-components -- route config, not a component module */
 import { lazy, Suspense } from 'react'
-import { Layout, RouteError } from './components'
-import AddStory from './add/AddStory.jsx'
-import EditStory from './add/EditStory.jsx'
+import { LoadingCards, Layout, RouteError } from './components'
 import Corner from './pages/Corner.jsx'
 import Gallery from './pages/Gallery.jsx'
 import Home from './pages/Home.jsx'
 import Story from './pages/Story.jsx'
+
+// Adding and editing are the heaviest pages (forms, photo uploads). They load when needed,
+// and in the background a moment after the first page shows (see prefetchPages).
+const loadAddStory = () => import('./add/AddStory.jsx')
+const loadEditStory = () => import('./add/EditStory.jsx')
+const AddStory = lazy(loadAddStory)
+const EditStory = lazy(loadEditStory)
+
+/** Fetches the lazy visitor pages once the browser is idle, so opening them is instant. */
+export function prefetchPages() {
+  const run = () => {
+    loadAddStory().catch(() => {})
+    loadEditStory().catch(() => {})
+  }
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 4000 })
+  else setTimeout(run, 2000)
+}
 
 const Styleguide = lazy(() => import('./pages/Styleguide.jsx'))
 const UploadTest = lazy(() => import('./pages/UploadTest.jsx'))
@@ -23,6 +38,13 @@ const later = (Page) => (
   </Suspense>
 )
 
+// Visitor pages show the usual loading cards while their code arrives.
+const loading = (Page) => (
+  <Suspense fallback={<LoadingCards count={2} />}>
+    <Page />
+  </Suspense>
+)
+
 export const routes = [
   {
     element: <Layout />,
@@ -32,8 +54,8 @@ export const routes = [
       { path: '/corner/:slug', element: <Corner /> },
       { path: '/story/:id', element: <Story /> },
       { path: '/gallery', element: <Gallery /> },
-      { path: '/add', element: <AddStory /> },
-      { path: '/edit/:id', element: <EditStory /> },
+      { path: '/add', element: loading(AddStory) },
+      { path: '/edit/:id', element: loading(EditStory) },
       { path: '*', element: <Home /> },
     ],
   },

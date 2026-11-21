@@ -17,6 +17,17 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The site.bootstrap call index.html already started (see vite.config.js), used once. If it
+ * failed or the server was busy, the normal call (with retries) takes over.
+ */
+function takeEarlyBootstrap() {
+  const early = typeof window === 'undefined' ? null : window.__tamar70Boot
+  if (!early) return null
+  window.__tamar70Boot = undefined
+  return early.then((body) => (body?.ok ? body.data : apiCall(ACTIONS.BOOTSTRAP)))
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function once(action, payload, { url, fetchImpl, signal }) {
@@ -74,7 +85,7 @@ export async function apiCall(action, payload = {}, options = {}) {
 
 export const api = {
   site: (opts) => apiCall(ACTIONS.SITE, {}, opts),
-  bootstrap: (opts) => apiCall(ACTIONS.BOOTSTRAP, {}, opts),
+  bootstrap: (opts) => takeEarlyBootstrap() ?? apiCall(ACTIONS.BOOTSTRAP, {}, opts),
   categories: (opts) => apiCall(ACTIONS.CATEGORIES_LIST, {}, opts),
   stories: (opts) => apiCall(ACTIONS.STORIES_LIST, {}, opts),
   story: (id, opts) => apiCall(ACTIONS.STORIES_GET, { id }, opts),
