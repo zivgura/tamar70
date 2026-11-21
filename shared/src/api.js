@@ -21,6 +21,7 @@ export const ACTIONS = Object.freeze({
   OWN_MEDIA_REMOVE: 'media.remove',
   // Every shared photo of the visible stories, for the gallery (after the reveal).
   GALLERY: 'gallery.list',
+  COMMENT_ADD: 'comments.add',
   // The site reporting about itself (sent with sendBeacon, nobody waits for the answer):
   CLIENT_ERROR: 'client.error',
   CLIENT_VISIT: 'client.visit',
@@ -39,6 +40,7 @@ export const ACTIONS = Object.freeze({
   ADMIN_SITE_STATUS: 'admin.setSiteStatus',
   ADMIN_BACKUP: 'admin.backup',
   ADMIN_EXPORT: 'admin.export',
+  ADMIN_COMMENT_DELETE: 'admin.commentDelete',
 })
 
 export const ERROR_CODES = Object.freeze({
@@ -49,6 +51,7 @@ export const ERROR_CODES = Object.freeze({
   NOT_FOUND: 'not_found',
   FORBIDDEN: 'forbidden',
   EDITING_CLOSED: 'editing_closed',
+  COMMENTS_CLOSED: 'comments_closed',
   SIGN_IN_REQUIRED: 'sign_in_required', // no Google sign-in, or it expired
   NOT_ADMIN: 'not_admin', // signed in, but not in AdminUsers
   TOO_MANY_PHOTOS: 'too_many_photos',

@@ -135,3 +135,9 @@
   border: var(--border-medium) solid var(--color-accent);
   border-radius: var(--radius-full);
 }
+
+.comments {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent);
+}

@@ -52,6 +52,12 @@ export function StoryCard({
         story.excerpt && <p className={revealed ? styles.lead : styles.excerpt}>{story.excerpt}</p>
       )}
 
+      {story.comment_count > 0 && !full && (
+        <p className={styles.comments}>
+          {story.comment_count === 1 ? 'תגובה אחת' : `${story.comment_count} תגובות`}
+        </p>
+      )}
+
       {story.media_count > 0 && !full && (
         <p className={styles.photos} data-tone={category?.tone}>
           <span className={styles.seal} aria-hidden="true">

@@ -158,6 +158,57 @@ describe('Gallery', () => {
   })
 })
 
+describe('Comments', () => {
+  const revealed = (comments = []) => {
+    api.bootstrap.mockResolvedValue(
+      bootstrap({
+        site: { ...published(), comments_open: true },
+        stories: [teaser({ view: 'full' })],
+      }),
+    )
+    vi.spyOn(api, 'story').mockResolvedValue(
+      teaser({ view: 'full', content: 'הסיפור', photos: [], comments }),
+    )
+  }
+
+  it('shows the comments and adds one with the name', async () => {
+    revealed([
+      {
+        id: 'cm_aaaaaa1',
+        author_name: 'רון',
+        content: 'איזה יופי',
+        created_at: '2026-12-01T10:00:00Z',
+      },
+    ])
+    vi.spyOn(api, 'addComment').mockResolvedValue({
+      id: 'cm_aaaaaa2',
+      author_name: 'דנה',
+      content: 'גם אני זוכרת!',
+      created_at: new Date().toISOString(),
+    })
+    renderAt('/story/st_aaaaaa01')
+    expect(await screen.findByRole('heading', { name: 'תגובות (1)' })).toBeInTheDocument()
+    expect(screen.getByText('איזה יופי')).toBeInTheDocument()
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'הוספת תגובה' }))
+    expect(screen.getByText('כתבו כמה מילים')).toBeInTheDocument()
+    expect(api.addComment).not.toHaveBeenCalled()
+
+    await user.type(screen.getByLabelText('מה תרצו להגיד?'), 'גם אני זוכרת!')
+    await user.type(screen.getByLabelText('השם שלכם'), 'דנה')
+    await user.click(screen.getByRole('button', { name: 'הוספת תגובה' }))
+    expect(await screen.findByText('גם אני זוכרת!', { selector: 'p' })).toBeInTheDocument()
+    expect(api.addComment).toHaveBeenCalledWith({
+      story_id: 'st_aaaaaa01',
+      author_name: 'דנה',
+      content: 'גם אני זוכרת!',
+      website: '',
+    })
+    expect(screen.getByRole('heading', { name: 'תגובות (2)' })).toBeInTheDocument()
+  })
+})
+
 describe('Home after the reveal', () => {
   it('swaps the countdown for the reveal message and the counts', async () => {
     api.bootstrap.mockResolvedValue(bootstrap({ site: published() }))
