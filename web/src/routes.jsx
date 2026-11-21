@@ -15,6 +15,7 @@ const AdminLayout = lazy(() => import('./admin/AdminLayout.jsx'))
 const AdminStories = lazy(() => import('./admin/AdminStories.jsx'))
 const AdminStory = lazy(() => import('./admin/AdminStory.jsx'))
 const AdminStats = lazy(() => import('./admin/AdminStats.jsx'))
+const AdminSettings = lazy(() => import('./admin/AdminSettings.jsx'))
 
 const later = (Page) => (
   <Suspense fallback={null}>
@@ -44,6 +45,7 @@ export const routes = [
       { index: true, element: later(AdminStories) },
       { path: 'story/:id', element: later(AdminStory) },
       { path: 'stats', element: later(AdminStats) },
+      { path: 'settings', element: later(AdminSettings) },
     ],
   },
   // Not linked from the site.

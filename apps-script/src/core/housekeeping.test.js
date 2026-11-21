@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryContext } from '../testing/memoryContext.js'
-import { cleanUp, housekeeping, notifyNewStories, recipients } from './housekeeping.js'
+import {
+  cleanUp,
+  housekeeping,
+  notifyNewStories,
+  recipients,
+  sendTestEmail,
+} from './housekeeping.js'
 import { handleRequest } from './router.js'
 import { readSettings, writeSetting } from './settings.js'
 
@@ -74,6 +80,59 @@ describe('new-story emails', () => {
     ok('stories.delete', { id, edit_token: t })
     at('2026-12-01T10:40:00.000Z')
     expect(notifyNewStories(ctx)).toBe(0)
+  })
+})
+
+describe('email frequency', () => {
+  // 10:00 UTC is 12:00 in Israel; 18:30 UTC is 20:30.
+  function twoStories() {
+    housekeeping(ctx) // sets the starting point
+    at('2026-12-01T10:20:00.000Z')
+    submit('ראשון')
+    at('2026-12-01T11:00:00.000Z')
+    submit('שני')
+  }
+
+  it('sends one summary a day, in the evening', () => {
+    writeSetting(ctx.db, 'notify_mode', 'daily')
+    twoStories()
+    at('2026-12-01T12:00:00.000Z')
+    expect(notifyNewStories(ctx)).toBe(0) // not evening yet
+    at('2026-12-01T18:30:00.000Z')
+    expect(notifyNewStories(ctx)).toBe(1)
+    expect(ctx.mail.sent[0].subject).toBe('2 סיפורים חדשים היום')
+    expect(ctx.mail.sent[0].body).toContain('• ראשון — ענת (חברה), טיולים בארץ ובעולם')
+    at('2026-12-01T19:00:00.000Z')
+    submit('שלישי')
+    at('2026-12-01T20:00:00.000Z')
+    expect(notifyNewStories(ctx)).toBe(0) // once a day
+    at('2026-12-02T18:15:00.000Z')
+    expect(notifyNewStories(ctx)).toBe(1)
+    expect(ctx.mail.sent[1].subject).toBe('סיפור חדש היום')
+  })
+
+  it('sends nothing when off, and does not catch up when turned back on', () => {
+    writeSetting(ctx.db, 'notify_mode', 'off')
+    twoStories()
+    at('2026-12-01T12:00:00.000Z')
+    expect(notifyNewStories(ctx)).toBe(0)
+    writeSetting(ctx.db, 'notify_mode', 'each')
+    expect(notifyNewStories(ctx)).toBe(0)
+    expect(ctx.mail.sent).toHaveLength(0)
+  })
+
+  it('remembers when the timer last ran', () => {
+    at('2026-12-01T12:00:00.000Z')
+    housekeeping(ctx)
+    expect(readSettings(ctx.db).housekeeping_ran_at).toBe('2026-12-01T12:00:00.000Z')
+  })
+
+  it('sends a test email to the same people', () => {
+    expect(sendTestEmail(ctx, 'owner@example.test')).toEqual({
+      sent: true,
+      recipients: ['owner@example.test'],
+    })
+    expect(ctx.mail.sent[0].subject).toBe('מייל בדיקה מהאתר של תמר')
   })
 })
 

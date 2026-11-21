@@ -404,3 +404,67 @@
   background: var(--color-bg);
   border-radius: var(--radius-sm);
 }
+
+/* Settings */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.option {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.option:has(:checked) {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+}
+
+.radio {
+  flex-shrink: 0;
+  margin-top: var(--space-1);
+  accent-color: var(--color-accent);
+}
+
+.optionText {
+  display: flex;
+  flex: 1;
+  cursor: pointer;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.optionLabel {
+  font-weight: var(--weight-bold);
+}
+
+.statusSlot {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--space-6);
+  font-size: var(--text-md);
+}
+
+.recipients {
+  padding: 0;
+  margin: 0;
+  font-size: var(--text-md);
+  list-style: none;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

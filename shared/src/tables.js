@@ -2,7 +2,7 @@
 // column names. Bump SCHEMA_VERSION whenever a tab or column is added: the server notices on its
 // next request and adds what's missing (it never deletes or reorders anything).
 
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 6
 
 // Column types, used to convert between Sheet cells (always stored as text) and JS values.
 export const T = Object.freeze({
@@ -148,4 +148,16 @@ export const SETTING_KEYS = Object.freeze({
   // Bookkeeping for the scheduled housekeeping job (see apps-script/src/core/housekeeping.js).
   NOTIFIED_UNTIL: 'notified_until',
   CLEANED_AT: 'cleaned_at',
+  // How admins hear about new stories: see NOTIFY_MODE. Changed from the admin settings page.
+  NOTIFY_MODE: 'notify_mode',
+  DIGEST_SENT_ON: 'digest_sent_on',
+  HOUSEKEEPING_RAN_AT: 'housekeeping_ran_at',
 })
+
+export const NOTIFY_MODE = Object.freeze({
+  EACH: 'each', // one email per story
+  DAILY: 'daily', // one summary a day, in the evening
+  OFF: 'off',
+})
+// The daily summary goes out on the first run after this hour, Israel time.
+export const DIGEST_HOUR = 20

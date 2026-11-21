@@ -4,6 +4,9 @@ import {
   ACTIONS,
   adminAuthSchema,
   adminMediaSchema,
+  adminSettingsSchema,
+  NOTIFY_MODE,
+  SETTING_KEYS,
   adminStorySchema,
   adminStoryUpdateSchema,
   adminVisibilitySchema,
@@ -18,7 +21,8 @@ import {
 import { ApiError, notFound } from './errors.js'
 import { invalidatePublicCache, mediaOf } from './media.js'
 import { livePhotos, recountPhotos, trashQuietly } from './own.js'
-import { readSettings, siteConfig } from './settings.js'
+import { recipients, sendTestEmail } from './housekeeping.js'
+import { readSettings, siteConfig, writeSetting } from './settings.js'
 import { stats } from './telemetry.js'
 
 // A checked token is remembered for a while, so each admin call doesn't ask Google again.
@@ -231,6 +235,38 @@ function adminStats(ctx, payload) {
   return stats(ctx)
 }
 
+function settingsView(ctx) {
+  const settings = readSettings(ctx.db)
+  return {
+    notify_mode: settings[SETTING_KEYS.NOTIFY_MODE] || NOTIFY_MODE.EACH,
+    recipients: recipients(ctx),
+    // When the 15-minute timer last ran, so a stopped timer shows up on the settings page.
+    housekeeping_ran_at: settings[SETTING_KEYS.HOUSEKEEPING_RAN_AT] || null,
+  }
+}
+
+function getSettings(ctx, payload) {
+  const { id_token } = adminAuthSchema.parse(payload)
+  requireAdmin(ctx, id_token)
+  return settingsView(ctx)
+}
+
+function updateSettings(ctx, payload) {
+  const { id_token, notify_mode } = adminSettingsSchema.parse(payload)
+  const admin = requireAdmin(ctx, id_token)
+  ctx.lock.run(() => {
+    writeSetting(ctx.db, SETTING_KEYS.NOTIFY_MODE, notify_mode)
+    audit(ctx, admin, 'settings.notify_mode', SETTING_KEYS.NOTIFY_MODE, { notify_mode })
+  })
+  return settingsView(ctx)
+}
+
+function testEmail(ctx, payload) {
+  const { id_token } = adminAuthSchema.parse(payload)
+  const admin = requireAdmin(ctx, id_token)
+  return sendTestEmail(ctx, admin.email)
+}
+
 export const adminHandlers = {
   [ACTIONS.ADMIN_ME]: me,
   [ACTIONS.ADMIN_STORIES]: listStories,
@@ -240,4 +276,7 @@ export const adminHandlers = {
   [ACTIONS.ADMIN_STORY_DELETE]: deleteStory,
   [ACTIONS.ADMIN_MEDIA_REMOVE]: removeMedia,
   [ACTIONS.ADMIN_STATS]: adminStats,
+  [ACTIONS.ADMIN_SETTINGS]: getSettings,
+  [ACTIONS.ADMIN_SETTINGS_UPDATE]: updateSettings,
+  [ACTIONS.ADMIN_TEST_EMAIL]: testEmail,
 }

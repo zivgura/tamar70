@@ -28,3 +28,12 @@ export function useAdminStats() {
     retry: false,
   })
 }
+
+export function useAdminSettings() {
+  const { token, call } = useAdmin()
+  return useQuery({
+    queryKey: ['admin', 'settings', token],
+    queryFn: () => call(ACTIONS.ADMIN_SETTINGS),
+    retry: false,
+  })
+}

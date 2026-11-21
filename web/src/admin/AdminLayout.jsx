@@ -133,6 +133,7 @@ export default function AdminLayout() {
           </Link>
           <nav className={styles.headerLinks}>
             {token && <Link to="/admin/stats">נתונים</Link>}
+            {token && <Link to="/admin/settings">הגדרות</Link>}
             <Link to="/">לאתר</Link>
             {token && (
               <button type="button" className={styles.linkButton} onClick={() => signOut()}>
