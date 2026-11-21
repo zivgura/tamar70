@@ -55,6 +55,12 @@ describe('adding a story', () => {
     await user.type(screen.getByLabelText('השם שלכם'), 'ענת')
     await user.click(screen.getByRole('button', { name: 'המשך' }))
 
+    // Closed until opened
+    const panel = screen.getByText('כבר כתבתם את הסיפור?').closest('details')
+    expect(panel).not.toHaveAttribute('open')
+    await user.click(screen.getByText('כבר כתבתם את הסיפור?'))
+    expect(panel).toHaveAttribute('open')
+
     const file = new File(['x'], 'הסיפור שלי.docx', {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     })
@@ -79,6 +85,7 @@ describe('adding a story', () => {
     await user.type(screen.getByLabelText('השם שלכם'), 'ענת')
     await user.click(screen.getByRole('button', { name: 'המשך' }))
 
+    await user.click(screen.getByText('כבר כתבתם את הסיפור?'))
     await user.type(screen.getByLabelText('או קישור ל-Google Docs:'), 'not a link')
     await user.click(screen.getByRole('button', { name: 'ייבוא' }))
     expect(screen.getByText('זה לא קישור למסמך Google Docs.')).toBeInTheDocument()

@@ -388,20 +388,13 @@
   border-color: var(--color-danger);
 }
 
-/* "Already wrote it in Word?": above the story box */
+/* "Already wrote it?": inside a closed <details> above the story box */
 .docImport {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   align-items: flex-start;
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1.5px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-}
-
-.docTitle {
-  font-weight: var(--weight-bold);
+  padding-bottom: var(--space-4);
 }
 
 .docHint {

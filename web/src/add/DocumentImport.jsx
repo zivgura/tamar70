@@ -65,72 +65,74 @@ export function DocumentImport({ content, onText, onDocument }) {
     }
   }
 
+  // Closed by default: most people type here; those who already wrote open it.
   return (
-    <div className={styles.docImport}>
-      <p className={styles.docTitle}>כבר כתבתם את הסיפור?</p>
-      <p className={styles.docHint}>
-        העלו מסמך Word או הדביקו קישור ל-Google Docs, והטקסט ייכנס לסיפור.
-      </p>
+    <details className={styles.details}>
+      <summary>
+        <span className={styles.summaryTitle}>כבר כתבתם את הסיפור?</span>
+        <span className={styles.hint}>העלו מסמך Word או הדביקו קישור ל-Google Docs</span>
+      </summary>
+      <div className={styles.docImport}>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="visually-hidden"
+          tabIndex={-1}
+          onChange={pick}
+          aria-label="בחירת מסמך Word"
+        />
+        <button
+          type="button"
+          className={styles.docButton}
+          onClick={() => inputRef.current?.click()}
+          disabled={reading}
+        >
+          העלאת מסמך Word
+        </button>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        className="visually-hidden"
-        tabIndex={-1}
-        onChange={pick}
-        aria-label="בחירת מסמך Word"
-      />
-      <button
-        type="button"
-        className={styles.docButton}
-        onClick={() => inputRef.current?.click()}
-        disabled={reading}
-      >
-        העלאת מסמך Word
-      </button>
-
-      {/* A div, not a form: this sits inside the story form. Enter imports. */}
-      <div className={styles.docLink}>
-        <label htmlFor="google-doc-link" className={styles.docHint}>
-          או קישור ל-Google Docs:
-        </label>
-        <div className={styles.docLinkRow}>
-          <input
-            id="google-doc-link"
-            type="url"
-            inputMode="url"
-            dir="ltr"
-            className={styles.docLinkInput}
-            placeholder="https://docs.google.com/document/d/…"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && importLink(e)}
-            disabled={reading}
-          />
-          <button
-            type="button"
-            className={styles.docButton}
-            onClick={importLink}
-            disabled={reading || !link.trim()}
-          >
-            ייבוא
-          </button>
+        {/* A div, not a form: this sits inside the story form. Enter imports. */}
+        <div className={styles.docLink}>
+          <label htmlFor="google-doc-link" className={styles.docHint}>
+            או קישור ל-Google Docs:
+          </label>
+          <div className={styles.docLinkRow}>
+            <input
+              id="google-doc-link"
+              type="url"
+              inputMode="url"
+              dir="ltr"
+              className={styles.docLinkInput}
+              placeholder="https://docs.google.com/document/d/…"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && importLink(e)}
+              disabled={reading}
+            />
+            <button
+              type="button"
+              className={styles.docButton}
+              onClick={importLink}
+              disabled={reading || !link.trim()}
+            >
+              ייבוא
+            </button>
+          </div>
+          <p className={styles.docSmall}>
+            המסמך צריך להיות משותף: בגוגל דוקס, שיתוף ← &quot;כל מי שיש לו את הקישור&quot;.
+          </p>
         </div>
-        <p className={styles.docSmall}>
-          המסמך צריך להיות משותף: בגוגל דוקס, שיתוף ← &quot;כל מי שיש לו את הקישור&quot;.
+
+        <p className={styles.docStatus} aria-live="polite">
+          {reading && 'קוראים את המסמך…'}
+          {state.status === 'done' && (
+            <>
+              הטקסט <bdi>{state.source}</bdi> נכנס לסיפור. עברו עליו לפני השליחה.
+            </>
+          )}
+          {state.status === 'error' && <span className={styles.docError}>{state.message}</span>}
         </p>
       </div>
-
-      <p className={styles.docStatus} aria-live="polite">
-        {reading && 'קוראים את המסמך…'}
-        {state.status === 'done' && (
-          <>
-            הטקסט <bdi>{state.source}</bdi> נכנס לסיפור. עברו עליו לפני השליחה.
-          </>
-        )}
-        {state.status === 'error' && <span className={styles.docError}>{state.message}</span>}
-      </p>
-    </div>
+    </details>
   )
 }
