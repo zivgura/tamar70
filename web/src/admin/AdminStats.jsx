@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ErrorMessage, LoadingCards } from '../components'
 import styles from './Admin.module.css'
 import { formatDateTime } from './adminFormat.js'
@@ -19,9 +18,6 @@ export default function AdminStats() {
   const { days, totals, errors } = data
   return (
     <div className={styles.page}>
-      <Link to="/admin" className={styles.back}>
-        → לכל הסיפורים
-      </Link>
       <h1 className={styles.title}>נתונים</h1>
       <dl className={styles.totals}>
         <div>

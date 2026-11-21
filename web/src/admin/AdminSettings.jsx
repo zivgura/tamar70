@@ -1,7 +1,6 @@
 import { ACTIONS, DIGEST_HOUR, NOTIFY_MODE } from '@tamar70/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { errorMessage } from '../api/messages.js'
 import { Button, ErrorMessage, LoadingCards, Spinner } from '../components'
 import styles from './Admin.module.css'
@@ -67,9 +66,6 @@ export default function AdminSettings() {
 
   return (
     <div className={styles.page}>
-      <Link to="/admin" className={styles.back}>
-        → לכל הסיפורים
-      </Link>
       <h1 className={styles.title}>הגדרות</h1>
 
       <section className={styles.section}>
