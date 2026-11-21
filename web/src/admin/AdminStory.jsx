@@ -308,6 +308,41 @@ export default function AdminStory() {
               הסתרה מהאתר
             </Button>
           )}
+          {state === 'early' ? (
+            <Button
+              block
+              variant="secondary"
+              disabled={Boolean(busy)}
+              onClick={() =>
+                run(
+                  'סוגרים',
+                  ACTIONS.ADMIN_VISIBILITY,
+                  { id, visibility: VISIBILITY.DEFAULT },
+                  'הסיפור חזר להיות טיזר עד החשיפה.',
+                )
+              }
+            >
+              החזרה לטיזר עד החשיפה
+            </Button>
+          ) : (
+            state === 'shown' && (
+              <Button
+                block
+                variant="quiet"
+                disabled={Boolean(busy)}
+                onClick={() =>
+                  run(
+                    'פותחים',
+                    ACTIONS.ADMIN_VISIBILITY,
+                    { id, visibility: VISIBILITY.EARLY },
+                    'הסיפור פתוח לקריאה כבר עכשיו, עם התמונות.',
+                  )
+                }
+              >
+                פתיחה לקריאה כבר עכשיו
+              </Button>
+            )
+          )}
           <Button
             block
             variant="quiet"

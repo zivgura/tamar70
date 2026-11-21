@@ -5,6 +5,7 @@ import {
   adminAuthSchema,
   adminMediaSchema,
   adminSettingsSchema,
+  adminSiteStatusSchema,
   NOTIFY_MODE,
   SETTING_KEYS,
   adminStorySchema,
@@ -22,6 +23,7 @@ import { ApiError, notFound } from './errors.js'
 import { invalidatePublicCache, mediaOf } from './media.js'
 import { livePhotos, recountPhotos, trashQuietly } from './own.js'
 import { recipients, sendTestEmail } from './housekeeping.js'
+import { sharingProgress, syncSharing } from './reveal.js'
 import { readSettings, siteConfig, writeSetting } from './settings.js'
 import { stats } from './telemetry.js'
 
@@ -184,6 +186,8 @@ function setVisibility(ctx, payload) {
     ctx.db.update('Stories', 'id', story.id, { visibility, updated_at: ctx.now() })
     audit(ctx, admin, 'story.visibility', story.id, { visibility })
   })
+  // Its photos open or close with it (early → shared, hidden → private again).
+  syncSharing(ctx, { storyId: story.id })
   invalidatePublicCache(ctx)
   return { id: story.id, visibility }
 }
@@ -238,6 +242,8 @@ function adminStats(ctx, payload) {
 function settingsView(ctx) {
   const settings = readSettings(ctx.db)
   return {
+    site_status: siteConfig(settings).site_status,
+    sharing: sharingProgress(ctx),
     notify_mode: settings[SETTING_KEYS.NOTIFY_MODE] || NOTIFY_MODE.EACH,
     recipients: recipients(ctx),
     // When the 15-minute timer last ran, so a stopped timer shows up on the settings page.
@@ -261,6 +267,23 @@ function updateSettings(ctx, payload) {
   return settingsView(ctx)
 }
 
+/**
+ * The reveal button, and its undo. Stories open (or seal) at once; photos are shared (or made
+ * private) here in a first batch, and the rest by the 15-minute timer.
+ */
+function setSiteStatus(ctx, payload) {
+  const { id_token, site_status } = adminSiteStatusSchema.parse(payload)
+  const admin = requireAdmin(ctx, id_token)
+  ctx.lock.run(() => {
+    writeSetting(ctx.db, SETTING_KEYS.SITE_STATUS, site_status)
+    audit(ctx, admin, 'site.status', SETTING_KEYS.SITE_STATUS, { site_status })
+  })
+  invalidatePublicCache(ctx)
+  syncSharing(ctx)
+  invalidatePublicCache(ctx)
+  return settingsView(ctx)
+}
+
 function testEmail(ctx, payload) {
   const { id_token } = adminAuthSchema.parse(payload)
   const admin = requireAdmin(ctx, id_token)
@@ -279,4 +302,5 @@ export const adminHandlers = {
   [ACTIONS.ADMIN_SETTINGS]: getSettings,
   [ACTIONS.ADMIN_SETTINGS_UPDATE]: updateSettings,
   [ACTIONS.ADMIN_TEST_EMAIL]: testEmail,
+  [ACTIONS.ADMIN_SITE_STATUS]: setSiteStatus,
 }

@@ -4,6 +4,7 @@ import { STORY_STATUS, VISIBILITY } from '@tamar70/shared'
 export function storyState(story) {
   if (story.status === STORY_STATUS.DELETED) return 'deleted'
   if (story.visibility === VISIBILITY.HIDDEN) return 'hidden'
+  if (story.visibility === VISIBILITY.EARLY) return 'early'
   return 'shown'
 }
 

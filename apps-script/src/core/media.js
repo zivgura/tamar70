@@ -9,9 +9,10 @@ import {
 } from '@tamar70/shared'
 import { ApiError } from './errors.js'
 import { ownStory, requireSubmissionsOpen } from './ownership.js'
+import { syncSharing } from './reveal.js'
 
 // Public reads are cached for a minute; every write clears them.
-export const PUBLIC_CACHE_KEYS = ['stories.list', 'site.bootstrap']
+export const PUBLIC_CACHE_KEYS = ['stories.list', 'site.bootstrap', 'gallery.list']
 export const invalidatePublicCache = (ctx) => PUBLIC_CACHE_KEYS.forEach((k) => ctx.cache.remove(k))
 
 export const mediaOf = (ctx, storyId) => ctx.db.all('Media').filter((m) => m.story_id === storyId)
@@ -119,6 +120,8 @@ export function finishUpload(ctx, payload) {
     return { media_id: media.id, width: file.width ?? null, height: file.height ?? null }
   })
 
+  // A photo added to a story that's already open (after the reveal) is shared right away.
+  syncSharing(ctx, { storyId: story.id })
   invalidatePublicCache(ctx)
   return result
 }

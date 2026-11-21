@@ -46,6 +46,20 @@
   border-radius: var(--radius-full);
 }
 
+/* After the reveal: the cover photo and the opening line, inviting to read on. */
+.cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--pattern-placeholder);
+  border-radius: var(--radius-sm);
+}
+
+.lead {
+  color: var(--color-text-secondary);
+}
+
 /* The first lines, fading out: the rest stays sealed until the birthday. */
 .excerpt {
   color: var(--color-text-secondary);

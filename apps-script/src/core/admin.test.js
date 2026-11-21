@@ -1,7 +1,9 @@
 import { GOOGLE_CLIENT_ID } from '@tamar70/shared'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryContext } from '../testing/memoryContext.js'
+import { housekeeping } from './housekeeping.js'
 import { handleRequest } from './router.js'
+import { writeSetting } from './settings.js'
 
 let ctx
 const ADMIN = 'A'.repeat(200)
@@ -100,6 +102,8 @@ describe('admin sign-in', () => {
 describe('admin settings', () => {
   it('shows and changes how often emails go out, and sends a test email', () => {
     expect(ok('admin.settings', { id_token: ADMIN })).toEqual({
+      site_status: 'collecting',
+      sharing: { shared: 0, total: 0, to_close: 0 },
       notify_mode: 'each',
       recipients: ['owner@example.test'],
       housekeeping_ran_at: null,
@@ -208,5 +212,73 @@ describe('admin stories', () => {
     const id = submit()
     expect(call('admin.storyDelete', { id_token: OUTSIDER, id }).error.code).toBe('not_admin')
     expect(ok('site.bootstrap').stories).toHaveLength(1)
+  })
+})
+
+describe('the reveal', () => {
+  const photoUrl = (fid, w) => `https://lh3.googleusercontent.com/d/${fid}=w${w}`
+
+  it('opens every story and shares its photos, and can be undone', () => {
+    const id = submit()
+    const { drive_file_id } = addPhoto(id)
+    expect(ok('site.bootstrap').stories[0].view).toBe('teaser')
+    expect(ok('gallery.list').photos).toEqual([])
+
+    const after = ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'published' })
+    expect(after.site_status).toBe('published')
+    expect(after.sharing).toEqual({ shared: 1, total: 1, to_close: 0 })
+    expect(ctx.drive.shared.has(drive_file_id)).toBe(true)
+
+    // Lists get a card with a cover and no text; the story page gets the text and photos.
+    const [card] = ok('site.bootstrap').stories
+    expect(card).toMatchObject({ view: 'full', cover: photoUrl(drive_file_id, 600) })
+    expect(card).not.toHaveProperty('content')
+    const story = ok('stories.get', { id })
+    expect(story.content).toBe('זה היה בקיץ. ואז עוד.')
+    expect(story.photos).toEqual([
+      expect.objectContaining({
+        url: photoUrl(drive_file_id, 1600),
+        thumb: photoUrl(drive_file_id, 600),
+      }),
+    ])
+    expect(ok('gallery.list').photos).toEqual([
+      expect.objectContaining({ story_id: id, story_title: 'הטרמפ', author_name: 'ענת' }),
+    ])
+
+    ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'collecting' })
+    expect(ctx.drive.shared.has(drive_file_id)).toBe(false)
+    expect(ok('site.bootstrap').stories[0].view).toBe('teaser')
+    expect(call('stories.get', { id }).data).not.toHaveProperty('content')
+  })
+
+  it('shares in batches, finished by the timer', async () => {
+    const id = submit()
+    for (let i = 0; i < 3; i++) addPhoto(id)
+    const { syncSharing } = await import('./reveal.js')
+    writeSetting(ctx.db, 'site_status', 'published')
+    expect(syncSharing(ctx, { limit: 2 })).toBe(2)
+    expect(ok('admin.settings', { id_token: ADMIN }).sharing).toEqual({
+      shared: 2,
+      total: 3,
+      to_close: 0,
+    })
+    housekeeping(ctx)
+    expect(ok('admin.settings', { id_token: ADMIN }).sharing).toMatchObject({ shared: 3 })
+  })
+
+  it("opens one story early, and closes a hidden story's photos", () => {
+    const id = submit()
+    const { drive_file_id } = addPhoto(id)
+    ok('admin.setVisibility', { id_token: ADMIN, id, visibility: 'early' })
+    expect(ctx.drive.shared.has(drive_file_id)).toBe(true)
+    expect(ok('stories.get', { id }).photos).toHaveLength(1)
+    ok('admin.setVisibility', { id_token: ADMIN, id, visibility: 'hidden' })
+    expect(ctx.drive.shared.has(drive_file_id)).toBe(false)
+  })
+
+  it('is for admins only', () => {
+    expect(
+      call('admin.setSiteStatus', { id_token: OUTSIDER, site_status: 'published' }).error.code,
+    ).toBe('not_admin')
   })
 })

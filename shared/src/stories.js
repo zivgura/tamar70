@@ -55,3 +55,24 @@ export function toPublicStory(story, view) {
   for (const f of fields) out[f] = story[f]
   return out
 }
+
+/**
+ * A Drive photo's public image address at a given width. Works once the file is shared
+ * "anyone with the link" (done at the reveal); Drive renders HEIC as JPEG.
+ */
+export function photoUrl(driveFileId, width = 1600) {
+  return `https://lh3.googleusercontent.com/d/${driveFileId}=w${width}`
+}
+
+/** A shared photo as the public sees it. */
+export function toPublicPhoto(media) {
+  return {
+    id: media.id,
+    url: photoUrl(media.drive_file_id, 1600),
+    thumb: photoUrl(media.drive_file_id, 600),
+    caption: media.caption || '',
+    year_approx: media.year_approx ?? null,
+    people: media.people ?? [],
+    place: media.place || '',
+  }
+}

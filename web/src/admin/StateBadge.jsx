@@ -7,7 +7,7 @@ export function StateBadge({ story }) {
   if (state === 'shown') return null
   return (
     <span className={styles.badge} data-state={state}>
-      {state === 'hidden' ? 'מוסתר' : 'נמחק'}
+      {{ hidden: 'מוסתר', deleted: 'נמחק', early: 'פתוח מוקדם' }[state]}
     </span>
   )
 }

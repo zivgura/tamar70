@@ -1,5 +1,5 @@
 import { enum as oneOf, object, string } from 'zod'
-import { LIMITS, VISIBILITY } from './constants.js'
+import { LIMITS, SITE_STATUS, VISIBILITY } from './constants.js'
 import { NOTIFY_MODE } from './tables.js'
 
 // Admins sign in with Google on the site. The browser sends the Google ID token with every
@@ -19,7 +19,7 @@ export const adminStorySchema = object({ id_token: idToken, id: storyId })
 export const adminVisibilitySchema = object({
   id_token: idToken,
   id: storyId,
-  visibility: oneOf([VISIBILITY.DEFAULT, VISIBILITY.HIDDEN]),
+  visibility: oneOf([VISIBILITY.DEFAULT, VISIBILITY.HIDDEN, VISIBILITY.EARLY]),
 })
 export const adminStoryUpdateSchema = object({
   id_token: idToken,
@@ -37,5 +37,9 @@ export const adminStoryUpdateSchema = object({
 export const adminSettingsSchema = object({
   id_token: idToken,
   notify_mode: oneOf(Object.values(NOTIFY_MODE)),
+})
+export const adminSiteStatusSchema = object({
+  id_token: idToken,
+  site_status: oneOf([SITE_STATUS.COLLECTING, SITE_STATUS.PUBLISHED]),
 })
 export const adminMediaSchema = object({ id_token: idToken, media_id: mediaId })

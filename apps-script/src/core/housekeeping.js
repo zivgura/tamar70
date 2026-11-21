@@ -8,6 +8,8 @@ import {
   STORY_STATUS,
   UPLOAD_STATUS,
 } from '@tamar70/shared'
+import { invalidatePublicCache } from './media.js'
+import { syncSharing } from './reveal.js'
 import { readSettings, writeSetting } from './settings.js'
 
 export const HOUSEKEEPING_MINUTES = 15
@@ -195,6 +197,9 @@ export function cleanUp(ctx, { force = false } = {}) {
 
 export function housekeeping(ctx) {
   writeSetting(ctx.db, SETTING_KEYS.HOUSEKEEPING_RAN_AT, ctx.now())
+  // Finishes opening (or closing) photos after the reveal button.
+  const shared = syncSharing(ctx)
+  if (shared) invalidatePublicCache(ctx)
   const emailed = notifyNewStories(ctx)
   const cleaned = cleanUp(ctx)
   ctx.log.info(

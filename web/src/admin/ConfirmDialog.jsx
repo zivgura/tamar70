@@ -2,7 +2,7 @@ import { Button } from '../components'
 import styles from './Admin.module.css'
 
 /** A confirm step before something that can't be undone. Open it with ref.current.showModal(). */
-export function ConfirmDialog({ ref, title, confirmLabel, onConfirm, children }) {
+export function ConfirmDialog({ ref, title, confirmLabel, onConfirm, children, danger = true }) {
   const close = () => ref.current?.close?.()
   return (
     <dialog ref={ref} className={styles.dialog} aria-label={title}>
@@ -11,7 +11,7 @@ export function ConfirmDialog({ ref, title, confirmLabel, onConfirm, children })
         <p className={styles.dialogText}>{children}</p>
         <div className={styles.dialogActions}>
           <Button
-            className={styles.dangerFill}
+            className={danger ? styles.dangerFill : undefined}
             onClick={() => {
               close()
               onConfirm()

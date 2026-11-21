@@ -24,22 +24,36 @@ import {
   updateOwnMedia,
   updateOwnStory,
 } from './own.js'
+import { galleryPhotos, sharedPhotosByStory } from './reveal.js'
 import { readSettings, siteConfig } from './settings.js'
 
 const LIST_CACHE_KEY = 'stories.list'
 const BOOTSTRAP_CACHE_KEY = 'site.bootstrap'
+const GALLERY_CACHE_KEY = 'gallery.list'
 const CACHE_SECONDS = 60
 // CacheService refuses values over 100 KB; stay well under.
 const CACHE_MAX_CHARS = 90_000
 
 const byNewest = (a, b) => String(b.created_at).localeCompare(String(a.created_at))
 
+/**
+ * Every visible story for lists. A story shown in full comes as a card: no text (the story
+ * page loads it), plus its first shared photo as a cover.
+ */
 function publicStories(ctx, config) {
+  let photos = null // read once, only if some story is shown in full
   return ctx.db
     .all('Stories')
     .sort(byNewest)
     .map((s) => toPublicStory(s, getStoryView(s, config.site_status)))
     .filter(Boolean)
+    .map((s) => {
+      if (s.view !== STORY_VIEW.FULL) return s
+      const { content: _text, ...card } = s
+      photos ??= sharedPhotosByStory(ctx)
+      const first = photos.get(s.id)?.[0]
+      return { ...card, cover: first ? first.thumb : null }
+    })
 }
 
 /** Caches JSON-able results for a minute, unless too big for CacheService. */
@@ -114,7 +128,13 @@ function getStory(ctx, payload) {
   const config = siteConfig(readSettings(ctx.db))
   const out = toPublicStory(story, getStoryView(story, config.site_status))
   if (!out) throw notFound('Story not found')
+  if (out.view === STORY_VIEW.FULL) out.photos = sharedPhotosByStory(ctx).get(story.id) ?? []
   return out
+}
+
+/** Every photo open to the public, for the gallery page. */
+function listGallery(ctx) {
+  return cached(ctx, GALLERY_CACHE_KEY, () => ({ photos: galleryPhotos(ctx) }))
 }
 
 const SUBMISSIONS_PER_HOUR = 60
@@ -185,6 +205,7 @@ export const handlers = {
   [ACTIONS.CATEGORIES_LIST]: listCategories,
   [ACTIONS.STORIES_LIST]: listStories,
   [ACTIONS.STORIES_GET]: getStory,
+  [ACTIONS.GALLERY]: listGallery,
   [ACTIONS.STORIES_SUBMIT]: submitStory,
   [ACTIONS.MEDIA_START]: startUpload,
   [ACTIONS.MEDIA_FINISH]: finishUpload,
