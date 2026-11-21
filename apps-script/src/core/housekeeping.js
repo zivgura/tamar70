@@ -1,7 +1,13 @@
 // Runs on a timer (every 15 minutes), never from a visitor's request:
-// - emails the admins about each new story, so nobody has to watch the Sheet;
+// - emails the admins about new stories (each one, a daily summary, or not at all);
 // - once a day, cleans up photo uploads that never finished.
-import { SETTING_KEYS, STORY_STATUS, UPLOAD_STATUS } from '@tamar70/shared'
+import {
+  DIGEST_HOUR,
+  NOTIFY_MODE,
+  SETTING_KEYS,
+  STORY_STATUS,
+  UPLOAD_STATUS,
+} from '@tamar70/shared'
 import { readSettings, writeSetting } from './settings.js'
 
 export const HOUSEKEEPING_MINUTES = 15
@@ -50,7 +56,43 @@ export function storyEmail(story, categoryName) {
   }
 }
 
-/** One email per story added since the last run. The first run only sets the starting point. */
+const categoryNames = (ctx) =>
+  Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c.name]))
+
+/** "2026-12-01 20" → day and hour in Israel. */
+function israelClock(iso) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jerusalem',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(new Date(iso))
+      .map((p) => [p.type, p.value]),
+  )
+  return { day: `${parts.year}-${parts.month}-${parts.day}`, hour: Number(parts.hour) }
+}
+
+export function digestEmail(stories, names) {
+  const lines = stories.map((s) => {
+    const who = s.author_relation ? `${s.author_name} (${s.author_relation})` : s.author_name
+    const photos = s.media_count ? ` · ${s.media_count} תמונות` : ''
+    return `• ${s.title || s.excerpt || 'בלי כותרת'} — ${who}, ${names[s.category_id] ?? 'כללי'}${photos}\n  ${SITE_URL}/admin/story/${s.id}`
+  })
+  return {
+    subject: stories.length === 1 ? 'סיפור חדש היום' : `${stories.length} סיפורים חדשים היום`,
+    body: [...lines, '', `כל הסיפורים: ${SITE_URL}/admin`].join('\n'),
+  }
+}
+
+/**
+ * Tells the admins about stories added since the last time, as Settings.notify_mode says:
+ * one email per story, one summary a day after DIGEST_HOUR, or nothing (the starting point
+ * still moves on, so turning emails back on doesn't send old stories). Returns emails sent.
+ */
 export function notifyNewStories(ctx) {
   const settings = readSettings(ctx.db)
   const since = settings[SETTING_KEYS.NOTIFIED_UNTIL]
@@ -59,27 +101,60 @@ export function notifyNewStories(ctx) {
     writeSetting(ctx.db, SETTING_KEYS.NOTIFIED_UNTIL, new Date(until).toISOString())
     return 0
   }
+  const mode = settings[SETTING_KEYS.NOTIFY_MODE] || NOTIFY_MODE.EACH
+  const clock = israelClock(ctx.now())
+  if (mode === NOTIFY_MODE.DAILY) {
+    if (clock.hour < DIGEST_HOUR || settings[SETTING_KEYS.DIGEST_SENT_ON] === clock.day) return 0
+  }
 
   const fresh = ctx.db
     .all('Stories')
     .filter((s) => s.status === STORY_STATUS.ACTIVE)
     .filter((s) => ms(s.created_at) > ms(since) && ms(s.created_at) <= until)
     .sort((a, b) => ms(a.created_at) - ms(b.created_at))
-    .slice(0, MAX_EMAILS_PER_RUN)
-  if (fresh.length === 0) return 0
+  const to = recipients(ctx).join(',')
 
-  const to = recipients(ctx)
-  const names = Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c.name]))
+  if (mode === NOTIFY_MODE.OFF) {
+    if (fresh.length)
+      writeSetting(ctx.db, SETTING_KEYS.NOTIFIED_UNTIL, fresh[fresh.length - 1].created_at)
+    return 0
+  }
+  if (mode === NOTIFY_MODE.DAILY) {
+    writeSetting(ctx.db, SETTING_KEYS.DIGEST_SENT_ON, clock.day)
+    if (fresh.length === 0) return 0
+    if (to) ctx.mail.send({ to, ...digestEmail(fresh, categoryNames(ctx)) })
+    writeSetting(ctx.db, SETTING_KEYS.NOTIFIED_UNTIL, fresh[fresh.length - 1].created_at)
+    return to ? 1 : 0
+  }
+
+  const names = categoryNames(ctx)
   let sent = 0
-  for (const story of fresh) {
-    if (to.length) {
-      ctx.mail.send({ to: to.join(','), ...storyEmail(story, names[story.category_id] ?? 'כללי') })
+  for (const story of fresh.slice(0, MAX_EMAILS_PER_RUN)) {
+    if (to) {
+      ctx.mail.send({ to, ...storyEmail(story, names[story.category_id] ?? 'כללי') })
+      sent++
     }
-    sent++
     // Saved after each email, so a failure halfway doesn't send the earlier ones again.
     writeSetting(ctx.db, SETTING_KEYS.NOTIFIED_UNTIL, story.created_at)
   }
   return sent
+}
+
+/** Sent from the admin settings page, to check that emails arrive. */
+export function sendTestEmail(ctx, adminEmail) {
+  const to = recipients(ctx)
+  if (to.length === 0) return { sent: false, recipients: [] }
+  ctx.mail.send({
+    to: to.join(','),
+    subject: 'מייל בדיקה מהאתר של תמר',
+    body: [
+      'זה מייל בדיקה. אם הוא הגיע, ההתראות על סיפורים חדשים עובדות.',
+      '',
+      `נשלח לבקשת ${adminEmail}.`,
+      `הגדרות: ${SITE_URL}/admin/settings`,
+    ].join('\n'),
+  })
+  return { sent: true, recipients: to }
 }
 
 /**
@@ -119,6 +194,7 @@ export function cleanUp(ctx, { force = false } = {}) {
 }
 
 export function housekeeping(ctx) {
+  writeSetting(ctx.db, SETTING_KEYS.HOUSEKEEPING_RAN_AT, ctx.now())
   const emailed = notifyNewStories(ctx)
   const cleaned = cleanUp(ctx)
   ctx.log.info(

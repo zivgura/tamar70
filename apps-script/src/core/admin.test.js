@@ -97,6 +97,25 @@ describe('admin sign-in', () => {
   })
 })
 
+describe('admin settings', () => {
+  it('shows and changes how often emails go out, and sends a test email', () => {
+    expect(ok('admin.settings', { id_token: ADMIN })).toEqual({
+      notify_mode: 'each',
+      recipients: ['owner@example.test'],
+      housekeeping_ran_at: null,
+    })
+    expect(ok('admin.settingsUpdate', { id_token: ADMIN, notify_mode: 'daily' }).notify_mode).toBe(
+      'daily',
+    )
+    expect(
+      call('admin.settingsUpdate', { id_token: ADMIN, notify_mode: 'hourly' }).error.code,
+    ).toBe('validation')
+    expect(ok('admin.testEmail', { id_token: ADMIN }).sent).toBe(true)
+    expect(ctx.mail.sent).toHaveLength(1)
+    expect(call('admin.testEmail', { id_token: OUTSIDER }).error.code).toBe('not_admin')
+  })
+})
+
 describe('admin stories', () => {
   it('lists every story with full text, never the edit token hash', () => {
     const id = submit()

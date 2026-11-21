@@ -64,6 +64,16 @@ function answer(action, payload) {
           },
         ],
       }
+    case 'admin.settings':
+      return {
+        notify_mode: 'each',
+        recipients: ['owner@example.test'],
+        housekeeping_ran_at: '2026-12-02T10:00:00Z',
+      }
+    case 'admin.settingsUpdate':
+      return { notify_mode: payload.notify_mode, recipients: ['owner@example.test'] }
+    case 'admin.testEmail':
+      return { sent: true, recipients: ['owner@example.test'] }
     case 'admin.stats':
       return {
         totals: { devices: 12 },
@@ -230,6 +240,20 @@ describe('admin pages', () => {
     expect(screen.getByRole('rowheader', { name: '2.12' })).toBeInTheDocument()
     expect(screen.getByText('x is undefined')).toBeInTheDocument()
     expect(screen.getByText(/3 פעמים/)).toBeInTheDocument()
+  })
+
+  it('changes how often emails go out and sends a test email', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/settings')
+    expect(await screen.findByLabelText(/על כל סיפור/)).toBeChecked()
+    await user.click(screen.getByLabelText(/סיכום יומי/))
+    expect(apiCall).toHaveBeenCalledWith('admin.settingsUpdate', {
+      notify_mode: 'daily',
+      id_token: TOKEN,
+    })
+    expect(await screen.findByLabelText(/סיכום יומי/)).toBeChecked()
+    await user.click(screen.getByRole('button', { name: 'שליחת מייל בדיקה' }))
+    expect(await screen.findByText(/נשלח אל/)).toHaveTextContent('owner@example.test')
   })
 
   it('edits the text', async () => {

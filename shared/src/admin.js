@@ -1,5 +1,6 @@
 import { enum as oneOf, object, string } from 'zod'
 import { LIMITS, VISIBILITY } from './constants.js'
+import { NOTIFY_MODE } from './tables.js'
 
 // Admins sign in with Google on the site. The browser sends the Google ID token with every
 // admin call; the server checks it with Google and looks the address up in AdminUsers.
@@ -32,5 +33,9 @@ export const adminStoryUpdateSchema = object({
     .trim()
     .regex(/^[a-z0-9-]{1,40}$/),
   admin_notes: text(1000),
+})
+export const adminSettingsSchema = object({
+  id_token: idToken,
+  notify_mode: oneOf(Object.values(NOTIFY_MODE)),
 })
 export const adminMediaSchema = object({ id_token: idToken, media_id: mediaId })

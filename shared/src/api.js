@@ -31,6 +31,9 @@ export const ACTIONS = Object.freeze({
   ADMIN_STORY_DELETE: 'admin.storyDelete',
   ADMIN_MEDIA_REMOVE: 'admin.mediaRemove',
   ADMIN_STATS: 'admin.stats',
+  ADMIN_SETTINGS: 'admin.settings',
+  ADMIN_SETTINGS_UPDATE: 'admin.settingsUpdate',
+  ADMIN_TEST_EMAIL: 'admin.testEmail',
 })
 
 export const ERROR_CODES = Object.freeze({
