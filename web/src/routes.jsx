@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- route config, not a component module */
 import { lazy, Suspense } from 'react'
-import { Layout } from './components'
+import { Layout, RouteError } from './components'
 import AddStory from './add/AddStory.jsx'
 import EditStory from './add/EditStory.jsx'
 import Corner from './pages/Corner.jsx'
@@ -14,6 +14,7 @@ const UploadTest = lazy(() => import('./pages/UploadTest.jsx'))
 const AdminLayout = lazy(() => import('./admin/AdminLayout.jsx'))
 const AdminStories = lazy(() => import('./admin/AdminStories.jsx'))
 const AdminStory = lazy(() => import('./admin/AdminStory.jsx'))
+const AdminStats = lazy(() => import('./admin/AdminStats.jsx'))
 
 const later = (Page) => (
   <Suspense fallback={null}>
@@ -24,6 +25,7 @@ const later = (Page) => (
 export const routes = [
   {
     element: <Layout />,
+    errorElement: <RouteError />,
     children: [
       { path: '/', element: <Home /> },
       { path: '/corner/:slug', element: <Corner /> },
@@ -37,9 +39,11 @@ export const routes = [
   {
     path: '/admin',
     element: later(AdminLayout),
+    errorElement: <RouteError />,
     children: [
       { index: true, element: later(AdminStories) },
       { path: 'story/:id', element: later(AdminStory) },
+      { path: 'stats', element: later(AdminStats) },
     ],
   },
   // Not linked from the site.

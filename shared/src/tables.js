@@ -2,7 +2,7 @@
 // column names. Bump SCHEMA_VERSION whenever a tab or column is added: the server notices on its
 // next request and adds what's missing (it never deletes or reorders anything).
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 // Column types, used to convert between Sheet cells (always stored as text) and JS values.
 export const T = Object.freeze({
@@ -116,6 +116,26 @@ export const TABLES = Object.freeze({
     col('print_notes'),
   ],
   GameConfig: [col('key'), col('value')],
+  // What the site reports about itself (see shared/src/telemetry.js).
+  ClientErrors: [
+    col('id'),
+    col('ts'),
+    col('message'),
+    col('path'),
+    col('stack'),
+    col('release'),
+    col('user_agent'),
+    col('device'),
+    col('count', T.NUMBER),
+    col('last_seen'),
+  ],
+  Visits: [
+    col('date'),
+    col('device'),
+    col('path'),
+    col('has_code', T.BOOLEAN),
+    col('first_visit', T.BOOLEAN),
+  ],
 })
 
 export const SETTING_KEYS = Object.freeze({

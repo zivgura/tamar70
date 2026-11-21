@@ -64,6 +64,24 @@ function answer(action, payload) {
           },
         ],
       }
+    case 'admin.stats':
+      return {
+        totals: { devices: 12, with_code: 9 },
+        days: [{ date: '2026-12-02', devices: 5, new_devices: 3, stories: 2, photos: 7 }],
+        errors: [
+          {
+            id: 'er_1',
+            ts: '2026-12-02T10:00:00Z',
+            last_seen: '2026-12-02T11:00:00Z',
+            message: 'x is undefined',
+            path: '/story/st_1',
+            release: 'abc1234',
+            count: 3,
+            stack: 'at Story',
+            user_agent: 'iPhone',
+          },
+        ],
+      }
     default:
       return {}
   }
@@ -202,6 +220,16 @@ describe('admin pages', () => {
       media_id: 'md_photo0001',
       id_token: TOKEN,
     })
+  })
+
+  it("shows visits per day and errors from people's phones", async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/stats')
+    expect(await screen.findByRole('heading', { name: 'נתונים' })).toBeInTheDocument()
+    expect(screen.getByText('מכשירים שנכנסו').nextSibling).toHaveTextContent('12')
+    expect(screen.getByRole('rowheader', { name: '2.12' })).toBeInTheDocument()
+    expect(screen.getByText('x is undefined')).toBeInTheDocument()
+    expect(screen.getByText(/3 פעמים/)).toBeInTheDocument()
   })
 
   it('edits the text', async () => {

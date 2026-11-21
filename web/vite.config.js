@@ -13,11 +13,15 @@ const apiUrl =
   process.env.VITE_API_URL ||
   (webAppDeploymentId ? `https://script.google.com/macros/s/${webAppDeploymentId}/exec` : '')
 
+// Which build an error came from: the commit in CI, "dev" locally.
+const release = (process.env.GITHUB_SHA ?? '').slice(0, 7) || 'dev'
+
 export default defineConfig({
   // SVG files imported with ?react become components, so icons can use currentColor.
   plugins: [react(), svgr()],
   define: {
     'import.meta.env.VITE_API_URL': JSON.stringify(apiUrl),
+    'import.meta.env.VITE_RELEASE': JSON.stringify(release),
   },
   test: {
     name: 'web',

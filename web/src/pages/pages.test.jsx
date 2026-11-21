@@ -121,3 +121,13 @@ describe('Gallery', () => {
     expect(await screen.findByText(/כבר נאספו 3 תמונות/)).toBeInTheDocument()
   })
 })
+
+describe('a page that crashes', () => {
+  it('shows a way out instead of a blank screen', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    api.bootstrap.mockResolvedValue({ ...bootstrap(), categories: null })
+    renderAt('/')
+    expect(await screen.findByText(/משהו השתבש בדף הזה/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'טעינה מחדש' })).toBeInTheDocument()
+  })
+})

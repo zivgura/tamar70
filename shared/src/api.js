@@ -19,6 +19,9 @@ export const ACTIONS = Object.freeze({
   OWN_DELETE: 'stories.delete',
   OWN_MEDIA_UPDATE: 'media.update',
   OWN_MEDIA_REMOVE: 'media.remove',
+  // The site reporting about itself (sent with sendBeacon, nobody waits for the answer):
+  CLIENT_ERROR: 'client.error',
+  CLIENT_VISIT: 'client.visit',
   // Admins only (Google sign-in):
   ADMIN_ME: 'admin.me',
   ADMIN_STORIES: 'admin.stories',
@@ -27,6 +30,7 @@ export const ACTIONS = Object.freeze({
   ADMIN_VISIBILITY: 'admin.setVisibility',
   ADMIN_STORY_DELETE: 'admin.storyDelete',
   ADMIN_MEDIA_REMOVE: 'admin.mediaRemove',
+  ADMIN_STATS: 'admin.stats',
 })
 
 export const ERROR_CODES = Object.freeze({
