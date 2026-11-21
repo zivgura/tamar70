@@ -23,7 +23,7 @@ import {
 import { KindStep } from './KindStep.jsx'
 import { PhotoDialog } from './PhotoDialog.jsx'
 import { PhotoGrid } from './PhotoGrid.jsx'
-import { createStory, submission, uploadPhotos } from './sendStory.js'
+import { createStory, submission, uploadPhotos, uploadDocuments } from './sendStory.js'
 import { StepHeader } from './StepHeader.jsx'
 
 let nextPhotoKey = 0
@@ -73,6 +73,8 @@ export default function AddStory() {
   const [draft, setDraft] = useState(() => initialDraft(params.get('corner')))
   const [author, setAuthor] = useState(loadAuthor)
   const [photos, setPhotos] = useState([])
+  // Word files whose text went into the story; kept in Drive after sending.
+  const [documents, setDocuments] = useState([])
   const [openPhoto, setOpenPhoto] = useState(null)
   const [errors, setErrors] = useState({})
   const [phase, setPhase] = useState('edit') // edit | sending | photosFailed | done
@@ -151,6 +153,10 @@ export default function AddStory() {
       rememberMine(storyId, editToken.current)
       setSent({ storyId, editToken: editToken.current })
       clearDraft()
+      if (documents.length) {
+        await uploadDocuments({ storyId, editToken: editToken.current, files: documents })
+        setDocuments([])
+      }
       setPhotos(toUpload.map((p) => ({ ...p, stage: 'queued', progress: 0 })))
       await finishPhotos(storyId, toUpload)
     } catch (err) {
@@ -306,6 +312,7 @@ export default function AddStory() {
               categories={data.categories}
               photos={photos}
               onAddPhotos={addPhotos}
+              onDocument={(file) => setDocuments((list) => [...list, file].slice(-3))}
               onOpenPhoto={setOpenPhoto}
               errors={errors}
               photosLostFromDraft={photosLostFromDraft && photos.length === 0}

@@ -5,6 +5,7 @@ import {
   ACTIONS,
   clientErrorSchema,
   clientVisitSchema,
+  isPhotoMedia,
   STORY_STATUS,
   TELEMETRY_LIMITS,
   UPLOAD_STATUS,
@@ -107,7 +108,7 @@ export function dailyStats(ctx) {
     if (s.created_at && s.status !== STORY_STATUS.DELETED) day(israelDay(s.created_at)).stories++
   }
   for (const m of ctx.db.all('Media')) {
-    if (m.uploaded_at && m.upload_status === UPLOAD_STATUS.DONE) {
+    if (m.uploaded_at && m.upload_status === UPLOAD_STATUS.DONE && isPhotoMedia(m)) {
       day(israelDay(m.uploaded_at)).photos++
     }
   }

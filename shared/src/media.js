@@ -17,6 +17,17 @@ export const PHOTO_TYPES = Object.freeze([
   'image/heif',
 ])
 
+// A Word document someone wrote instead of typing: its text goes into the story, and the
+// original file is kept in Drive with the photos (never shown publicly).
+export const DOCX_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+export const DOCUMENT_TYPES = Object.freeze([DOCX_TYPE])
+export const MAX_DOCUMENTS_PER_STORY = 3
+
+export const isPhotoMime = (mime) => PHOTO_TYPES.includes(mime)
+export const isDocumentMime = (mime) => DOCUMENT_TYPES.includes(mime)
+/** A Media row is a photo unless it's a document (older rows have no other kind). */
+export const isPhotoMedia = (media) => !isDocumentMime(media.mime)
+
 // The site's own origins: live, Firebase preview channels, local dev. A Drive upload session
 // only accepts the browser upload from the origin it was opened for.
 const SITE_ORIGIN =
@@ -41,7 +52,7 @@ export const mediaStartSchema = object({
   edit_token: editToken,
   origin: string().refine(isSiteOrigin, 'Not a site origin'),
   filename: string().trim().min(1).max(200),
-  mime: string().refine((m) => PHOTO_TYPES.includes(m), 'Not a supported photo type'),
+  mime: string().refine((m) => isPhotoMime(m) || isDocumentMime(m), 'Not a supported file type'),
   bytes: number().int().min(1).max(MAX_PHOTO_BYTES),
   caption: shortText(200),
   place: shortText(80),

@@ -3,6 +3,7 @@
 // admin opened that story early) and isn't hidden. Changing Drive sharing takes a moment per
 // file, so it's done in batches: right away for a few, the rest by the 15-minute timer.
 import {
+  isPhotoMedia,
   STORY_STATUS,
   STORY_VIEW,
   getStoryView,
@@ -13,7 +14,8 @@ import { readSettings, siteConfig } from './settings.js'
 
 export const SHARE_BATCH = 120
 
-const isLive = (m) => m.upload_status === UPLOAD_STATUS.DONE && m.drive_file_id
+// Documents stay private: only photos are ever shared.
+const isLive = (m) => m.upload_status === UPLOAD_STATUS.DONE && m.drive_file_id && isPhotoMedia(m)
 
 function storiesById(ctx) {
   return new Map(ctx.db.all('Stories').map((s) => [s.id, s]))

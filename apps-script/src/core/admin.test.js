@@ -324,3 +324,56 @@ describe('backup and export', () => {
     expect(call('admin.export', { id_token: OUTSIDER }).error.code).toBe('not_admin')
   })
 })
+
+describe('Word documents', () => {
+  const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+  function addDocument(story) {
+    const { media_id, upload_url } = ok('media.start', {
+      story_id: story,
+      edit_token: editToken,
+      origin: 'https://tamar70.web.app',
+      filename: 'הסיפור שלי.docx',
+      mime: DOCX,
+      bytes: 20000,
+    })
+    const drive_file_id = ctx.drive.browserUpload(upload_url)
+    ok('media.finish', { story_id: story, edit_token: editToken, media_id, drive_file_id })
+    return drive_file_id
+  }
+
+  it('keeps the original in Drive for admins, never as a photo or in public', () => {
+    const id = submit()
+    const fileId = addDocument(id)
+    addPhoto(id)
+    expect(ok('site.bootstrap').stories[0].media_count).toBe(1)
+
+    const { photos, documents } = ok('admin.story', { id_token: ADMIN, id })
+    expect(photos).toHaveLength(1)
+    expect(documents).toEqual([
+      expect.objectContaining({
+        filename: 'הסיפור שלי.docx',
+        link: `https://drive.google.com/file/d/${fileId}/view`,
+      }),
+    ])
+
+    ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'published' })
+    expect(ctx.drive.shared.has(fileId)).toBe(false)
+    expect(ok('stories.get', { id }).photos).toHaveLength(1)
+    expect(ok('gallery.list').photos).toHaveLength(1)
+  })
+
+  it('allows a few documents per story', () => {
+    const id = submit()
+    for (let i = 0; i < 3; i++) addDocument(id)
+    const res = call('media.start', {
+      story_id: id,
+      edit_token: editToken,
+      origin: 'https://tamar70.web.app',
+      filename: 'עוד.docx',
+      mime: DOCX,
+      bytes: 100,
+    })
+    expect(res.error.code).toBe('too_many_photos')
+  })
+})

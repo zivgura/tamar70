@@ -152,7 +152,7 @@ export default function AdminStory() {
     return <ErrorMessage error={error} onRetry={refetch} />
   }
 
-  const { story, photos, categories } = data
+  const { story, photos, categories, documents = [] } = data
   const state = storyState(story)
   const category = categories.find((c) => c.id === story.category_id)
 
@@ -224,6 +224,24 @@ export default function AdminStory() {
             </section>
           )}
         </>
+      )}
+
+      {documents.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>מסמך המקור</h2>
+          <p className={styles.meta}>
+            הטקסט של הסיפור נלקח מהמסמך הזה. הוא שמור ב-Drive ולא מוצג באתר.
+          </p>
+          <ul className={styles.recipients}>
+            {documents.map((d) => (
+              <li key={d.id}>
+                <a href={d.link} target="_blank" rel="noreferrer">
+                  <bdi>{d.filename}</bdi>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section className={styles.section}>

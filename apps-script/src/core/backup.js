@@ -1,7 +1,7 @@
 // Backups and export. Once a week (and on demand) the whole Sheet is copied into the Backups
 // folder in Drive; the newest copies are kept. The export hands admins everything collected,
 // for files they keep themselves.
-import { SETTING_KEYS, STORY_STATUS, UPLOAD_STATUS } from '@tamar70/shared'
+import { isPhotoMedia, SETTING_KEYS, STORY_STATUS, UPLOAD_STATUS } from '@tamar70/shared'
 import { readSettings, writeSetting } from './settings.js'
 import { israelDay } from './telemetry.js'
 
@@ -54,7 +54,7 @@ export function exportAll(ctx) {
   const names = Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c.name]))
   const photos = new Map()
   for (const m of ctx.db.all('Media')) {
-    if (m.upload_status !== UPLOAD_STATUS.DONE || !m.drive_file_id) continue
+    if (m.upload_status !== UPLOAD_STATUS.DONE || !m.drive_file_id || !isPhotoMedia(m)) continue
     if (!photos.has(m.story_id)) photos.set(m.story_id, [])
     photos.get(m.story_id).push(m)
   }

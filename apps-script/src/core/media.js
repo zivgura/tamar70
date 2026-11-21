@@ -1,5 +1,8 @@
 import {
   ERROR_CODES,
+  isDocumentMime,
+  isPhotoMedia,
+  MAX_DOCUMENTS_PER_STORY,
   MAX_PHOTO_BYTES,
   MAX_PHOTOS_PER_STORY,
   mediaFinishSchema,
@@ -30,7 +33,11 @@ export function startUpload(ctx, payload) {
   const used = mediaOf(ctx, story.id).filter(
     (m) => m.upload_status !== UPLOAD_STATUS.FAILED && m.upload_status !== UPLOAD_STATUS.REMOVED,
   )
-  if (used.length >= MAX_PHOTOS_PER_STORY) {
+  if (isDocumentMime(input.mime)) {
+    if (used.filter((m) => !isPhotoMedia(m)).length >= MAX_DOCUMENTS_PER_STORY) {
+      throw new ApiError(ERROR_CODES.TOO_MANY_PHOTOS, 'Too many documents for one story')
+    }
+  } else if (used.filter(isPhotoMedia).length >= MAX_PHOTOS_PER_STORY) {
     throw new ApiError(
       ERROR_CODES.TOO_MANY_PHOTOS,
       `Up to ${MAX_PHOTOS_PER_STORY} photos per memory`,
@@ -115,7 +122,9 @@ export function finishUpload(ctx, payload) {
       upload_status: UPLOAD_STATUS.DONE,
       uploaded_at: ctx.now(),
     })
-    const done = mediaOf(ctx, story.id).filter((m) => m.upload_status === UPLOAD_STATUS.DONE)
+    const done = mediaOf(ctx, story.id).filter(
+      (m) => m.upload_status === UPLOAD_STATUS.DONE && isPhotoMedia(m),
+    )
     ctx.db.update('Stories', 'id', story.id, { media_count: done.length, updated_at: ctx.now() })
     return { media_id: media.id, width: file.width ?? null, height: file.height ?? null }
   })

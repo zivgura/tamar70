@@ -10,6 +10,7 @@ import {
   storyUpdateSchema,
   UPLOAD_STATUS,
   ERROR_CODES,
+  isPhotoMedia,
 } from '@tamar70/shared'
 import { ApiError } from './errors.js'
 import { invalidatePublicCache, mediaOf } from './media.js'
@@ -17,7 +18,7 @@ import { ownStory, requireEditable } from './ownership.js'
 
 export const livePhotos = (ctx, storyId) =>
   mediaOf(ctx, storyId)
-    .filter((m) => m.upload_status === UPLOAD_STATUS.DONE)
+    .filter((m) => m.upload_status === UPLOAD_STATUS.DONE && isPhotoMedia(m))
     .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
 
 function ownMedia(ctx, story, mediaId) {

@@ -114,7 +114,7 @@ describe('editing a story', () => {
     await user.click(screen.getByRole('button', { name: /a\.jpg/ }))
     await user.click(screen.getByRole('button', { name: 'הסרת התמונה' }))
     await user.upload(
-      document.querySelector('input[type=file]'),
+      document.querySelector('input[type=file][accept="image/*"]'),
       new File([new Uint8Array(100)], 'b.jpg', { type: 'image/jpeg' }),
     )
     await user.click(screen.getByRole('button', { name: 'שמירת השינויים' }))

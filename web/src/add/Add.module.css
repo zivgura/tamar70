@@ -387,3 +387,56 @@
   background: var(--color-danger);
   border-color: var(--color-danger);
 }
+
+/* "Already wrote it in Word?": above the story box */
+.docImport {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.docTitle {
+  font-weight: var(--weight-bold);
+}
+
+.docHint {
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+}
+
+.docButton {
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-5);
+  margin-top: var(--space-2);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
+  cursor: pointer;
+  background: none;
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.docButton:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+  border-color: var(--color-border);
+}
+
+.docStatus {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.docStatus:empty {
+  display: none;
+}
+
+.docError {
+  color: var(--color-danger);
+}
