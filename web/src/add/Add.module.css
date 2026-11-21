@@ -3,7 +3,6 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - 1200px);
 }
 
 /* Step header: back or close, "step 2 of 3", three bars */
@@ -73,6 +72,7 @@
 }
 
 .footer {
+  /* Right under the form, not pinned to the bottom of the screen. */
   padding: var(--space-6) var(--layout-gutter) var(--space-7);
 }
 
