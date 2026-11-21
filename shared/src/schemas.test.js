@@ -3,7 +3,6 @@ import { storySubmissionSchema } from './schemas.js'
 
 const valid = {
   edit_token: 'tok_0123456789abcdefghijklmnopqrstuv',
-  family_code: 'abc',
   kind: 'text',
   author_name: '  ענת ',
   content: 'סיפור',

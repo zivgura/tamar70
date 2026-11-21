@@ -2,7 +2,6 @@
 // device per day. Sent with sendBeacon, so it never slows a page down or shows an error itself.
 import { ACTIONS } from '@tamar70/shared'
 import { API_URL } from '../api/client.js'
-import { readFamilyCode } from './familyCode.js'
 import { readStored, writeStored } from './storage.js'
 
 const RELEASE = import.meta.env.VITE_RELEASE ?? 'dev'
@@ -75,7 +74,6 @@ export function recordVisit(location = window.location) {
   send(ACTIONS.CLIENT_VISIT, {
     device: deviceId(),
     path: location.pathname.slice(0, 300),
-    has_code: Boolean(readFamilyCode()),
     first_visit: firstVisit,
   })
   writeStored('visitDay', today())

@@ -1,11 +1,9 @@
 import { GOOGLE_CLIENT_ID } from '@tamar70/shared'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryContext } from '../testing/memoryContext.js'
-import { rotateFamilyCode } from './familyCode.js'
 import { handleRequest } from './router.js'
 
 let ctx
-let code
 const ADMIN = 'A'.repeat(200)
 const OUTSIDER = 'B'.repeat(200)
 const EXPIRED = 'C'.repeat(200)
@@ -38,7 +36,6 @@ function submit(overrides = {}) {
     content: 'זה היה בקיץ. ואז עוד.',
     category_id: 'travels',
     edit_token: overrides.edit_token ?? editToken,
-    family_code: code,
     ...overrides,
   }).id
 }
@@ -60,7 +57,6 @@ function addPhoto(story) {
 beforeEach(() => {
   ctx = createMemoryContext()
   ok('site.get')
-  code = rotateFamilyCode(ctx).code
   ctx.google.tokens.set(ADMIN, claims('Owner@Example.test'))
   ctx.google.tokens.set(OUTSIDER, claims('someone@example.test'))
   ctx.google.tokens.set(EXPIRED, claims('owner@example.test', { exp: String(NOW - 5) }))

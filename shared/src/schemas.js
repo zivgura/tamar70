@@ -53,7 +53,6 @@ export const storySubmissionSchema = object({
   ...storyFields,
   // A retried submission with the same token isn't saved twice.
   edit_token: editToken,
-  family_code: string().trim().min(1).max(64),
   // Honeypot: a hidden field real people leave empty.
   website: string().max(0, 'honeypot').optional(),
 }).refine(...needsText)

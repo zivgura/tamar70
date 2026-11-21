@@ -1,12 +1,10 @@
 import { SCHEMA_VERSION, SETTING_KEYS, TABLES } from '@tamar70/shared'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryContext } from '../testing/memoryContext.js'
-import { rotateFamilyCode } from './familyCode.js'
 import { handleRequest } from './router.js'
 import { writeSetting } from './settings.js'
 
 let ctx
-let familyCode
 
 const call = (action, payload) => handleRequest(JSON.stringify({ action, payload }), ctx)
 const ok = (action, payload) => {
@@ -21,7 +19,6 @@ const newToken = () => `tok_${String(++tokenCounter).padStart(32, '0')}`
 const submit = (overrides = {}) =>
   call('stories.submit', {
     edit_token: newToken(),
-    family_code: familyCode,
     kind: 'text',
     author_name: 'ענת',
     author_relation: 'חברה מהצבא',
@@ -34,7 +31,6 @@ const submit = (overrides = {}) =>
 beforeEach(() => {
   ctx = createMemoryContext()
   ok('site.get') // first request runs the migration
-  familyCode = rotateFamilyCode(ctx).code
 })
 
 describe('request handling', () => {
@@ -183,15 +179,14 @@ describe('stories.submit', () => {
     expect(row.edit_token_hash).toMatch(/^[0-9a-f]{64}$/)
   })
 
-  it('needs the right family code', () => {
-    expect(submit({ family_code: 'wrong' }).error.code).toBe('bad_family_code')
-    expect(ctx.db.all('Stories')).toHaveLength(0)
+  it('needs no code, and ignores one sent by an older page', () => {
+    expect(submit({ family_code: 'anything' }).ok).toBe(true)
   })
 
-  it('stops working with the old code after rotation', () => {
-    const old = familyCode
-    rotateFamilyCode(ctx)
-    expect(submit({ family_code: old }).error.code).toBe('bad_family_code')
+  it('caps how many stories can come in an hour', () => {
+    for (let i = 0; i < 60; i++)
+      expect(submit({ edit_token: `t${String(i).padStart(39, '0')}` }).ok).toBe(true)
+    expect(submit({ edit_token: 'z'.repeat(40) }).error.code).toBe('busy')
   })
 
   it('refuses when submissions are closed', () => {

@@ -28,6 +28,5 @@ export function siteConfig(settings) {
     submissions_open: isTrue(settings[SETTING_KEYS.SUBMISSIONS_OPEN]),
     comments_open: isTrue(settings[SETTING_KEYS.COMMENTS_OPEN]),
     reveal_message: settings[SETTING_KEYS.REVEAL_MESSAGE] || '',
-    family_code_hash: settings[SETTING_KEYS.FAMILY_CODE_HASH] || '',
   }
 }

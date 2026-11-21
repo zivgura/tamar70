@@ -50,17 +50,10 @@ describe('bundle', () => {
   })
 
   it('takes a submission end to end through the Sheet', () => {
-    script.rotateFamilyCode()
-    const code = gas.logs
-      .map(([, msg]) => msg)
-      .find((m) => m.startsWith('New family code: '))
-      .slice('New family code: '.length)
-
     const submitted = post({
       action: 'stories.submit',
       payload: {
         edit_token: 'a'.repeat(40),
-        family_code: code,
         kind: 'text',
         author_name: 'דני',
         title: '=1+1',
@@ -102,15 +95,10 @@ describe('bundle', () => {
   })
 
   it('opens a Drive upload session tied to the site origin, as the owner', () => {
-    script.rotateFamilyCode()
-    const code = gas.logs
-      .map(([, msg]) => msg)
-      .find((m) => m.startsWith('New family code: '))
-      .slice('New family code: '.length)
     const edit_token = 'b'.repeat(40)
     const { id } = post({
       action: 'stories.submit',
-      payload: { edit_token, family_code: code, kind: 'photos', author_name: 'רונית' },
+      payload: { edit_token, kind: 'photos', author_name: 'רונית' },
     }).data
 
     const res = post({
@@ -145,15 +133,10 @@ describe('bundle', () => {
   })
 
   it('lets the owner read back a story with Drive thumbnails, and trash a photo', () => {
-    script.rotateFamilyCode()
-    const code = gas.logs
-      .map(([, msg]) => msg)
-      .find((m) => m.startsWith('New family code: '))
-      .slice('New family code: '.length)
     const edit_token = 'c'.repeat(40)
     const { id } = post({
       action: 'stories.submit',
-      payload: { edit_token, family_code: code, kind: 'photos', author_name: 'רונית' },
+      payload: { edit_token, kind: 'photos', author_name: 'רונית' },
     }).data
     const { media_id } = post({
       action: 'media.start',

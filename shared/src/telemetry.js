@@ -18,7 +18,6 @@ export const clientErrorSchema = object({
 export const clientVisitSchema = object({
   device: deviceId,
   path: short(300).optional().default(''),
-  has_code: boolean().optional().default(false),
   first_visit: boolean().optional().default(false),
 })
 

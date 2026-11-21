@@ -72,7 +72,6 @@ export const DEFAULT_SETTINGS = {
   [SETTING_KEYS.REVEAL_MESSAGE]: '',
   // Filled with the owner account's address on first run (see migrate.js).
   [SETTING_KEYS.NOTIFY_EMAILS]: '',
-  [SETTING_KEYS.FAMILY_CODE_HASH]: '',
   [SETTING_KEYS.NOTIFIED_UNTIL]: '',
   [SETTING_KEYS.CLEANED_AT]: '',
 }

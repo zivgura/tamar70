@@ -31,7 +31,6 @@ const photoFile = (name) => new File([new Uint8Array(100)], name, { type: 'image
 
 beforeEach(() => {
   window.localStorage.clear()
-  writeStored('familyCode', '9u44tmn4')
   vi.spyOn(api, 'bootstrap').mockResolvedValue(bootstrap())
   vi.spyOn(api, 'submitStory').mockResolvedValue({ id: 'st_new000001', duplicate: false })
   globalThis.URL.createObjectURL = vi.fn(() => 'blob:photo')
@@ -44,13 +43,6 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('adding a story', () => {
-  it('asks for the family link when the device has none', async () => {
-    window.localStorage.clear()
-    renderAdd()
-    expect(await screen.findByText('צריך את הקישור המשפחתי')).toBeInTheDocument()
-    expect(screen.queryByText('מה תרצו לשתף?')).not.toBeInTheDocument()
-  })
-
   it('says so when submissions are closed', async () => {
     api.bootstrap.mockResolvedValue(
       bootstrap({ site: { ...bootstrap().site, submissions_open: false } }),
@@ -105,7 +97,6 @@ describe('adding a story', () => {
     expect(screen.queryByRole('status', { name: 'שולחים את הסיפור' })).not.toBeInTheDocument()
     const payload = api.submitStory.mock.calls[0][0]
     expect(payload).toMatchObject({
-      family_code: '9u44tmn4',
       kind: 'text',
       author_name: 'ענת',
       author_relation: 'חברה מהצבא',
@@ -172,12 +163,12 @@ describe('adding a story', () => {
   })
 
   it('shows a server refusal and lets the person try again', async () => {
-    api.submitStory.mockRejectedValueOnce(new ApiError('bad_family_code', 'wrong'))
+    api.submitStory.mockRejectedValueOnce(new ApiError('busy', 'busy'))
     writeStored('draft', { step: 3, kind: 'text', content: 'סיפור', title: '' })
     writeStored('author', { name: 'דני', relation: '' })
     renderAdd()
     await user.click(await screen.findByRole('button', { name: 'שליחה' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('הקישור לא תקין')
+    expect(await screen.findByRole('alert')).toHaveTextContent('יש עומס רגעי')
     await user.click(screen.getByRole('button', { name: 'שליחה' }))
     expect(await screen.findByRole('heading', { name: 'תודה!' })).toBeInTheDocument()
     const [first, second] = api.submitStory.mock.calls.map((c) => c[0].edit_token)
