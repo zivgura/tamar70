@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isSiteOrigin, MAX_PHOTO_BYTES, mediaStartSchema, safeFilename } from './media.js'
+import { isSiteOrigin, MAX_PHOTO_BYTES } from './files.js'
+import { mediaStartSchema, safeFilename } from './media.js'
 
 const start = {
   story_id: 'st_abc123def',

@@ -2,12 +2,13 @@
   "name": "@tamar70/shared",
   "version": "0.0.0",
   "private": true,
-  "description": "Constants, rules and (later) Zod schemas shared by web/ and apps-script/",
+  "description": "Constants, rules and Zod schemas shared by web/ and apps-script/. Side-effect free, so the site only bundles what it uses (no zod).",
   "type": "module",
   "exports": {
     ".": "./src/index.js"
   },
   "dependencies": {
     "zod": "^4.6.7"
-  }
+  },
+  "sideEffects": false
 }

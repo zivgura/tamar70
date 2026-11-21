@@ -1,6 +1,7 @@
 // Server data for pages. One call (site.bootstrap) loads the site, the corners and every
 // visible story, because each Apps Script call takes seconds.
 import { QueryClient, useQuery } from '@tanstack/react-query'
+import { readStored, writeStored } from '../lib/storage.js'
 import { api } from './client.js'
 
 export function createQueryClient() {
@@ -15,10 +16,37 @@ export function createQueryClient() {
   })
 }
 
-export const bootstrapQuery = { queryKey: ['bootstrap'], queryFn: () => api.bootstrap() }
+// The last answer is kept on the device, so a returning visitor sees the site at once while
+// a fresh copy loads. Not used for long (it would miss new stories) or once the birthday has
+// come while it still says "collecting" (the reveal must never show a stale countdown).
+const SAVED_KEY = 'bootstrap'
+const SAVED_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000
+
+export function savedBootstrap(now = new Date()) {
+  const saved = readStored(SAVED_KEY)
+  if (!saved?.data?.site || !saved.at) return null
+  if (now.getTime() - saved.at > SAVED_MAX_AGE_MS) return null
+  const today = now.toLocaleDateString('en-CA')
+  const { site_status: status, birthday_date: birthday } = saved.data.site
+  if (status !== 'published' && (!birthday || today >= birthday)) return null
+  return saved
+}
+
+export const bootstrapQuery = {
+  queryKey: ['bootstrap'],
+  queryFn: async () => {
+    const data = await api.bootstrap()
+    writeStored(SAVED_KEY, { at: Date.now(), data })
+    return data
+  },
+}
 
 export function useBootstrap() {
-  return useQuery(bootstrapQuery)
+  return useQuery({
+    ...bootstrapQuery,
+    initialData: () => savedBootstrap()?.data,
+    initialDataUpdatedAt: () => savedBootstrap()?.at,
+  })
 }
 
 /** The corner by id, with a safe tone. */
