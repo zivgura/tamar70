@@ -220,14 +220,23 @@ export default function AddStory() {
       media_count: uploaded,
       created_at: new Date().toISOString(),
     }
+    // Contributors can change their story until the reveal.
+    const editable = data.site.site_status === 'collecting'
     return (
       <div className={styles.center}>
         <h1 className={styles.title}>תודה!</h1>
         <p className={styles.status}>
-          הסיפור נשמר ומופיע באתר עכשיו. הוא ייחשף במלואו ב-{formatDay(data.site.birthday_date)}.
+          {editable
+            ? `הסיפור נשמר ומופיע באתר עכשיו. הוא ייחשף במלואו ב-${formatDay(data.site.birthday_date)}. עד אז אפשר לערוך אותו מהמכשיר הזה.`
+            : 'הסיפור נשמר ופתוח לקריאה באתר.'}
         </p>
         <StoryCard story={preview} category={category} linked={false} />
         <div className={styles.actions}>
+          {editable && (
+            <Button as={Link} to={`/edit/${sent.storyId}`} variant="secondary" block>
+              עריכת הסיפור
+            </Button>
+          )}
           <Button block onClick={startOver}>
             הוסיפו סיפור נוסף
           </Button>

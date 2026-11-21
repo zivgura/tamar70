@@ -95,6 +95,10 @@ describe('adding a story', () => {
 
     expect(await screen.findByRole('heading', { name: 'תודה!' })).toBeInTheDocument()
     expect(screen.queryByRole('status', { name: 'שולחים את הסיפור' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'עריכת הסיפור' })).toHaveAttribute(
+      'href',
+      '/edit/st_new000001',
+    )
     const payload = api.submitStory.mock.calls[0][0]
     expect(payload).toMatchObject({
       kind: 'text',
