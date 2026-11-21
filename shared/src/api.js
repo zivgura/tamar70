@@ -19,6 +19,8 @@ export const ACTIONS = Object.freeze({
   OWN_DELETE: 'stories.delete',
   OWN_MEDIA_UPDATE: 'media.update',
   OWN_MEDIA_REMOVE: 'media.remove',
+  // Every shared photo of the visible stories, for the gallery (after the reveal).
+  GALLERY: 'gallery.list',
   // The site reporting about itself (sent with sendBeacon, nobody waits for the answer):
   CLIENT_ERROR: 'client.error',
   CLIENT_VISIT: 'client.visit',
@@ -34,6 +36,7 @@ export const ACTIONS = Object.freeze({
   ADMIN_SETTINGS: 'admin.settings',
   ADMIN_SETTINGS_UPDATE: 'admin.settingsUpdate',
   ADMIN_TEST_EMAIL: 'admin.testEmail',
+  ADMIN_SITE_STATUS: 'admin.setSiteStatus',
 })
 
 export const ERROR_CODES = Object.freeze({

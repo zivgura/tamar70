@@ -96,6 +96,7 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
   ])
   const fetches = []
   const trashed = []
+  const sharing = []
   const cache = new Map()
   const logs = []
 
@@ -180,6 +181,7 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
           getBytes: () => [1, 2, 3],
         }),
         setTrashed: (v) => v && trashed.push(id),
+        setSharing: (access) => sharing.push([id, access]),
       }),
     },
     // Answers like Drive: a session URL for an upload request, file metadata for a GET.
@@ -228,5 +230,16 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     },
   }
 
-  return { globals, spreadsheet, properties, cache, logs, fetches, trashed, triggers, mails }
+  return {
+    globals,
+    spreadsheet,
+    properties,
+    cache,
+    logs,
+    fetches,
+    trashed,
+    triggers,
+    mails,
+    sharing,
+  }
 }

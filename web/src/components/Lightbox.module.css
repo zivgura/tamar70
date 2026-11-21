@@ -1,0 +1,99 @@
+.lightbox {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  padding: 0;
+  margin: 0;
+  color: var(--color-text-inverse);
+  background: var(--color-text);
+  border: 0;
+}
+
+.lightbox::backdrop {
+  background: var(--color-text);
+}
+
+.frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-12) var(--space-3) var(--space-4);
+}
+
+.close {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-end: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: var(--space-2);
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.image {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.caption {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.details {
+  font-size: var(--text-sm);
+  opacity: 0.8;
+}
+
+.storyLink {
+  font-size: var(--text-md);
+  color: inherit;
+}
+
+.storyLink:hover {
+  color: inherit;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.nav button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: var(--space-2);
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 1px solid currentcolor;
+  border-radius: var(--radius-full);
+}
+
+.count {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}

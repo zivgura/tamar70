@@ -64,14 +64,29 @@ function answer(action, payload) {
           },
         ],
       }
+    case 'admin.setSiteStatus':
+      return {
+        site_status: payload.site_status,
+        sharing: { shared: 3, total: 5, to_close: 0 },
+        notify_mode: 'each',
+        recipients: ['owner@example.test'],
+        housekeeping_ran_at: '2026-12-02T10:00:00Z',
+      }
     case 'admin.settings':
       return {
+        site_status: 'collecting',
+        sharing: { shared: 0, total: 0, to_close: 0 },
         notify_mode: 'each',
         recipients: ['owner@example.test'],
         housekeeping_ran_at: '2026-12-02T10:00:00Z',
       }
     case 'admin.settingsUpdate':
-      return { notify_mode: payload.notify_mode, recipients: ['owner@example.test'] }
+      return {
+        site_status: 'collecting',
+        sharing: { shared: 0, total: 0, to_close: 0 },
+        notify_mode: payload.notify_mode,
+        recipients: ['owner@example.test'],
+      }
     case 'admin.testEmail':
       return { sent: true, recipients: ['owner@example.test'] }
     case 'admin.stats':
@@ -262,6 +277,31 @@ describe('admin pages', () => {
     expect(await screen.findByLabelText(/סיכום יומי/)).toBeChecked()
     await user.click(screen.getByRole('button', { name: 'שליחת מייל בדיקה' }))
     expect(await screen.findByText(/נשלח אל/)).toHaveTextContent('owner@example.test')
+  })
+
+  it('publishes all the stories after confirming', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/settings')
+    await user.click(await screen.findByRole('button', { name: 'פרסם את כל הסיפורים' }))
+    const dialog = screen.getByRole('dialog', { name: 'לפרסם את כל הסיפורים?' })
+    await user.click(within(dialog).getByRole('button', { name: 'פרסום' }))
+    expect(await screen.findByText(/נפתחו 3 מתוך 5 תמונות/)).toBeInTheDocument()
+    expect(apiCall).toHaveBeenCalledWith('admin.setSiteStatus', {
+      site_status: 'published',
+      id_token: TOKEN,
+    })
+    expect(screen.getByRole('button', { name: 'החזרה לשלב האיסוף' })).toBeInTheDocument()
+  })
+
+  it('opens one story early', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/story/st_aaaaaa01')
+    await user.click(await screen.findByRole('button', { name: 'פתיחה לקריאה כבר עכשיו' }))
+    expect(apiCall).toHaveBeenCalledWith('admin.setVisibility', {
+      id: 'st_aaaaaa01',
+      visibility: 'early',
+      id_token: TOKEN,
+    })
   })
 
   it('edits the text', async () => {

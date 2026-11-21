@@ -26,19 +26,29 @@ export function findCategory(categories, id) {
   return categories?.find((c) => c.id === id) ?? null
 }
 
-/** One story: from the loaded list when possible, otherwise asked from the server. */
+/**
+ * One story. A sealed one comes straight from the loaded list. A revealed one is shown from
+ * the list at once and then filled in from the server (its text and photos aren't in lists).
+ */
 export function useStory(id) {
   const boot = useBootstrap()
   const fromList = boot.data?.stories.find((s) => s.id === id)
+  const needsServer = boot.isSuccess && (!fromList || fromList.view === 'full')
   const single = useQuery({
     queryKey: ['story', id],
     queryFn: () => api.story(id),
-    enabled: boot.isSuccess && !fromList,
+    enabled: needsServer,
   })
   return {
-    story: fromList ?? single.data ?? null,
+    story: single.data ?? fromList ?? null,
     isPending: boot.isPending || (!fromList && single.isPending && boot.isSuccess),
+    loadingFull: needsServer && single.isPending,
     error: boot.error ?? (fromList ? null : single.error),
     boot,
   }
+}
+
+/** Every shared photo, for the gallery after the reveal. */
+export function useGallery(enabled) {
+  return useQuery({ queryKey: ['gallery'], queryFn: () => api.gallery(), enabled })
 }

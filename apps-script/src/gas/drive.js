@@ -67,6 +67,13 @@ export function createDrive(folderId) {
       return out
     },
 
+    /** Opens a photo to anyone with its link (for the reveal), or makes it private again. */
+    setPublic(id, isPublic) {
+      const file = DriveApp.getFileById(id)
+      if (isPublic) file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
+      else file.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE)
+    },
+
     trash(id) {
       DriveApp.getFileById(id).setTrashed(true)
     },

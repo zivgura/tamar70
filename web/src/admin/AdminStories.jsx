@@ -9,7 +9,7 @@ import { StateBadge } from './StateBadge.jsx'
 import { useAdminStories } from './adminQueries.js'
 
 const FILTERS = [
-  { id: 'shown', label: 'באתר', test: (s) => storyState(s) === 'shown' },
+  { id: 'shown', label: 'באתר', test: (s) => ['shown', 'early'].includes(storyState(s)) },
   { id: 'hidden', label: 'מוסתרים', test: (s) => storyState(s) === 'hidden' },
   { id: 'deleted', label: 'נמחקו', test: (s) => storyState(s) === 'deleted' },
   { id: 'all', label: 'הכל', test: () => true },

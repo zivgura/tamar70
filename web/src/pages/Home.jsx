@@ -12,13 +12,27 @@ import {
   Polaroid,
   StoryCard,
 } from '../components'
-import { birthdayStart, formatDay, storiesText, peopleText } from '../lib/format.js'
+import { birthdayStart, formatDay, peopleText, photosText, storiesText } from '../lib/format.js'
 import styles from './Home.module.css'
 
 const LATEST = 10
 
-function Counter({ stats }) {
+function Counter({ stats, published = false }) {
   if (!stats.stories) return <p className={styles.counter}>היו הראשונים לשתף סיפור</p>
+  if (published) {
+    return (
+      <p className={styles.counter}>
+        <strong>{storiesText(stats.stories)}</strong>
+        {stats.photos > 0 && (
+          <>
+            {' '}
+            ו-<strong>{photosText(stats.photos)}</strong>
+          </>
+        )}{' '}
+        מ-<strong>{peopleText(stats.contributors)}</strong>
+      </p>
+    )
+  }
   return (
     <p className={styles.counter}>
       כבר נאספו <strong>{storiesText(stats.stories)}</strong> מ-
@@ -27,27 +41,46 @@ function Counter({ stats }) {
   )
 }
 
-/** Collecting-mode home: polaroid, countdown, counter, corners, latest sealed memories. */
+/** The home page: before the reveal a countdown and sealed stories; after it, the stories. */
 export default function Home() {
   const { data, error, isPending, refetch } = useBootstrap()
   const site = data?.site
   const canEdit = useCanEdit(site)
   const corners = data?.categories.filter((c) => c.id !== DEFAULT_CATEGORY_ID) ?? []
+  const published = site?.site_status === 'published'
 
   return (
     <>
       <section className={styles.hero}>
         <Polaroid className={styles.photo} caption="תמר" handwritten taped tilt="leftStrong" />
         <h1 className={styles.title}>תמר בת 70</h1>
-        <p className={styles.lead}>
-          אוספים סיפורים ותמונות לקראת יום ההולדת.
-          {site?.birthday_date && ` כל מה שתשתפו ייחשף ב-${formatDay(site.birthday_date)}.`}
-        </p>
-        {site && <Countdown target={birthdayStart(site.birthday_date)} />}
-        {site && <Counter stats={site.stats} />}
-        <Button as={Link} to="/add" block>
-          הוסיפו סיפור
-        </Button>
+        {published ? (
+          <>
+            <p className={styles.lead}>
+              {site.reveal_message ||
+                'יום הולדת שמח, תמר! כל הסיפורים והתמונות שאספנו פתוחים עכשיו לקריאה.'}
+            </p>
+            <Counter stats={site.stats} published />
+            <Button as={Link} to="/gallery" block>
+              לכל התמונות
+            </Button>
+            <Button as={Link} to="/add" variant="secondary" block>
+              הוסיפו סיפור
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className={styles.lead}>
+              אוספים סיפורים ותמונות לקראת יום ההולדת.
+              {site?.birthday_date && ` כל מה שתשתפו ייחשף ב-${formatDay(site.birthday_date)}.`}
+            </p>
+            {site && <Countdown target={birthdayStart(site.birthday_date)} />}
+            {site && <Counter stats={site.stats} />}
+            <Button as={Link} to="/add" block>
+              הוסיפו סיפור
+            </Button>
+          </>
+        )}
       </section>
 
       {error ? (

@@ -1,17 +1,43 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useStory } from '../api/queries.js'
-import { ErrorMessage, LoadingCards, Message, StoryCard } from '../components'
+import { ErrorMessage, LoadingCards, Message, PhotoMosaic, StoryCard } from '../components'
+import { ShareIcon } from '../components/icons.js'
 import { formatDay } from '../lib/format.js'
 import styles from './Corner.module.css'
 
+/** Shares the story's address: the phone's share sheet, or copied to the clipboard. */
+function ShareButton({ title }) {
+  const [copied, setCopied] = useState(false)
+  async function share() {
+    const url = window.location.href
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+    } catch {
+      // Closing the share sheet isn't an error worth showing.
+    }
+  }
+  return (
+    <button type="button" className={styles.share} onClick={share}>
+      <ShareIcon aria-hidden="true" />
+      {copied ? 'הקישור הועתק' : 'שיתוף הסיפור'}
+    </button>
+  )
+}
+
 /**
- * One memory. While collecting it's the sealed card and the reveal date. Once published
- * the server sends the full text, shown in the card (the magazine layout comes later).
+ * One story. While collecting it's the sealed card and the reveal date. After the reveal:
+ * the whole text, its photos (tap to enlarge) and a share button.
  */
 export default function Story() {
   const { id } = useParams()
-  const { story, isPending, error, boot } = useStory(id)
+  const { story, isPending, loadingFull, error, boot } = useStory(id)
   const canEdit = useCanEdit(boot.data?.site)
 
   if (isPending) {
@@ -48,6 +74,9 @@ export default function Story() {
         headingLevel={1}
         editable={canEdit(story.id)}
       />
+      {story.view === 'full' && loadingFull && <LoadingCards count={1} />}
+      {story.photos?.length > 0 && <PhotoMosaic photos={story.photos} label="התמונות של הסיפור" />}
+      {story.view === 'full' && <ShareButton title={story.title || 'סיפור על תמר'} />}
       {story.view === 'teaser' && birthday && (
         <Message>הסיפור המלא, עם התמונות, ייחשף ב-{formatDay(birthday)}.</Message>
       )}

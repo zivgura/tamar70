@@ -84,6 +84,11 @@ export function createFakeDrive({ folderId = 'folder-originals' } = {}) {
         .map((f) => ({ id: f.id, created: f.created }))
     },
     trashed: new Set(),
+    shared: new Set(),
+    setPublic(id, isPublic) {
+      if (isPublic) this.shared.add(id)
+      else this.shared.delete(id)
+    },
     thumbnail: (id) => (files.has(id) ? `data:image/png;base64,${id}` : null),
     trash(id) {
       this.trashed.add(id)

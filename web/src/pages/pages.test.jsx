@@ -8,6 +8,17 @@ import { createQueryClient } from '../api/queries.js'
 import { routes } from '../routes.jsx'
 import { bootstrap, teaser } from '../test/fixtures.js'
 
+const PHOTO = {
+  id: 'md_1',
+  url: 'https://lh3.googleusercontent.com/d/f1=w1600',
+  thumb: 'https://lh3.googleusercontent.com/d/f1=w600',
+  caption: 'בצומת',
+  year_approx: 1975,
+  place: 'באר שבע',
+  people: [],
+}
+const published = () => ({ ...bootstrap().site, site_status: 'published' })
+
 function renderAt(path) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(
@@ -99,13 +110,24 @@ describe('Story', () => {
     expect(screen.getByText(/ייחשף ב-7 בפברואר/)).toBeInTheDocument()
   })
 
-  it('shows the whole story once the server sends it', async () => {
+  it('after the reveal, loads the whole story with its photos', async () => {
     api.bootstrap.mockResolvedValue(
-      bootstrap({ stories: [teaser({ view: 'full', content: 'כל הסיפור\nבשתי שורות' })] }),
+      bootstrap({ site: published(), stories: [teaser({ view: 'full', cover: PHOTO.thumb })] }),
+    )
+    vi.spyOn(api, 'story').mockResolvedValue(
+      teaser({ view: 'full', content: 'כל הסיפור\nבשתי שורות', photos: [PHOTO] }),
     )
     renderAt('/story/st_aaaaaa01')
     expect(await screen.findByText(/כל הסיפור/)).toBeInTheDocument()
+    expect(api.story).toHaveBeenCalledWith('st_aaaaaa01')
     expect(screen.queryByText('הסיפור המלא ייחשף בקרוב')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'שיתוף הסיפור' })).toBeInTheDocument()
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'הגדלת התמונה: בצומת' }))
+    const dialog = screen.getByRole('dialog', { name: 'תמונה' })
+    expect(within(dialog).getByRole('img', { name: 'בצומת' })).toHaveAttribute('src', PHOTO.url)
+    expect(within(dialog).getByText('1975 · באר שבע')).toBeInTheDocument()
   })
 
   it('handles a memory that is not there', async () => {
@@ -119,6 +141,30 @@ describe('Gallery', () => {
   it('shows only the photo count while collecting', async () => {
     renderAt('/gallery')
     expect(await screen.findByText(/כבר נאספו 3 תמונות/)).toBeInTheDocument()
+  })
+
+  it('shows every photo after the reveal, each linking to its story', async () => {
+    api.bootstrap.mockResolvedValue(bootstrap({ site: published() }))
+    vi.spyOn(api, 'gallery').mockResolvedValue({
+      photos: [{ ...PHOTO, story_id: 'st_aaaaaa01', story_title: 'הטרמפ לאילת' }],
+    })
+    renderAt('/gallery')
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'הגדלת התמונה: בצומת' }))
+    expect(screen.getByRole('link', { name: 'לסיפור: הטרמפ לאילת' })).toHaveAttribute(
+      'href',
+      '/story/st_aaaaaa01',
+    )
+  })
+})
+
+describe('Home after the reveal', () => {
+  it('swaps the countdown for the reveal message and the counts', async () => {
+    api.bootstrap.mockResolvedValue(bootstrap({ site: published() }))
+    renderAt('/')
+    expect(await screen.findByText(/יום הולדת שמח, תמר!/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('הזמן שנשאר עד יום ההולדת')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'לכל התמונות' })).toHaveAttribute('href', '/gallery')
   })
 })
 

@@ -19,7 +19,8 @@ export function StoryCard({
 }) {
   const Heading = `h${headingLevel}`
   const title = storyTitle(story)
-  const isFull = full && story.view === 'full'
+  const revealed = story.view === 'full'
+  const isFull = full && revealed && story.content !== undefined
   const byline = [story.author_name, story.author_relation].filter(Boolean).join(', ')
 
   return (
@@ -41,13 +42,17 @@ export function StoryCard({
         </span>
       </div>
 
+      {revealed && !full && story.cover && (
+        <img className={styles.cover} src={story.cover} alt="" loading="lazy" />
+      )}
+
       {isFull ? (
         <p className={styles.body}>{story.content}</p>
       ) : (
-        story.excerpt && <p className={styles.excerpt}>{story.excerpt}</p>
+        story.excerpt && <p className={revealed ? styles.lead : styles.excerpt}>{story.excerpt}</p>
       )}
 
-      {story.media_count > 0 && (
+      {story.media_count > 0 && !full && (
         <p className={styles.photos} data-tone={category?.tone}>
           <span className={styles.seal} aria-hidden="true">
             70
