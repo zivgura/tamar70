@@ -14,8 +14,7 @@
   width: 100%;
   max-width: var(--layout-max);
   margin: 0 auto;
-  padding: var(--space-4) var(--layout-gutter);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-4) var(--layout-gutter) var(--space-2);
 }
 
 .brand {
@@ -34,6 +33,39 @@
   gap: var(--space-4);
   align-items: center;
   font-size: var(--text-md);
+}
+
+/* Tabs under the header */
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  width: 100%;
+  max-width: var(--layout-max);
+  padding: 0 var(--layout-gutter);
+  margin: 0 auto;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: -1px;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tab[aria-current='page'] {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
 }
 
 .linkButton {

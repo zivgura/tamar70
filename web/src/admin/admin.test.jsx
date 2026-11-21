@@ -193,6 +193,14 @@ describe('admin pages', () => {
     expect(window.sessionStorage.getItem('tamar70.adminToken')).toBeNull()
   })
 
+  it('marks the current tab, with a story under the stories tab', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/story/st_aaaaaa01')
+    const tabs = within(await screen.findByRole('navigation', { name: 'אזורי הניהול' }))
+    expect(tabs.getByRole('link', { name: 'הסיפורים' })).toHaveAttribute('aria-current', 'page')
+    expect(tabs.getByRole('link', { name: 'הגדרות' })).not.toHaveAttribute('aria-current')
+  })
+
   it('hides a story', async () => {
     window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
     renderAt('/admin/story/st_aaaaaa01')

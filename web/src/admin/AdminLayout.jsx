@@ -1,7 +1,7 @@
 import { ACTIONS, GOOGLE_CLIENT_ID } from '@tamar70/shared'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { apiCall } from '../api/client.js'
 import { Button, ErrorMessage, LoadingCards, Message } from '../components'
 import styles from './Admin.module.css'
@@ -51,6 +51,39 @@ function SignIn({ onToken, note }) {
         </p>
       )}
     </div>
+  )
+}
+
+const TABS = [
+  // A story's page belongs to the stories tab.
+  {
+    to: '/admin',
+    label: 'הסיפורים',
+    match: (path) => path === '/admin' || path.startsWith('/admin/story'),
+  },
+  { to: '/admin/stats', label: 'נתונים' },
+  { to: '/admin/settings', label: 'הגדרות' },
+]
+
+function AdminTabs() {
+  const { pathname } = useLocation()
+  const path = pathname.replace(/\/$/, '')
+  return (
+    <nav className={styles.tabs} aria-label="אזורי הניהול">
+      {TABS.map((tab) => {
+        const active = tab.match ? tab.match(path) : path.startsWith(tab.to)
+        return (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className={styles.tab}
+            aria-current={active ? 'page' : undefined}
+          >
+            {tab.label}
+          </Link>
+        )
+      })}
+    </nav>
   )
 }
 
@@ -131,9 +164,7 @@ export default function AdminLayout() {
           <Link to="/admin" className={styles.brand}>
             ניהול · תמר בת 70
           </Link>
-          <nav className={styles.headerLinks}>
-            {token && <Link to="/admin/stats">נתונים</Link>}
-            {token && <Link to="/admin/settings">הגדרות</Link>}
+          <nav className={styles.headerLinks} aria-label="קישורים">
             <Link to="/">לאתר</Link>
             {token && (
               <button type="button" className={styles.linkButton} onClick={() => signOut()}>
@@ -142,6 +173,7 @@ export default function AdminLayout() {
             )}
           </nav>
         </header>
+        {token && <AdminTabs />}
         <main className={styles.main}>{content}</main>
       </div>
     </AdminContext.Provider>
