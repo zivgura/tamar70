@@ -15,6 +15,11 @@ describe('family code', () => {
     expect(history.replaceState).toHaveBeenCalledWith(null, '', '/corner/journey?x=1#top')
   })
 
+  it('stores the code in lowercase, as the server makes them', () => {
+    captureFamilyCode({ href: 'https://tamar70.web.app/?k=%20AbC23%20' }, { replaceState() {} })
+    expect(readFamilyCode()).toBe('abc23')
+  })
+
   it('remembers the code on later visits without a link', () => {
     captureFamilyCode({ href: 'https://tamar70.web.app/?k=abc' }, { replaceState() {} })
     const history = { replaceState: vi.fn() }

@@ -34,6 +34,7 @@ beforeEach(() => {
   writeStored('familyCode', '9u44tmn4')
   vi.spyOn(api, 'bootstrap').mockResolvedValue(bootstrap())
   vi.spyOn(api, 'submitStory').mockResolvedValue({ id: 'st_new000001', duplicate: false })
+  vi.spyOn(api, 'checkFamilyCode').mockResolvedValue({ valid: true })
   globalThis.URL.createObjectURL = vi.fn(() => 'blob:photo')
   globalThis.URL.revokeObjectURL = vi.fn()
   HTMLDialogElement.prototype.showModal ??= function () {
@@ -169,6 +170,21 @@ describe('adding a story', () => {
     renderAdd()
     expect(await screen.findByLabelText('הסיפור')).toHaveValue('טיוטה ארוכה')
     expect(screen.getByText('שלב 3 מתוך 3')).toBeInTheDocument()
+  })
+
+  it('warns before writing when the link on this device is wrong or old', async () => {
+    api.checkFamilyCode.mockResolvedValue({ valid: false })
+    renderAdd()
+    expect(
+      await screen.findByRole('heading', { name: 'הקישור במכשיר הזה לא עובד' }),
+    ).toBeInTheDocument()
+    expect(api.checkFamilyCode).toHaveBeenCalledWith('9u44tmn4')
+  })
+
+  it('still lets people write when the link check can’t be reached', async () => {
+    api.checkFamilyCode.mockRejectedValue(new ApiError('network', 'offline'))
+    renderAdd()
+    expect(await screen.findByRole('heading', { name: 'מה תרצו לשתף?' })).toBeInTheDocument()
   })
 
   it('shows a server refusal and lets the person try again', async () => {

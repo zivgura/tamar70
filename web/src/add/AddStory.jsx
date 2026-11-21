@@ -1,8 +1,8 @@
 import { DEFAULT_CATEGORY_ID, makeExcerpt, STORY_KIND } from '@tamar70/shared'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { newEditToken } from '../api/client.js'
+import { api, newEditToken } from '../api/client.js'
 import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
 import { Button, ErrorMessage, LoadingCards, Spinner, StoryCard } from '../components'
@@ -71,6 +71,16 @@ export default function AddStory() {
   const { data, error: bootError, isPending, refetch } = useBootstrap()
   const queryClient = useQueryClient()
   const familyCode = readFamilyCode()
+  // Checked up front, so a wrong or old link is caught before anyone writes a story.
+  // If the check itself fails (no signal), don't block: sending will check again.
+  const codeCheck = useQuery({
+    queryKey: ['familyCheck', familyCode],
+    queryFn: () => api.checkFamilyCode(familyCode),
+    enabled: Boolean(familyCode),
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  })
+  const codeRejected = codeCheck.data?.valid === false
 
   const [draft, setDraft] = useState(() => initialDraft(params.get('corner')))
   const [author, setAuthor] = useState(loadAuthor)
@@ -158,6 +168,9 @@ export default function AddStory() {
     } catch (err) {
       setSendError(err)
       setPhase('edit')
+      if (err.code === 'bad_family_code') {
+        queryClient.invalidateQueries({ queryKey: ['familyCheck'] })
+      }
     }
   }
 
@@ -194,6 +207,16 @@ export default function AddStory() {
       <Gate>
         <h1 className={styles.title}>צריך את הקישור המשפחתי</h1>
         <p>כדי להוסיף סיפור, היכנסו לאתר מהקישור ששלחו לכם. אם אין לכם אותו, בקשו אותו מהמשפחה.</p>
+      </Gate>
+    )
+  }
+  if (codeRejected) {
+    return (
+      <Gate>
+        <h1 className={styles.title}>הקישור במכשיר הזה לא עובד</h1>
+        <p>
+          פתחו שוב את הקישור המשפחתי המלא, מההודעה ששלחו לכם, וחזרו לכאן. מה שכבר כתבתם נשמר במכשיר.
+        </p>
       </Gate>
     )
   }

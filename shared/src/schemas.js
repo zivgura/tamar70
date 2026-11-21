@@ -15,6 +15,10 @@ const nameList = array(trimmed(60).min(1))
   .optional()
   .transform((v) => v ?? [])
 
+// Codes are lowercase; a phone that capitalized the link still matches.
+const familyCode = string().trim().toLowerCase().min(1).max(64)
+export const familyCheckSchema = object({ family_code: familyCode })
+
 const storyId = string().regex(/^st_[A-Za-z0-9]{6,40}$/)
 // Private random token the contributor's device creates and keeps, to edit the story later.
 // The server stores only its hash.
@@ -53,7 +57,7 @@ export const storySubmissionSchema = object({
   ...storyFields,
   // A retried submission with the same token isn't saved twice.
   edit_token: editToken,
-  family_code: string().trim().min(1).max(64),
+  family_code: familyCode,
   // Honeypot: a hidden field real people leave empty.
   website: string().max(0, 'honeypot').optional(),
 }).refine(...needsText)

@@ -9,12 +9,13 @@ import {
   STORY_STATUS,
   STORY_VIEW,
   storyIdSchema,
+  familyCheckSchema,
   storySubmissionSchema,
   toPublicStory,
   VISIBILITY,
 } from '@tamar70/shared'
 import { adminHandlers } from './admin.js'
-import { telemetryHandlers } from './telemetry.js'
+import { telemetryHandlers, underHourlyLimit } from './telemetry.js'
 import { ApiError, notFound } from './errors.js'
 import { finishUpload, invalidatePublicCache, startUpload } from './media.js'
 import {
@@ -117,6 +118,20 @@ function getStory(ctx, payload) {
   return out
 }
 
+const FAMILY_CHECKS_PER_HOUR = 300
+
+const familyCodeMatches = (ctx, code, config) =>
+  Boolean(config.family_code_hash) && ctx.crypto.sha256(code) === config.family_code_hash
+
+/** Lets the add page warn about a wrong or old link before anyone writes a story. */
+function checkFamilyCode(ctx, payload) {
+  const { family_code } = familyCheckSchema.parse(payload)
+  if (!underHourlyLimit(ctx, 'family-check', FAMILY_CHECKS_PER_HOUR)) {
+    throw new ApiError(ERROR_CODES.BUSY, 'Too many checks, try again later')
+  }
+  return { valid: familyCodeMatches(ctx, family_code, siteConfig(readSettings(ctx.db))) }
+}
+
 function submitStory(ctx, payload) {
   // Bots that fill the hidden field get a convincing success and nothing is saved.
   if (typeof payload.website === 'string' && payload.website.trim() !== '') {
@@ -126,10 +141,7 @@ function submitStory(ctx, payload) {
   const input = storySubmissionSchema.parse(payload)
   const config = siteConfig(readSettings(ctx.db))
 
-  if (
-    !config.family_code_hash ||
-    ctx.crypto.sha256(input.family_code) !== config.family_code_hash
-  ) {
+  if (!familyCodeMatches(ctx, input.family_code, config)) {
     throw new ApiError(ERROR_CODES.BAD_FAMILY_CODE, 'The family code is missing or wrong')
   }
   if (!config.submissions_open) {
@@ -180,6 +192,7 @@ function submitStory(ctx, payload) {
 
 export const handlers = {
   [ACTIONS.SITE]: getSite,
+  [ACTIONS.FAMILY_CHECK]: checkFamilyCode,
   [ACTIONS.BOOTSTRAP]: bootstrap,
   [ACTIONS.CATEGORIES_LIST]: listCategories,
   [ACTIONS.STORIES_LIST]: listStories,

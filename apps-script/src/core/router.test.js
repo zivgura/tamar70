@@ -167,6 +167,20 @@ describe('migration', () => {
   })
 })
 
+describe('family.check', () => {
+  const check = (family_code) =>
+    handleRequest(JSON.stringify({ action: 'family.check', payload: { family_code } }), ctx)
+
+  it('says whether the code on a device is still good', () => {
+    expect(check(familyCode).data).toEqual({ valid: true })
+    expect(check(familyCode.toUpperCase()).data).toEqual({ valid: true })
+    expect(check('wrong').data).toEqual({ valid: false })
+    const old = familyCode
+    rotateFamilyCode(ctx)
+    expect(check(old).data).toEqual({ valid: false })
+  })
+})
+
 describe('stories.submit', () => {
   it('saves a story and returns its id', () => {
     const res = submit()
@@ -186,6 +200,10 @@ describe('stories.submit', () => {
   it('needs the right family code', () => {
     expect(submit({ family_code: 'wrong' }).error.code).toBe('bad_family_code')
     expect(ctx.db.all('Stories')).toHaveLength(0)
+  })
+
+  it('accepts the code whatever its letter case or spaces', () => {
+    expect(submit({ family_code: ` ${familyCode.toUpperCase()} ` }).ok).toBe(true)
   })
 
   it('stops working with the old code after rotation', () => {

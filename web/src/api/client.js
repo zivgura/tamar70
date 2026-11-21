@@ -82,6 +82,7 @@ export const api = {
   startUpload: (request, opts) => apiCall(ACTIONS.MEDIA_START, request, opts),
   finishUpload: (request, opts) => apiCall(ACTIONS.MEDIA_FINISH, request, opts),
   // The contributor's own story, from the device that sent it
+  checkFamilyCode: (family_code) => apiCall(ACTIONS.FAMILY_CHECK, { family_code }),
   getOwn: (request, opts) => apiCall(ACTIONS.OWN_GET, request, opts),
   updateOwn: (request, opts) => apiCall(ACTIONS.OWN_UPDATE, request, opts),
   deleteOwn: (request, opts) => apiCall(ACTIONS.OWN_DELETE, request, opts),

@@ -7,12 +7,13 @@ const KEY = 'familyCode'
 
 export function captureFamilyCode(location = window.location, history = window.history) {
   const url = new URL(location.href)
-  const code = url.searchParams.get('k')
+  // Codes are lowercase; some phones capitalize links.
+  const code = url.searchParams.get('k')?.trim().toLowerCase()
   if (!code) return readFamilyCode()
-  writeStored(KEY, code.trim())
+  writeStored(KEY, code)
   url.searchParams.delete('k')
   history.replaceState(history.state, '', url.pathname + url.search + url.hash)
-  return code.trim()
+  return code
 }
 
 export function readFamilyCode() {

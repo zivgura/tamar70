@@ -18,7 +18,7 @@ export function israelDay(iso) {
 }
 
 /** Counts calls in this hour; false once `limit` is passed. */
-function underHourlyLimit(ctx, name, limit) {
+export function underHourlyLimit(ctx, name, limit) {
   const hour = String(ctx.now()).slice(0, 13)
   const key = `rate:${name}:${hour}`
   const used = Number(ctx.cache.get(key) ?? 0)

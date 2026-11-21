@@ -19,6 +19,8 @@ export const ACTIONS = Object.freeze({
   OWN_DELETE: 'stories.delete',
   OWN_MEDIA_UPDATE: 'media.update',
   OWN_MEDIA_REMOVE: 'media.remove',
+  // Is the family code on this device still good? (Checked before someone writes a story.)
+  FAMILY_CHECK: 'family.check',
   // The site reporting about itself (sent with sendBeacon, nobody waits for the answer):
   CLIENT_ERROR: 'client.error',
   CLIENT_VISIT: 'client.visit',
