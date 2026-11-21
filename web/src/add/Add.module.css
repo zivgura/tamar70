@@ -3,7 +3,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - 80px);
+  min-height: calc(100dvh - 1200px);
 }
 
 /* Step header: back or close, "step 2 of 3", three bars */
