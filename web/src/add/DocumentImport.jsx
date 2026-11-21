@@ -53,15 +53,15 @@ export function DocumentImport({ content, onText, onDocument }) {
         onChange={pick}
         aria-label="בחירת מסמך Word"
       />
+      <p className={styles.docTitle}>כבר כתבתם את הסיפור ב-Word?</p>
+      <p className={styles.docHint}>העלו את המסמך, והטקסט שלו ייכנס לסיפור.</p>
       <button
         type="button"
         className={styles.docButton}
         onClick={() => inputRef.current?.click()}
         disabled={state.status === 'reading'}
       >
-        {state.status === 'reading'
-          ? 'קוראים את המסמך…'
-          : 'כבר כתבתם את הסיפור ב-Word? העלו את המסמך'}
+        {state.status === 'reading' ? 'קוראים את המסמך…' : 'העלאת מסמך Word'}
       </button>
       <p className={styles.docStatus} aria-live="polite">
         {state.status === 'done' && (

@@ -388,31 +388,44 @@
   border-color: var(--color-danger);
 }
 
-/* "Already wrote it in Word?" */
+/* "Already wrote it in Word?": above the story box */
 .docImport {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   align-items: flex-start;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.docTitle {
+  font-weight: var(--weight-bold);
+}
+
+.docHint {
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
 }
 
 .docButton {
-  padding: var(--space-2) 0;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-5);
+  margin-top: var(--space-2);
   font: inherit;
-  font-size: var(--text-md);
   font-weight: var(--weight-bold);
   color: var(--color-accent);
-  text-align: start;
-  text-decoration: underline;
   cursor: pointer;
   background: none;
-  border: 0;
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-full);
 }
 
 .docButton:disabled {
   color: var(--color-text-muted);
-  text-decoration: none;
   cursor: default;
+  border-color: var(--color-border);
 }
 
 .docStatus {

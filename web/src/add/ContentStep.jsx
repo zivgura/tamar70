@@ -46,6 +46,12 @@ export function ContentStep({
 
       {wantsText && (
         <>
+          {/* First, so someone who already wrote it sees this before starting to type. */}
+          <DocumentImport
+            content={draft.content}
+            onText={(content) => update({ content })}
+            onDocument={onDocument}
+          />
           <TextField
             label="כותרת"
             optional
@@ -68,11 +74,6 @@ export function ContentStep({
               {draft.content.length.toLocaleString('en-US')} /{' '}
               {LIMITS.STORY_CONTENT_MAX.toLocaleString('en-US')}
             </p>
-            <DocumentImport
-              content={draft.content}
-              onText={(content) => update({ content })}
-              onDocument={onDocument}
-            />
           </div>
         </>
       )}
