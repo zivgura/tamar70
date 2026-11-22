@@ -41,6 +41,19 @@ const story = (overrides = {}) => ({
 const adminCategories = categories.map(({ id, name }) => ({ id, name, active: true }))
 let apiCall
 let stories
+let game
+
+const gameStatus = (overrides = {}) => ({
+  ai_configured: true,
+  model: 'claude-opus-5-5',
+  models: [
+    { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', input: 4, output: 20 },
+    { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', input: 2, output: 10 },
+  ],
+  counts: { facts: 0, facts_kept: 0, puzzles: 0, puzzles_approved: 0 },
+  jobs: [],
+  ...overrides,
+})
 
 function answer(action, payload) {
   if (payload.id_token !== TOKEN) throw new ApiError('sign_in_required')
@@ -110,6 +123,23 @@ function answer(action, payload) {
           },
         ],
       }
+    case 'admin.game':
+      return game
+    case 'admin.gameConfig':
+      game = { ...game, model: payload.model }
+      return game
+    case 'admin.gameJobStart': {
+      const job = {
+        id: 'gj_1',
+        kind: payload.kind,
+        status: 'queued',
+        created_at: '2026-12-02T10:00:00Z',
+        cost_usd: 0,
+        error: null,
+      }
+      game = { ...game, jobs: [job] }
+      return { job, ...game }
+    }
     default:
       return {}
   }
@@ -127,6 +157,7 @@ function renderAt(path) {
 
 beforeEach(() => {
   window.sessionStorage.clear()
+  game = gameStatus()
   stories = [
     story(),
     story({ id: 'st_aaaaaa02', title: 'מוסתר', visibility: 'hidden' }),
@@ -266,6 +297,68 @@ describe('admin pages', () => {
     expect(screen.getByRole('rowheader', { name: '2.12' })).toBeInTheDocument()
     expect(screen.getByText('x is undefined')).toBeInTheDocument()
     expect(screen.getByText(/3 פעמים/)).toBeInTheDocument()
+  })
+
+  it('explains how to add the Claude key when there is none', async () => {
+    game = gameStatus({ ai_configured: false })
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/game')
+    expect(await screen.findByRole('heading', { name: 'חדר בריחה' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'חדר בריחה' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByText(/עוד אין מפתח API/)).toBeInTheDocument()
+    expect(screen.getByText('CLAUDE_API_KEY')).toBeInTheDocument()
+  })
+
+  it('checks the Claude connection in the background and shows the answer', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/game')
+    await user.click(await screen.findByRole('button', { name: 'בדיקת החיבור' }))
+    expect(apiCall).toHaveBeenCalledWith('admin.gameJobStart', { kind: 'check', id_token: TOKEN })
+    expect(await screen.findByText('שולחים ל-Claude בקשה קטנה…')).toBeInTheDocument()
+    expect(screen.getByText('ממתינה')).toBeInTheDocument()
+  })
+
+  it('shows a finished check and a failed one', async () => {
+    game = gameStatus({
+      jobs: [
+        {
+          id: 'gj_2',
+          kind: 'check',
+          status: 'done',
+          progress: { reply: 'שלום' },
+          created_at: '2026-12-02T10:05:00Z',
+          cost_usd: 0.006,
+          error: null,
+        },
+        {
+          id: 'gj_1',
+          kind: 'check',
+          status: 'failed',
+          created_at: '2026-12-02T10:00:00Z',
+          cost_usd: 0,
+          error: 'מפתח ה-API לא תקין. בדקו את CLAUDE_API_KEY.',
+        },
+      ],
+    })
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/game')
+    expect(await screen.findByText(/החיבור עובד. Claude ענה: "שלום"/)).toHaveTextContent(
+      'העלות: $0.0060',
+    )
+    expect(screen.getByText('נכשלה')).toBeInTheDocument()
+    expect(screen.getByText(/עלות כל העבודות ברשימה/)).toHaveTextContent('$0.0060')
+  })
+
+  it('switches the model', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/game')
+    expect(await screen.findByLabelText(/Claude Opus 5.5/)).toBeChecked()
+    await user.click(screen.getByLabelText(/Claude Sonnet 5.5/))
+    expect(apiCall).toHaveBeenCalledWith('admin.gameConfig', {
+      model: 'claude-sonnet-5-5',
+      id_token: TOKEN,
+    })
+    expect(await screen.findByLabelText(/Claude Sonnet 5.5/)).toBeChecked()
   })
 
   it('changes how often emails go out and sends a test email', async () => {

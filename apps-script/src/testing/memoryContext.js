@@ -152,6 +152,50 @@ export function createMemoryContext({ now = '2026-12-01T10:00:00.000Z' } = {}) {
         this.copies.find((c) => c.id === id).trashed = true
       },
     },
+    // Background jobs: tests call runQueuedJobs(ctx) themselves.
+    jobs: {
+      starts: 0,
+      clears: 0,
+      failNextStart: false,
+      start() {
+        if (this.failNextStart) {
+          this.failNextStart = false
+          throw new Error('no trigger')
+        }
+        this.starts++
+      },
+      clear() {
+        this.clears++
+      },
+    },
+    // Claude: tests set ai.key and queue answers with ai.reply(...) or ai.fail(status, message).
+    ai: {
+      key: null,
+      requests: [],
+      queue: [],
+      configured() {
+        return Boolean(this.key)
+      },
+      reply(text, usage = { input_tokens: 12, output_tokens: 3 }) {
+        this.queue.push({
+          status: 200,
+          body: JSON.stringify({
+            content: [{ type: 'text', text }],
+            usage,
+            stop_reason: 'end_turn',
+          }),
+        })
+      },
+      fail(status, message = 'nope') {
+        this.queue.push({ status, body: JSON.stringify({ error: { message } }) })
+      },
+      post(request) {
+        this.requests.push(request)
+        const next = this.queue.shift()
+        if (!next) throw new Error('No answer queued for the fake Claude')
+        return next
+      },
+    },
     // Tests register tokens: google.tokens.set(token, claims). Unknown tokens are rejected.
     google: {
       tokens: new Map(),

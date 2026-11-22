@@ -1,5 +1,6 @@
 import { enum as oneOf, object, string } from 'zod'
 import { LIMITS, SITE_STATUS, VISIBILITY } from './constants.js'
+import { GAME_MODELS, JOB_KIND } from './game.js'
 import { NOTIFY_MODE } from './tables.js'
 
 // The admin sign-in constants live in google.js (no zod, so the site can use them cheaply).
@@ -38,3 +39,11 @@ export const adminSiteStatusSchema = object({
   site_status: oneOf([SITE_STATUS.COLLECTING, SITE_STATUS.PUBLISHED]),
 })
 export const adminMediaSchema = object({ id_token: idToken, media_id: mediaId })
+export const adminGameConfigSchema = object({
+  id_token: idToken,
+  model: oneOf(GAME_MODELS.map((m) => m.id)),
+})
+export const adminGameJobSchema = object({
+  id_token: idToken,
+  kind: oneOf(Object.values(JOB_KIND)),
+})

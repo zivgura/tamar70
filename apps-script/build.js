@@ -9,9 +9,9 @@ import { build } from 'esbuild'
 const here = dirname(fileURLToPath(import.meta.url))
 const GLOBAL = 'Tamar70'
 
-// Called by Google (doGet, doPost, the housekeeping timer) or run by hand from the editor
-// (setup).
-export const ENTRY_POINTS = ['doGet', 'doPost', 'setup', 'housekeeping']
+// Called by Google (doGet, doPost, the housekeeping timer, the escape room's job trigger) or
+// run by hand from the editor (setup).
+export const ENTRY_POINTS = ['doGet', 'doPost', 'setup', 'housekeeping', 'runGameJobs']
 
 export async function buildBundle(outdir = join(here, 'dist')) {
   rmSync(outdir, { recursive: true, force: true })

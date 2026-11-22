@@ -207,6 +207,22 @@
   background: var(--color-danger);
 }
 
+.badge[data-state='job-queued'],
+.badge[data-state='job-running'] {
+  color: var(--color-accent-hover);
+  background: var(--color-accent-subtle);
+}
+
+.badge[data-state='job-done'] {
+  color: var(--color-success);
+  background: var(--color-success-subtle);
+}
+
+.badge[data-state='job-failed'] {
+  color: var(--color-on-accent);
+  background: var(--color-danger);
+}
+
 /* One story */
 .statusLine {
   display: flex;
@@ -505,4 +521,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+/* Numbered how-to steps */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-inline-start: var(--space-5);
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+.steps code {
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
 }

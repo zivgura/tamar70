@@ -62,6 +62,7 @@ const TABS = [
     match: (path) => path === '/admin' || path.startsWith('/admin/story'),
   },
   { to: '/admin/stats', label: 'נתונים' },
+  { to: '/admin/game', label: 'חדר בריחה' },
   { to: '/admin/settings', label: 'הגדרות' },
 ]
 

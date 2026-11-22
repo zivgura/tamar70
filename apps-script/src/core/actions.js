@@ -14,6 +14,7 @@ import {
   VISIBILITY,
 } from '@tamar70/shared'
 import { adminHandlers } from './admin.js'
+import { gameHandlers } from './game.js'
 import { telemetryHandlers, underHourlyLimit } from './telemetry.js'
 import { ApiError, notFound } from './errors.js'
 import { finishUpload, invalidatePublicCache, startUpload } from './media.js'
@@ -217,5 +218,6 @@ export const handlers = {
   [ACTIONS.OWN_MEDIA_UPDATE]: updateOwnMedia,
   [ACTIONS.OWN_MEDIA_REMOVE]: removeOwnMedia,
   ...adminHandlers,
+  ...gameHandlers,
   ...telemetryHandlers,
 }

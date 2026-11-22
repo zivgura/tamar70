@@ -170,6 +170,30 @@ describe('bundle', () => {
     script.housekeeping()
   })
 
+  it('runs a queued escape-room job through the Claude API with the key from the properties', () => {
+    post({ action: 'site.get' })
+    gas.properties.set('CLAUDE_API_KEY', 'sk-secret')
+    const sheet = gas.spreadsheet.getSheetByName('GameJobs')
+    const headers = sheet.cells[0]
+    const row = {
+      id: 'gj_1',
+      kind: 'check',
+      status: 'queued',
+      created_at: new Date().toISOString(),
+    }
+    sheet.appendRow(headers.map((h) => row[h] ?? ''))
+    gas.triggers.push('runGameJobs')
+
+    script.runGameJobs()
+
+    const request = gas.fetches.find((f) => f.url === 'https://api.anthropic.com/v1/messages')
+    expect(request.options.headers['x-api-key']).toBe('sk-secret')
+    expect(JSON.parse(request.options.payload).model).toBe('claude-opus-5-5')
+    const saved = sheet.cells[1]
+    expect(saved[headers.indexOf('status')]).toBe('done')
+    expect(gas.triggers).not.toContain('runGameJobs')
+  })
+
   it('asks admins to sign in when Google rejects the token', () => {
     const res = post({ action: 'admin.stories', payload: { id_token: 'x'.repeat(200) } })
     expect(res.error.code).toBe('sign_in_required')

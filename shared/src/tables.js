@@ -2,7 +2,7 @@
 // column names. Bump SCHEMA_VERSION whenever a tab or column is added: the server notices on its
 // next request and adds what's missing (it never deletes or reorders anything).
 
-export const SCHEMA_VERSION = 7
+export const SCHEMA_VERSION = 8
 
 // Column types, used to convert between Sheet cells (always stored as text) and JS values.
 export const T = Object.freeze({
@@ -98,6 +98,9 @@ export const TABLES = Object.freeze({
     col('source_media_id'),
     col('source_quote'),
     col('verified', T.BOOLEAN),
+    col('status'),
+    col('job_id'),
+    col('created_at'),
   ],
   GamePuzzles: [
     col('id'),
@@ -114,8 +117,28 @@ export const TABLES = Object.freeze({
     col('order', T.NUMBER),
     col('status'),
     col('print_notes'),
+    col('extra', T.JSON),
+    col('job_id'),
+    col('created_at'),
+    col('updated_at'),
   ],
   GameConfig: [col('key'), col('value')],
+  // The escape room's background work (see apps-script/src/core/gameJobs.js): one row per run.
+  GameJobs: [
+    col('id'),
+    col('kind'),
+    col('status'),
+    col('params', T.JSON),
+    col('progress', T.JSON),
+    col('tokens_in', T.NUMBER),
+    col('tokens_out', T.NUMBER),
+    col('cost_usd', T.NUMBER),
+    col('error'),
+    col('admin_email'),
+    col('created_at'),
+    col('started_at'),
+    col('finished_at'),
+  ],
   // What the site reports about itself (see shared/src/telemetry.js).
   ClientErrors: [
     col('id'),
