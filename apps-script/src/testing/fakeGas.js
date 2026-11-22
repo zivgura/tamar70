@@ -167,9 +167,14 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
         const chain = {
           timeBased: () => chain,
           everyMinutes: () => chain,
+          after: () => chain,
           create: () => triggers.push(name),
         }
         return chain
+      },
+      deleteTrigger: (t) => {
+        const i = triggers.indexOf(t.getHandlerFunction())
+        if (i !== -1) triggers.splice(i, 1)
       },
     },
     MailApp: { sendEmail: (message) => mails.push(message) },
@@ -188,6 +193,14 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     UrlFetchApp: {
       fetch: (url, options = {}) => {
         fetches.push({ url, options })
+        if (url === 'https://api.anthropic.com/v1/messages') {
+          const body = JSON.stringify({
+            content: [{ type: 'text', text: 'שלום' }],
+            usage: { input_tokens: 20, output_tokens: 2 },
+            stop_reason: 'end_turn',
+          })
+          return { getResponseCode: () => 200, getHeaders: () => ({}), getContentText: () => body }
+        }
         if (url.startsWith('https://oauth2.googleapis.com/tokeninfo')) {
           return { getResponseCode: () => 400, getHeaders: () => ({}), getContentText: () => '{}' }
         }

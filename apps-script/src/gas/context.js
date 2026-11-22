@@ -116,6 +116,37 @@ export function createContext() {
       },
     },
 
+    // The escape room's background jobs: a one-time trigger that calls runGameJobs().
+    jobs: {
+      start() {
+        ScriptApp.newTrigger('runGameJobs').timeBased().after(1000).create()
+      },
+      /** One-time triggers stay listed after they fire; remove the old ones. */
+      clear() {
+        for (const t of ScriptApp.getProjectTriggers()) {
+          if (t.getHandlerFunction() === 'runGameJobs') ScriptApp.deleteTrigger(t)
+        }
+      },
+    },
+
+    // The Claude API. The key is read here and never leaves the server.
+    ai: {
+      configured: () => Boolean(props().getProperty('CLAUDE_API_KEY')),
+      post(request) {
+        const response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+          method: 'post',
+          contentType: 'application/json',
+          headers: {
+            'x-api-key': props().getProperty('CLAUDE_API_KEY'),
+            'anthropic-version': '2023-06-01',
+          },
+          payload: JSON.stringify(request),
+          muteHttpExceptions: true,
+        })
+        return { status: response.getResponseCode(), body: response.getContentText('UTF-8') }
+      },
+    },
+
     google: {
       /** Google's own check of a sign-in ID token: its claims, or null if Google rejects it. */
       tokenInfo(idToken) {

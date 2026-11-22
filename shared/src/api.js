@@ -41,6 +41,10 @@ export const ACTIONS = Object.freeze({
   ADMIN_SITE_STATUS: 'admin.setSiteStatus',
   ADMIN_BACKUP: 'admin.backup',
   ADMIN_EXPORT: 'admin.export',
+  // The escape room (admins only): its status, the AI model, and background jobs.
+  ADMIN_GAME: 'admin.game',
+  ADMIN_GAME_CONFIG: 'admin.gameConfig',
+  ADMIN_GAME_JOB_START: 'admin.gameJobStart',
 })
 
 export const ERROR_CODES = Object.freeze({
@@ -57,6 +61,8 @@ export const ERROR_CODES = Object.freeze({
   NOT_ADMIN: 'not_admin', // signed in, but not in AdminUsers
   TOO_MANY_PHOTOS: 'too_many_photos',
   UPLOAD_FAILED: 'upload_failed',
+  AI_NOT_CONFIGURED: 'ai_not_configured', // no Claude API key in the Script Properties
+  JOB_RUNNING: 'job_running', // the escape room already has a job queued or running
   BUSY: 'busy',
   INTERNAL: 'internal',
 })
