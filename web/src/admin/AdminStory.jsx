@@ -7,7 +7,7 @@ import {
   Button,
   Chip,
   ErrorMessage,
-  LoadingCards,
+  CardsSkeleton,
   Message,
   Spinner,
   TextField,
@@ -139,7 +139,7 @@ export default function AdminStory() {
     }
   }
 
-  if (isPending) return <LoadingCards count={2} />
+  if (isPending) return <CardsSkeleton count={2} />
   if (error) {
     if (error.code === 'not_found' || error.code === 'validation') {
       return (

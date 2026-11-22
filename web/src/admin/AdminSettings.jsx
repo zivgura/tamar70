@@ -2,7 +2,7 @@ import { ACTIONS, DIGEST_HOUR, NOTIFY_MODE, SITE_STATUS } from '@tamar70/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { errorMessage } from '../api/messages.js'
-import { Button, ErrorMessage, LoadingCards, Spinner } from '../components'
+import { Button, ErrorMessage, CardsSkeleton, Spinner } from '../components'
 import styles from './Admin.module.css'
 import { useAdmin } from './adminContext.js'
 import { formatDateTime } from './adminFormat.js'
@@ -189,7 +189,7 @@ export default function AdminSettings() {
   const [saveError, setSaveError] = useState(null)
   const [test, setTest] = useState({ state: 'idle' }) // idle | sending | sent | failed
 
-  if (isPending) return <LoadingCards count={2} />
+  if (isPending) return <CardsSkeleton count={2} />
   if (error) return <ErrorMessage error={error} onRetry={refetch} />
 
   async function changeMode(mode) {

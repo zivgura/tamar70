@@ -1,7 +1,16 @@
 import { Link, useParams } from 'react-router-dom'
 import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
-import { Button, CornerIcon, ErrorMessage, LoadingCards, Message, StoryCard } from '../components'
+import {
+  Button,
+  CornerIcon,
+  ErrorMessage,
+  Message,
+  Skeleton,
+  SkeletonGroup,
+  StoryCard,
+  StoryCardSkeleton,
+} from '../components'
 import styles from './Corner.module.css'
 
 /** One corner: its prompt, a button that opens the add flow on it, and its memories. */
@@ -13,9 +22,19 @@ export default function Corner() {
   if (error) return <ErrorMessage error={error} onRetry={refetch} />
   if (isPending) {
     return (
-      <div className={styles.page}>
-        <LoadingCards />
-      </div>
+      <SkeletonGroup className={styles.page}>
+        <Skeleton size="md" width="1/4" />
+        <div className={styles.heading}>
+          <Skeleton shape="block" size="cornerStamp" />
+          <Skeleton size="5xl" width="2/3" />
+        </div>
+        <Skeleton width="3/4" />
+        <Skeleton shape="block" size="button" />
+        <div className={styles.feed}>
+          <StoryCardSkeleton />
+          <StoryCardSkeleton />
+        </div>
+      </SkeletonGroup>
     )
   }
 

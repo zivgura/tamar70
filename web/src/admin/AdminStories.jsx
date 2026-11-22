@@ -1,7 +1,7 @@
 import { STORY_STATUS } from '@tamar70/shared'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Chip, ErrorMessage, LoadingCards, Message } from '../components'
+import { Chip, ErrorMessage, CardsSkeleton, Message } from '../components'
 import { photosText } from '../lib/format.js'
 import styles from './Admin.module.css'
 import { formatDateTime, storyState } from './adminFormat.js'
@@ -20,7 +20,7 @@ export default function AdminStories() {
   const { data, isPending, error, refetch } = useAdminStories()
   const [filter, setFilter] = useState('shown')
 
-  if (isPending) return <LoadingCards count={4} />
+  if (isPending) return <CardsSkeleton count={4} />
   if (error) return <ErrorMessage error={error} onRetry={refetch} />
 
   const names = Object.fromEntries(data.categories.map((c) => [c.id, c.name]))

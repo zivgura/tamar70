@@ -1,5 +1,13 @@
 import { useBootstrap, useGallery } from '../api/queries.js'
-import { ErrorMessage, LoadingCards, Message, PhotoMosaic, Polaroid } from '../components'
+import {
+  ErrorMessage,
+  Message,
+  MosaicSkeleton,
+  PhotoMosaic,
+  Polaroid,
+  Skeleton,
+  SkeletonGroup,
+} from '../components'
 import { formatDay, photosText } from '../lib/format.js'
 import styles from './Corner.module.css'
 import own from './Gallery.module.css'
@@ -11,7 +19,14 @@ export default function Gallery() {
   const gallery = useGallery(published)
 
   if (error) return <ErrorMessage error={error} onRetry={refetch} />
-  if (isPending) return <LoadingCards count={1} />
+  if (isPending) {
+    return (
+      <SkeletonGroup className={styles.page}>
+        <Skeleton size="5xl" width="1/3" />
+        <MosaicSkeleton count={6} />
+      </SkeletonGroup>
+    )
+  }
 
   if (published) {
     return (
@@ -20,7 +35,7 @@ export default function Gallery() {
         {gallery.error ? (
           <ErrorMessage error={gallery.error} onRetry={gallery.refetch} />
         ) : gallery.isPending ? (
-          <LoadingCards count={1} />
+          <MosaicSkeleton />
         ) : gallery.data.photos.length === 0 ? (
           <Message>התמונות עוד נפתחות לצפייה. נסו שוב בעוד כמה דקות.</Message>
         ) : (

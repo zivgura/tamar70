@@ -5,7 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { newEditToken } from '../api/client.js'
 import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
-import { Button, ErrorMessage, LoadingCards, Spinner, StoryCard } from '../components'
+import { Button, ErrorMessage, Skeleton, SkeletonGroup, Spinner, StoryCard } from '../components'
 import { formatDay } from '../lib/format.js'
 import { rejectReason } from '../upload/uploadPhoto.js'
 import styles from './Add.module.css'
@@ -196,9 +196,18 @@ export default function AddStory() {
   if (bootError) return <ErrorMessage error={bootError} onRetry={refetch} />
   if (isPending) {
     return (
-      <div className={styles.center}>
-        <LoadingCards count={1} />
-      </div>
+      <SkeletonGroup className={styles.page}>
+        <div className={styles.body}>
+          <Skeleton size="md" width="1/3" />
+          <Skeleton size="4xl" width="2/3" />
+          <Skeleton width="3/4" />
+          <div className={styles.tiles}>
+            <Skeleton shape="block" size="choice" />
+            <Skeleton shape="block" size="choice" />
+            <Skeleton shape="block" size="choice" />
+          </div>
+        </div>
+      </SkeletonGroup>
     )
   }
   if (!data.site.submissions_open) {
