@@ -30,6 +30,8 @@ export const ACTIONS = Object.freeze({
   ADMIN_ME: 'admin.me',
   ADMIN_STORIES: 'admin.stories',
   ADMIN_STORY: 'admin.story',
+  // A story's photo thumbnails, loaded after the story itself (they take the longest).
+  ADMIN_STORY_THUMBS: 'admin.storyThumbs',
   ADMIN_STORY_UPDATE: 'admin.storyUpdate',
   ADMIN_VISIBILITY: 'admin.setVisibility',
   ADMIN_STORY_DELETE: 'admin.storyDelete',

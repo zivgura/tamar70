@@ -132,16 +132,23 @@ describe('admin stories', () => {
     expect(stories[0]).not.toHaveProperty('edit_token_hash')
   })
 
-  it('shows a story with its photos as thumbnails', () => {
+  it('shows a story right away, and its thumbnails in a second call', () => {
     const id = submit()
     const { drive_file_id } = addPhoto(id)
     const { story, photos } = ok('admin.story', { id_token: ADMIN, id })
     expect(story.id).toBe(id)
     expect(photos).toHaveLength(1)
-    expect(photos[0]).toMatchObject({
-      upload_status: 'done',
-      thumbnail: `data:image/png;base64,${drive_file_id}`,
-    })
+    expect(photos[0]).toMatchObject({ upload_status: 'done', has_thumbnail: true })
+    expect(ctx.drive.thumbnailCalls).toBe(0) // the story doesn't wait for Drive
+
+    const { thumbnails } = ok('admin.storyThumbs', { id_token: ADMIN, id })
+    expect(thumbnails).toEqual({ [photos[0].id]: `data:image/png;base64,${drive_file_id}` })
+    expect(ctx.drive.thumbnailCalls).toBe(1)
+
+    // Opened again: from the cache, without asking Drive.
+    ok('admin.storyThumbs', { id_token: ADMIN, id })
+    expect(ctx.drive.thumbnailCalls).toBe(1)
+    expect(call('admin.storyThumbs', { id_token: OUTSIDER, id }).error.code).toBe('not_admin')
   })
 
   it('hides a story from the public and shows it again', () => {

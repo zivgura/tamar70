@@ -73,10 +73,12 @@ function answer(action, payload) {
             caption: 'בדרך',
             upload_status: 'done',
             bytes: 2_500_000,
-            thumbnail: 'data:image/png;base64,AAA',
+            has_thumbnail: true,
           },
         ],
       }
+    case 'admin.storyThumbs':
+      return { thumbnails: { md_photo0001: 'data:image/png;base64,AAA' } }
     case 'admin.setSiteStatus':
       return {
         site_status: payload.site_status,
@@ -274,6 +276,51 @@ describe('admin pages', () => {
       id: 'st_aaaaaa01',
       id_token: TOKEN,
     })
+  })
+
+  it('opens a story from the list at once, then fills in its photos', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    const router = renderAt('/admin')
+    const link = await screen.findByRole('link', { name: /הטרמפ לאילת/ })
+    let answer
+    const slow = new Promise((r) => (answer = r))
+    const real = apiCall.getMockImplementation()
+    apiCall.mockImplementation((action, payload) =>
+      action === 'admin.story' ? slow.then(() => real(action, payload)) : real(action, payload),
+    )
+    await user.click(link)
+    // The story text is there before the server answers; the photos are on their way.
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'הטרמפ לאילת' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'טוען את התמונות' })).toBeInTheDocument()
+
+    answer()
+    expect(await screen.findByRole('img', { name: 'בדרך' })).toHaveAttribute(
+      'src',
+      'data:image/png;base64,AAA',
+    )
+    expect(apiCall).toHaveBeenCalledWith('admin.storyThumbs', {
+      id: 'st_aaaaaa01',
+      id_token: TOKEN,
+    })
+    expect(router.state.location.pathname).toBe('/admin/story/st_aaaaaa01')
+  })
+
+  it('loads the stories without waiting for the sign-in check', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    let answerMe
+    const real = apiCall.getMockImplementation()
+    apiCall.mockImplementation((action, payload) =>
+      action === 'admin.me'
+        ? new Promise((r) => (answerMe = () => r(real(action, payload))))
+        : real(action, payload),
+    )
+    renderAt('/admin')
+    await vi.waitFor(() =>
+      expect(apiCall).toHaveBeenCalledWith('admin.stories', { id_token: TOKEN }),
+    )
+    answerMe()
   })
 
   it('removes one photo', async () => {

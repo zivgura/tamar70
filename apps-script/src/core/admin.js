@@ -157,12 +157,42 @@ function getStory(ctx, payload) {
     bytes: m.bytes,
     upload_status: m.upload_status,
     uploaded_at: m.uploaded_at,
-    thumbnail:
-      m.upload_status === UPLOAD_STATUS.DONE && m.drive_file_id
-        ? ctx.drive.thumbnail(m.drive_file_id)
-        : null,
+    // The picture comes from admin.storyThumbs, so the story shows without waiting for Drive.
+    has_thumbnail: m.upload_status === UPLOAD_STATUS.DONE && Boolean(m.drive_file_id),
   }))
   return { story: adminView(story), photos, documents, categories: categories(ctx) }
+}
+
+// Thumbnails don't change: keep each for 6 hours (CacheService's longest), so a story opened
+// again shows its photos at once.
+const THUMB_CACHE_SECONDS = 6 * 60 * 60
+const THUMB_CACHE_MAX_CHARS = 95_000 // one cache value holds up to 100 KB
+
+/** { media_id: data URL or null } for a story's finished photos. */
+function storyThumbs(ctx, payload) {
+  const { id_token, id } = adminStorySchema.parse(payload)
+  requireAdmin(ctx, id_token)
+  const story = findStory(ctx, id, { allowDeleted: true })
+  const photos = mediaOf(ctx, story.id).filter(
+    (m) => isPhotoMedia(m) && m.upload_status === UPLOAD_STATUS.DONE && m.drive_file_id,
+  )
+  const out = {}
+  const missing = []
+  for (const m of photos) {
+    const hit = ctx.cache.get(`thumb:${m.drive_file_id}`)
+    if (hit) out[m.id] = hit
+    else missing.push(m)
+  }
+  if (missing.length) {
+    const urls = ctx.drive.thumbnails(missing.map((m) => m.drive_file_id))
+    missing.forEach((m, i) => {
+      out[m.id] = urls[i] ?? null
+      if (urls[i] && urls[i].length <= THUMB_CACHE_MAX_CHARS) {
+        ctx.cache.put(`thumb:${m.drive_file_id}`, urls[i], THUMB_CACHE_SECONDS)
+      }
+    })
+  }
+  return { thumbnails: out }
 }
 
 function updateStory(ctx, payload) {
@@ -320,6 +350,7 @@ export const adminHandlers = {
   [ACTIONS.ADMIN_ME]: me,
   [ACTIONS.ADMIN_STORIES]: listStories,
   [ACTIONS.ADMIN_STORY]: getStory,
+  [ACTIONS.ADMIN_STORY_THUMBS]: storyThumbs,
   [ACTIONS.ADMIN_STORY_UPDATE]: updateStory,
   [ACTIONS.ADMIN_VISIBILITY]: setVisibility,
   [ACTIONS.ADMIN_STORY_DELETE]: deleteStory,

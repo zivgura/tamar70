@@ -286,6 +286,23 @@
   border-radius: var(--radius-lg);
 }
 
+/* A thumbnail still on its way from Drive */
+.thumb[data-loading='true'] {
+  animation: thumb-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes thumb-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb[data-loading='true'] {
+    animation: none;
+  }
+}
+
 .photoText {
   display: flex;
   flex-wrap: wrap;
