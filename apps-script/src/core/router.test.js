@@ -87,7 +87,12 @@ describe('migration', () => {
 
     const colors = Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c.color]))
     // A known corner gets its mockup tone; others map by hex; unknown values become neutral.
-    expect(colors).toEqual({ travels: 'sage', custom: 'sage', odd: 'sand', kept: 'terracotta' })
+    expect(colors).toMatchObject({
+      travels: 'sage',
+      custom: 'sage',
+      odd: 'sand',
+      kept: 'terracotta',
+    })
     expect(ctx.schemaVersion.get()).toBe(SCHEMA_VERSION)
   })
 
@@ -129,6 +134,69 @@ describe('migration', () => {
       description: 'סיפורים, חוויות ואנשים מהמחאות שתמר השתתפה בהן',
       prompt_hint: 'באיזו מחאה הייתם יחד עם תמר?',
     })
+  })
+
+  it('upgrades a version 8 Sheet: adds "תרבות" and merges the fun-fact corner', () => {
+    const v8 = createMemoryContext()
+    for (const name of ['Categories', 'Stories']) {
+      v8.db.ensureTable(
+        name,
+        TABLES[name].map((c) => c.name),
+      )
+    }
+    const old = [
+      ['journey', 'מסע בזמן', 1],
+      ['protest', 'מחאות פוליטיות', 2],
+      ['travels', 'טיולים בארץ ובעולם', 3],
+      ['sayings', 'המשפטים של תמר', 4],
+      ['fun-fact', 'עובדה מעניינת על תמר', 5],
+      ['did-you-know', 'לא ידעתם על תמר', 6],
+      ['wishes', 'כמה מילים לתמר', 7],
+      ['general', 'לא בטוחים – כללי', 8],
+    ]
+    for (const [id, name, order] of old) {
+      v8.db.insert('Categories', {
+        id,
+        name,
+        order,
+        color: 'rose',
+        active: true,
+        description:
+          id === 'did-you-know' ? 'כישרונות חבויים, הרגלים, אנקדוטות וסודות משעשעים' : '',
+      })
+    }
+    v8.db.insert('Stories', { id: 'st_fact000001', category_id: 'fun-fact', status: 'active' })
+    v8.db.insert('Stories', { id: 'st_trip000001', category_id: 'travels', status: 'active' })
+    v8.schemaVersion.set(8)
+    ctx = v8
+    ok('site.get')
+
+    expect(ok('categories.list').map((c) => [c.id, c.name])).toEqual([
+      ['journey', 'מסע בזמן'],
+      ['protest', 'מחאות פוליטיות'],
+      ['travels', 'טיולים בארץ ובעולם'],
+      ['culture', 'תרבות'],
+      ['sayings', 'המשפטים של תמר'],
+      ['did-you-know', 'דברים שלא ידעתם על תמר'],
+      ['wishes', 'כמה מילים לתמר'],
+      ['general', 'לא בטוחים – כללי'],
+    ])
+    const stories = Object.fromEntries(ctx.db.all('Stories').map((s) => [s.id, s.category_id]))
+    expect(stories).toEqual({ st_fact000001: 'did-you-know', st_trip000001: 'travels' })
+    // The old row stays in the Sheet, hidden.
+    expect(ctx.db.all('Categories').find((c) => c.id === 'fun-fact').active).toBe(false)
+    expect(ctx.db.all('Categories').filter((c) => c.id === 'culture')).toHaveLength(1)
+  })
+
+  it('files a story sent to the old fun-fact corner under the merged one', () => {
+    const { id } = ok('stories.submit', {
+      kind: 'text',
+      author_name: 'דנה',
+      content: 'תמר יודעת לשרוק עם שתי אצבעות',
+      category_id: 'fun-fact',
+      edit_token: 'e'.repeat(32),
+    })
+    expect(ctx.db.all('Stories').find((s) => s.id === id).category_id).toBe('did-you-know')
   })
 
   it('seeds a new Sheet without memorial wording', () => {

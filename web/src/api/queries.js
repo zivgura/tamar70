@@ -1,5 +1,6 @@
 // Server data for pages. One call (site.bootstrap) loads the site, the corners and every
 // visible story, because each Apps Script call takes seconds.
+import { currentCategoryId } from '@tamar70/shared'
 import { QueryClient, useQuery } from '@tanstack/react-query'
 import { readStored, writeStored } from '../lib/storage.js'
 import { api } from './client.js'
@@ -51,7 +52,8 @@ export function useBootstrap() {
 
 /** The corner by id, with a safe tone. */
 export function findCategory(categories, id) {
-  return categories?.find((c) => c.id === id) ?? null
+  const current = currentCategoryId(id)
+  return categories?.find((c) => c.id === current) ?? null
 }
 
 /**

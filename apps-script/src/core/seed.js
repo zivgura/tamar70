@@ -28,6 +28,13 @@ export const DEFAULT_CATEGORIES = [
     color: 'sage',
   },
   {
+    id: 'culture',
+    name: 'תרבות',
+    description: 'ספרים, מוזיקה, הצגות, סרטים ואמנות בחייה של תמר',
+    prompt_hint: 'על איזה ספר, הופעה או סרט תמר תמיד מדברת?',
+    color: 'rose',
+  },
+  {
     id: 'sayings',
     name: 'המשפטים של תמר',
     description: 'משפטים, ביטויים ואמירות שתמר נוהגת לומר',
@@ -35,16 +42,9 @@ export const DEFAULT_CATEGORIES = [
     color: 'rose',
   },
   {
-    id: 'fun-fact',
-    name: 'עובדה מעניינת על תמר',
-    description: 'עובדות מפתיעות ומעניינות',
-    prompt_hint: 'איזו עובדה על תמר תפתיע את כולם?',
-    color: 'rose',
-  },
-  {
     id: 'did-you-know',
-    name: 'לא ידעתם על תמר',
-    description: 'כישרונות חבויים, הרגלים, אנקדוטות וסודות משעשעים',
+    name: 'דברים שלא ידעתם על תמר',
+    description: 'עובדות מפתיעות, כישרונות חבויים, הרגלים ואנקדוטות משעשעות',
     prompt_hint: 'מה רק מעטים יודעים על תמר?',
     color: 'sage',
   },

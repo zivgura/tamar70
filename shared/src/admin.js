@@ -1,5 +1,5 @@
 import { enum as oneOf, object, string } from 'zod'
-import { LIMITS, SITE_STATUS, VISIBILITY } from './constants.js'
+import { currentCategoryId, LIMITS, SITE_STATUS, VISIBILITY } from './constants.js'
 import { GAME_MODELS, JOB_KIND } from './game.js'
 import { NOTIFY_MODE } from './tables.js'
 
@@ -27,7 +27,8 @@ export const adminStoryUpdateSchema = object({
   author_relation: text(80),
   category_id: string()
     .trim()
-    .regex(/^[a-z0-9-]{1,40}$/),
+    .regex(/^[a-z0-9-]{1,40}$/)
+    .transform(currentCategoryId),
   admin_notes: text(1000),
 })
 export const adminSettingsSchema = object({
