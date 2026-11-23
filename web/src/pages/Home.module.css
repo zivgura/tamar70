@@ -50,6 +50,22 @@
   gap: var(--space-3);
 }
 
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.sectionLink {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.more {
+  margin-top: var(--space-5);
+}
+
 .feed {
   display: flex;
   flex-direction: column;

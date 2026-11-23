@@ -38,6 +38,7 @@ import { readSettings, siteConfig } from './settings.js'
 const LIST_CACHE_KEY = 'stories.list'
 const BOOTSTRAP_CACHE_KEY = 'site.bootstrap'
 const GALLERY_CACHE_KEY = 'gallery.list'
+const STRIP_PHOTOS = 15
 const CACHE_SECONDS = 60
 // CacheService refuses values over 100 KB; stay well under.
 const CACHE_MAX_CHARS = 90_000
@@ -103,7 +104,13 @@ function bootstrap(ctx) {
   return cached(ctx, BOOTSTRAP_CACHE_KEY, () => {
     const config = siteConfig(readSettings(ctx.db))
     const stories = publicStories(ctx, config)
-    return { site: siteInfo(config, stories), categories: listCategories(ctx), stories }
+    return {
+      site: siteInfo(config, stories),
+      categories: listCategories(ctx),
+      stories,
+      // The newest photos, for the home page's photo strip (the gallery has them all).
+      photos: galleryPhotos(ctx).slice(0, STRIP_PHOTOS),
+    }
   })
 }
 

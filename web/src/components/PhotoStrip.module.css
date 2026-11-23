@@ -1,0 +1,92 @@
+.strip {
+  position: relative;
+}
+
+/* Swiped sideways; each photo snaps into place. The page's gutter is kept at both ends. */
+.list {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--layout-gutter) var(--space-4);
+  margin: 0 calc(var(--layout-gutter) * -1);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  list-style: none;
+  scroll-padding-inline: var(--layout-gutter);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+/* A small polaroid: white frame, a thicker bottom edge for the caption */
+.frame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 9.5rem;
+  padding: var(--space-2) var(--space-2) var(--space-3);
+  font: inherit;
+  color: var(--color-text-secondary);
+  text-align: center;
+  cursor: zoom-in;
+  background: var(--color-surface);
+  border: 0;
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-photo);
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--pattern-placeholder);
+}
+
+.caption {
+  overflow: hidden;
+  font-family: var(--font-hand);
+  font-size: var(--text-hand);
+  line-height: var(--leading-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Arrows only for a mouse; fingers swipe. */
+.arrow {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .arrow {
+    position: absolute;
+    top: 40%;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    color: var(--color-text);
+    cursor: pointer;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-card);
+  }
+
+  .back {
+    inset-inline-start: calc(var(--space-2) * -1);
+  }
+
+  .forward {
+    inset-inline-end: calc(var(--space-2) * -1);
+  }
+}

@@ -112,6 +112,6 @@ export function useStory(id) {
 }
 
 /** Every shared photo, for the gallery after the reveal. */
-export function useGallery(enabled) {
-  return useQuery({ queryKey: ['gallery'], queryFn: () => api.gallery(), enabled })
+export function useGallery() {
+  return useQuery({ queryKey: ['gallery'], queryFn: () => api.gallery() })
 }

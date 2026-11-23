@@ -1,7 +1,9 @@
-// The reveal: which photos are open to anyone with the link, and the public photo lists.
-// A photo is shared exactly while its story is shown in full (the site is published, or an
-// admin opened that story early) and isn't hidden. Changing Drive sharing takes a moment per
-// file, so it's done in batches: right away for a few, the rest by the 15-minute timer.
+// Which photos are open to anyone with the link, and the public photo lists.
+// 2026-11-23: photos are shown on the site as soon as they're uploaded (the home page's photo
+// strip and the gallery); only the stories' full text waits for the birthday. So a photo is
+// shared exactly while its story is on the site at all: not hidden, not deleted. Changing
+// Drive sharing takes a moment per file, so it's done in batches: right away for a story's
+// new photos, the rest by the 15-minute timer.
 import {
   isPhotoMedia,
   STORY_STATUS,
@@ -30,7 +32,7 @@ function wanted(ctx) {
     .filter(isLive)
     .map((m) => {
       const story = stories.get(m.story_id)
-      const want = Boolean(story) && getStoryView(story, status) === STORY_VIEW.FULL
+      const want = Boolean(story) && getStoryView(story, status) !== STORY_VIEW.NONE
       return { media: m, want }
     })
 }
@@ -80,14 +82,14 @@ export function sharedPhotosByStory(ctx) {
   return out
 }
 
-/** The gallery: every shared photo of a story shown in full, newest stories first. */
+/** The gallery: every shared photo of a story on the site, newest stories first. */
 export function galleryPhotos(ctx) {
   const status = siteConfig(readSettings(ctx.db)).site_status
   const photos = sharedPhotosByStory(ctx)
   return ctx.db
     .all('Stories')
     .filter((s) => s.status === STORY_STATUS.ACTIVE)
-    .filter((s) => getStoryView(s, status) === STORY_VIEW.FULL)
+    .filter((s) => getStoryView(s, status) !== STORY_VIEW.NONE)
     .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
     .flatMap((s) =>
       (photos.get(s.id) ?? []).map((p) => ({

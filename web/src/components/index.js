@@ -14,6 +14,7 @@ export {
   CountdownSkeleton,
   FormSkeleton,
   MosaicSkeleton,
+  PhotoStripSkeleton,
   Skeleton,
   SkeletonGroup,
   StoryCardSkeleton,
@@ -25,3 +26,4 @@ export { TextField } from './TextField.jsx'
 export { RouteError } from './RouteError.jsx'
 export { Lightbox } from './Lightbox.jsx'
 export { PhotoMosaic } from './PhotoMosaic.jsx'
+export { PhotoStrip } from './PhotoStrip.jsx'
