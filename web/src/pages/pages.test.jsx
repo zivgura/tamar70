@@ -176,7 +176,7 @@ describe('Home after the reveal', () => {
 describe('a page that crashes', () => {
   it('shows a way out instead of a blank screen', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    api.bootstrap.mockResolvedValue({ ...bootstrap(), categories: null })
+    api.bootstrap.mockResolvedValue({ ...bootstrap(), stories: [null] })
     renderAt('/')
     expect(await screen.findByText(/משהו השתבש בדף הזה/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'טעינה מחדש' })).toBeInTheDocument()

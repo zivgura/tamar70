@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { writeStored } from '../lib/storage.js'
 import { api } from './client.js'
-import { savedBootstrap } from './queries.js'
+import * as client from './client.js'
+import { bootstrapQuery, savedBootstrap } from './queries.js'
 
 const site = (overrides) => ({
   site: { site_status: 'collecting', birthday_date: '2027-02-07', ...overrides },
+  categories: [],
+  stories: [],
 })
 const at = (iso) => new Date(iso)
 
@@ -45,5 +48,29 @@ describe('the early bootstrap call', () => {
       .mockResolvedValue(new Response(JSON.stringify({ ok: true, data: { from: 'retry' } })))
     expect(await api.bootstrap()).toEqual({ from: 'retry' })
     expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('an incomplete bootstrap answer', () => {
+  it('is never saved or used: the site asks again', async () => {
+    const good = site()
+    vi.spyOn(api, 'bootstrap').mockResolvedValue({ site_status: 'collecting', stories: [] })
+    const again = vi.spyOn(client, 'apiCall').mockResolvedValue(good)
+    expect(await bootstrapQuery.queryFn()).toEqual(good)
+    expect(again).toHaveBeenCalledWith('site.bootstrap')
+  })
+
+  it('fails like any server error when the second answer is odd too', async () => {
+    vi.spyOn(api, 'bootstrap').mockResolvedValue({})
+    vi.spyOn(client, 'apiCall').mockResolvedValue({ site: {} })
+    await expect(bootstrapQuery.queryFn()).rejects.toMatchObject({ code: 'internal' })
+  })
+
+  it('saved on the device without corners or stories, is ignored', () => {
+    writeStored('bootstrap', {
+      at: at('2026-12-01T10:00:00').getTime(),
+      data: { site: site().site },
+    })
+    expect(savedBootstrap(at('2026-12-02T10:00:00'))).toBeNull()
   })
 })
