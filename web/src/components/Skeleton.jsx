@@ -4,6 +4,7 @@ import mosaicStyles from './PhotoMosaic.module.css'
 import cardStyles from './Card.module.css'
 import styles from './Skeleton.module.css'
 import storyStyles from './StoryCard.module.css'
+import { useLang } from '../i18n/i18n.js'
 
 const cx = (...names) => names.filter(Boolean).join(' ')
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -36,9 +37,15 @@ export function Skeleton({ shape = 'line', size, width = 'full', center = false,
 }
 
 /** Wraps placeholders: announced once as "loading" to screen readers. */
-export function SkeletonGroup({ label = 'טוען', className, children }) {
+export function SkeletonGroup({ label, className, children }) {
+  const { t } = useLang()
   return (
-    <div className={className} role="status" aria-label={label} aria-busy="true">
+    <div
+      className={className}
+      role="status"
+      aria-label={label ?? t('common.loading')}
+      aria-busy="true"
+    >
       {children}
     </div>
   )
@@ -86,8 +93,9 @@ export function StoryFeedSkeleton({ count = 2, className }) {
 
 /** The corners grid loading: postcards with a stamp and a name; an odd last one is wide. */
 export function CornerTilesSkeleton({ count = 7, className }) {
+  const { t } = useLang()
   return (
-    <SkeletonGroup label="טוען את הפינות" className={className}>
+    <SkeletonGroup label={t('loading.corners')} className={className}>
       {Array.from({ length: count }, (_, i) => {
         const wide = count % 2 === 1 && i === count - 1
         return (
@@ -151,8 +159,9 @@ export function CardsSkeleton({ count = 2 }) {
 
 /** A grid of photos loading, in the gallery's own grid. */
 export function MosaicSkeleton({ count = 9 }) {
+  const { t } = useLang()
   return (
-    <SkeletonGroup label="טוען את התמונות" className={mosaicStyles.mosaic}>
+    <SkeletonGroup label={t('loading.photos')} className={mosaicStyles.mosaic}>
       {Array.from({ length: count }, (_, i) => (
         <Skeleton key={i} shape="block" size="photo" />
       ))}

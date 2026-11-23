@@ -1,4 +1,8 @@
-/** A memory's display title: its own, or one made from the author's name. */
-export const storyTitle = (story) =>
+import { translate } from '../i18n/i18n.js'
+
+/** A story's display title: its own, or one made from the author's name. */
+export const storyTitle = (story, lang = 'he') =>
   story.title ||
-  (story.kind === 'photos' ? `תמונות מ${story.author_name}` : `סיפור מ${story.author_name}`)
+  translate(lang, story.kind === 'photos' ? 'story.titlePhotos' : 'story.titleText', {
+    name: story.author_name,
+  })

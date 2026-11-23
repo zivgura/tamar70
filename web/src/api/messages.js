@@ -1,30 +1,39 @@
-// What to tell people when something fails, by API error code. Plain, kind Hebrew.
-const MESSAGES = {
-  submissions_closed: 'ההוספה סגורה כרגע.',
-  too_many_photos: 'אפשר לצרף עד 20 תמונות לכל סיפור.',
-  validation: 'משהו בפרטים לא תקין. בדקו ונסו שוב.',
-  forbidden: 'אין הרשאה לעדכן את הסיפור הזה מהמכשיר הזה.',
-  doc_not_shared:
-    'אי אפשר לפתוח את המסמך. בגוגל דוקס לחצו "שיתוף", בחרו "כל מי שיש לו את הקישור" ונסו שוב.',
-  doc_bad_link: 'זה לא קישור למסמך Google Docs.',
-  editing_closed: 'הסיפורים כבר נחשפו, ואי אפשר לשנות אותם יותר.',
-  sign_in_required: 'צריך להיכנס שוב עם Google.',
-  not_admin: 'לחשבון הזה אין הרשאת ניהול.',
-  not_found: 'זה כבר לא קיים. אולי מישהו אחר מחק את זה.',
-  upload_failed: 'ההעלאה לא הצליחה. נסו שוב.',
-  network: 'אין חיבור כרגע. בדקו את האינטרנט ונסו שוב.',
-  busy: 'יש עומס רגעי. נסו שוב בעוד רגע.',
-  ai_not_configured: 'עוד אין מפתח Claude API בהגדרות הסקריפט.',
-  job_running: 'עבודה אחרת עוד רצה. חכו שתסתיים ונסו שוב.',
-  not_configured: 'האתר עוד לא מחובר לשרת.',
+// What to tell people when something fails, by API error code. Plain, kind words; the texts
+// live in the i18n dictionaries (error.<code>). Admin pages use the Hebrew default.
+import { translate } from '../i18n/i18n.js'
+
+const KNOWN = new Set([
+  'submissions_closed',
+  'too_many_photos',
+  'validation',
+  'forbidden',
+  'doc_not_shared',
+  'doc_bad_link',
+  'editing_closed',
+  'sign_in_required',
+  'not_admin',
+  'not_found',
+  'upload_failed',
+  'network',
+  'busy',
+  'ai_not_configured',
+  'job_running',
+  'not_configured',
+])
+
+export function errorMessage(err, lang = 'he') {
+  const code = err?.code
+  return translate(lang, KNOWN.has(code) ? `error.${code}` : 'error.generic')
 }
 
-export function errorMessage(err) {
-  return MESSAGES[err?.code] ?? 'משהו השתבש. נסו שוב.'
+/** Why a picked file can't be uploaded, by reason (type, size, empty). */
+export function rejectMessage(reason, lang = 'he') {
+  return translate(lang, `reject.${reason}`)
 }
 
+/** The Hebrew texts by reason, for the hidden upload test page. */
 export const REJECT_MESSAGES = {
-  type: 'זה לא קובץ תמונה שאפשר להעלות',
-  size: 'התמונה גדולה מ-25MB',
-  empty: 'הקובץ ריק',
+  type: translate('he', 'reject.type'),
+  size: translate('he', 'reject.size'),
+  empty: translate('he', 'reject.empty'),
 }

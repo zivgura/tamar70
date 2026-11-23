@@ -12,10 +12,12 @@ import {
   StoryCardSkeleton,
 } from '../components'
 import styles from './Corner.module.css'
+import { useLang } from '../i18n/i18n.js'
 
 /** One corner: its prompt, a button that opens the add flow on it, and its memories. */
 export default function Corner() {
   const { slug } = useParams()
+  const { t } = useLang()
   const { data, error, isPending, refetch } = useBootstrap()
   const canEdit = useCanEdit(data?.site)
 
@@ -42,8 +44,8 @@ export default function Corner() {
   if (!category) {
     return (
       <Message>
-        <p>הפינה הזו לא קיימת.</p>
-        <Link to="/">לדף הבית</Link>
+        <p>{t('corner.notFound')}</p>
+        <Link to="/">{t('common.home')}</Link>
       </Message>
     )
   }
@@ -52,7 +54,7 @@ export default function Corner() {
   return (
     <div className={styles.page} data-tone={category.tone}>
       <Link to="/" className={styles.back}>
-        → כל הפינות
+        {t('common.backArrow')} {t('corner.all')}
       </Link>
       <div className={styles.heading}>
         <span className={styles.stamp}>
@@ -63,11 +65,11 @@ export default function Corner() {
       {category.description && <p className={styles.description}>{category.description}</p>}
       {category.prompt_hint && <p className={styles.prompt}>{category.prompt_hint}</p>}
       <Button as={Link} to={`/add?corner=${category.id}`} block>
-        הוסיפו סיפור לפינה הזו
+        {t('corner.addHere')}
       </Button>
 
       {stories.length === 0 ? (
-        <Message>עוד אין סיפורים בפינה הזו. היו הראשונים.</Message>
+        <Message>{t('corner.empty')}</Message>
       ) : (
         <div className={styles.feed}>
           {stories.map((s) => (

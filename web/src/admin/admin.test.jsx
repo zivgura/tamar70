@@ -299,6 +299,15 @@ describe('admin pages', () => {
     expect(screen.getByText(/3 פעמים/)).toBeInTheDocument()
   })
 
+  it('stays in Hebrew when the public site is in English', async () => {
+    window.localStorage.setItem('tamar70.lang', 'en')
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/game')
+    expect(await screen.findByRole('heading', { name: 'חדר בריחה' })).toBeInTheDocument()
+    expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+    window.localStorage.removeItem('tamar70.lang')
+  })
+
   it('explains how to add the Claude key when there is none', async () => {
     game = gameStatus({ ai_configured: false })
     window.sessionStorage.setItem('tamar70.adminToken', TOKEN)

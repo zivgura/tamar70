@@ -3,9 +3,11 @@ import { isRouteErrorResponse, Link, useRouteError } from 'react-router-dom'
 import { reportError } from '../lib/telemetry.js'
 import { Button } from './Button.jsx'
 import styles from './Status.module.css'
+import { useLang } from '../i18n/i18n.js'
 
 /** Shown instead of a page that crashed. The error is reported, the visitor gets a way out. */
 export function RouteError() {
+  const { t } = useLang()
   const error = useRouteError()
   const notFound = isRouteErrorResponse(error) && error.status === 404
 
@@ -15,11 +17,11 @@ export function RouteError() {
 
   return (
     <div className={styles.message} role="alert">
-      <p>{notFound ? 'הדף הזה לא נמצא.' : 'משהו השתבש בדף הזה. כבר קיבלנו על זה הודעה.'}</p>
+      <p>{notFound ? t('error.pageNotFound') : t('error.pageBroken')}</p>
       <Button size="small" onClick={() => window.location.reload()}>
-        טעינה מחדש
+        {t('error.reload')}
       </Button>
-      <Link to="/">לדף הבית</Link>
+      <Link to="/">{t('common.home')}</Link>
     </div>
   )
 }

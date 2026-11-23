@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client.js'
-import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
+import { errorMessage } from '../api/messages.js'
 import { useBootstrap } from '../api/queries.js'
 import { Button, ErrorMessage, FormSkeleton, Spinner } from '../components'
 import { rejectReason } from '../upload/uploadPhoto.js'
@@ -14,6 +14,7 @@ import { forgetMine, splitList, tokenFor } from './deviceStore.js'
 import { PhotoDialog } from './PhotoDialog.jsx'
 import { PhotoGrid } from './PhotoGrid.jsx'
 import { storyKind, uploadPhotos } from './sendStory.js'
+import { useLang } from '../i18n/i18n.js'
 
 let nextKey = 0
 const joinList = (list) => (list ?? []).join(', ')
@@ -34,6 +35,7 @@ function Shell({ children }) {
 }
 
 function EditForm({ own, editToken, categories, onReload }) {
+  const { lang, t } = useLang()
   const queryClient = useQueryClient()
   const [draft, setDraft] = useState({
     kind: STORY_KIND.MIXED, // the form shows both the text and the photos
@@ -74,7 +76,7 @@ function EditForm({ own, editToken, categories, onReload }) {
         file,
         name: file.name,
         url: URL.createObjectURL(file),
-        rejected: reason ? REJECT_MESSAGES[reason] : null,
+        rejected: reason || null, // the reason's code; PhotoGrid shows its text
       }
     })
     setPhotos((list) => [...list, ...added])
@@ -91,9 +93,9 @@ function EditForm({ own, editToken, categories, onReload }) {
     e.preventDefault()
     const kept = photos.filter((p) => !p.rejected)
     const found = {}
-    if (!author.name.trim()) found.name = 'כתבו את השם שלכם'
+    if (!author.name.trim()) found.name = t('add.needName')
     if (!draft.content.trim() && kept.length === 0) {
-      found.content = 'כתבו כמה מילים, או השאירו לפחות תמונה אחת'
+      found.content = t('edit.needContent')
     }
     setErrors(found)
     if (Object.keys(found).length) return
@@ -163,10 +165,10 @@ function EditForm({ own, editToken, categories, onReload }) {
   if (phase === 'deleted') {
     return (
       <Shell>
-        <h1 className={styles.title}>הסיפור נמחק</h1>
-        <p className={styles.status}>הוא כבר לא מופיע באתר.</p>
+        <h1 className={styles.title}>{t('edit.deleted')}</h1>
+        <p className={styles.status}>{t('edit.deletedLead')}</p>
         <Button as={Link} to="/" block>
-          לדף הבית
+          {t('common.home')}
         </Button>
       </Shell>
     )
@@ -175,13 +177,13 @@ function EditForm({ own, editToken, categories, onReload }) {
   if (phase === 'saved') {
     return (
       <Shell>
-        <h1 className={styles.title}>השינויים נשמרו</h1>
+        <h1 className={styles.title}>{t('edit.saved')}</h1>
         <div className={styles.actions}>
           <Button as={Link} to={`/story/${own.id}`} block>
-            לסיפור
+            {t('common.toStory')}
           </Button>
           <Button as={Link} to="/" variant="quiet" block>
-            לדף הבית
+            {t('common.home')}
           </Button>
         </div>
       </Shell>
@@ -193,21 +195,25 @@ function EditForm({ own, editToken, categories, onReload }) {
     return (
       <Shell>
         <div className={styles.sendingHead}>
-          {phase === 'saving' && <Spinner label="שומרים" className={styles.bigSpinner} />}
-          <h1 className={styles.title}>{phase === 'saving' ? 'שומרים…' : 'כמעט סיימנו'}</h1>
+          {phase === 'saving' && (
+            <Spinner label={t('edit.savingLabel')} className={styles.bigSpinner} />
+          )}
+          <h1 className={styles.title}>
+            {phase === 'saving' ? t('edit.saving') : t('add.almost')}
+          </h1>
           <p className={styles.status} aria-live="polite">
             {phase === 'photosFailed'
-              ? 'השינויים נשמרו, אבל חלק מהתמונות החדשות לא הועלו.'
+              ? t('edit.someFailed')
               : uploading
-                ? 'השינויים נשמרו. מעלים את התמונות החדשות.'
-                : 'שומרים את השינויים…'}
+                ? t('edit.uploading')
+                : t('edit.savingChanges')}
           </p>
         </div>
         {uploading && <PhotoGrid photos={photos.filter((p) => p.stage)} sending />}
         {phase === 'photosFailed' && (
           <div className={styles.actions}>
             <Button block onClick={onReload}>
-              חזרה לעריכה
+              {t('edit.backToEdit')}
             </Button>
           </div>
         )}
@@ -219,10 +225,10 @@ function EditForm({ own, editToken, categories, onReload }) {
     <form className={styles.page} noValidate onSubmit={save}>
       <div className={styles.body}>
         <Link to={`/story/${own.id}`} className={styles.backLink}>
-          → חזרה לסיפור
+          {t('common.backArrow')} {t('edit.backToStory')}
         </Link>
-        <h1 className={styles.title}>עריכת הסיפור</h1>
-        <p className={styles.lead}>אפשר לשנות עד שהסיפורים נחשפים ביום ההולדת.</p>
+        <h1 className={styles.title}>{t('edit.title')}</h1>
+        <p className={styles.lead}>{t('edit.lead')}</p>
 
         <AuthorStep author={author} setAuthor={setAuthor} errors={errors} withHeading={false} />
         <ContentStep
@@ -240,11 +246,11 @@ function EditForm({ own, editToken, categories, onReload }) {
       <div className={styles.footer}>
         {saveError && (
           <p className={styles.error} role="alert">
-            {errorMessage(saveError)}
+            {errorMessage(saveError, lang)}
           </p>
         )}
         <Button type="submit" block>
-          שמירת השינויים
+          {t('edit.save')}
         </Button>
         <Button
           type="button"
@@ -253,7 +259,7 @@ function EditForm({ own, editToken, categories, onReload }) {
           className={styles.dangerButton}
           onClick={() => confirmRef.current?.showModal?.()}
         >
-          מחיקת הסיפור
+          {t('edit.delete')}
         </Button>
       </div>
 
@@ -267,16 +273,16 @@ function EditForm({ own, editToken, categories, onReload }) {
         onRemove={removePhoto}
       />
 
-      <dialog ref={confirmRef} className={styles.dialog} aria-label="מחיקת הסיפור">
+      <dialog ref={confirmRef} className={styles.dialog} aria-label={t('edit.delete')}>
         <div className={styles.dialogForm}>
-          <h2 className={styles.dialogTitle}>למחוק את הסיפור?</h2>
-          <p>הסיפור והתמונות שלו יוסרו מהאתר. אי אפשר לבטל את זה.</p>
+          <h2 className={styles.dialogTitle}>{t('edit.confirmTitle')}</h2>
+          <p>{t('edit.confirmText')}</p>
           <div className={styles.dialogActions}>
             <Button type="button" className={styles.dangerFill} onClick={deleteStory}>
-              מחיקה
+              {t('edit.confirmDelete')}
             </Button>
             <Button type="button" variant="quiet" onClick={() => confirmRef.current?.close()}>
-              ביטול
+              {t('edit.cancel')}
             </Button>
           </div>
         </div>
@@ -288,6 +294,7 @@ function EditForm({ own, editToken, categories, onReload }) {
 /** /edit/:id — change or delete a story, from the device that sent it, until publish. */
 export default function EditStory() {
   const { id } = useParams()
+  const { lang, t } = useLang()
   const editToken = tokenFor(id)
   const boot = useBootstrap()
   const [version, setVersion] = useState(0)
@@ -300,9 +307,9 @@ export default function EditStory() {
   if (!editToken) {
     return (
       <Shell>
-        <h1 className={styles.title}>אי אפשר לערוך מכאן</h1>
-        <p className={styles.status}>אפשר לערוך סיפור רק מהמכשיר שממנו הוא נשלח.</p>
-        <Link to="/">לדף הבית</Link>
+        <h1 className={styles.title}>{t('edit.notHere')}</h1>
+        <p className={styles.status}>{t('edit.notHereLead')}</p>
+        <Link to="/">{t('common.home')}</Link>
       </Shell>
     )
   }
@@ -312,11 +319,11 @@ export default function EditStory() {
     if (err.code === 'forbidden' || err.code === 'editing_closed') {
       return (
         <Shell>
-          <h1 className={styles.title}>אי אפשר לערוך את הסיפור</h1>
+          <h1 className={styles.title}>{t('edit.cannot')}</h1>
           <p className={styles.status}>
-            {err.code === 'forbidden' ? 'הסיפור הזה כבר לא קיים.' : errorMessage(err)}
+            {err.code === 'forbidden' ? t('edit.gone') : errorMessage(err, lang)}
           </p>
-          <Link to="/">לדף הבית</Link>
+          <Link to="/">{t('common.home')}</Link>
         </Shell>
       )
     }

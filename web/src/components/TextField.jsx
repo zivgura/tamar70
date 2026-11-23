@@ -1,8 +1,10 @@
 import { useId } from 'react'
 import styles from './TextField.module.css'
+import { useLang } from '../i18n/i18n.js'
 
 /** A labelled text input (or textarea with `multiline`), with optional hint and error. */
 export function TextField({ label, hint, error, optional = false, multiline = false, ...props }) {
+  const { t } = useLang()
   const id = useId()
   const hintId = hint ? `${id}-hint` : undefined
   const errorId = error ? `${id}-error` : undefined
@@ -10,7 +12,7 @@ export function TextField({ label, hint, error, optional = false, multiline = fa
   return (
     <div className={styles.field}>
       <label htmlFor={id} className={styles.label}>
-        {label} {optional && <span className={styles.optional}>(רשות)</span>}
+        {label} {optional && <span className={styles.optional}>({t('common.optional')})</span>}
       </label>
       {hint && (
         <p id={hintId} className={styles.hint}>
@@ -19,6 +21,8 @@ export function TextField({ label, hint, error, optional = false, multiline = fa
       )}
       <Input
         id={id}
+        // Text follows the language it's typed in (Hebrew on the English site, and back).
+        dir="auto"
         className={styles.input}
         aria-invalid={error ? true : undefined}
         aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}

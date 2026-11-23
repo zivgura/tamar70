@@ -2,26 +2,28 @@ import { STORY_KIND } from '@tamar70/shared'
 import { useId } from 'react'
 import { PencilIcon, PencilPhotoIcon, PhotoIcon } from '../components/icons.js'
 import styles from './Add.module.css'
+import { useLang } from '../i18n/i18n.js'
 
+// title and hint are dictionary keys.
 const KINDS = [
   {
     kind: STORY_KIND.TEXT,
-    title: 'כתיבה',
-    hint: 'סיפור, משפט או ברכה',
+    title: 'kind.text',
+    hint: 'kind.textHint',
     Icon: PencilIcon,
     tone: 'rose',
   },
   {
     kind: STORY_KIND.PHOTOS,
-    title: 'תמונות',
-    hint: 'תמונה אחת או כמה, בלי לכתוב',
+    title: 'kind.photos',
+    hint: 'kind.photosHint',
     Icon: PhotoIcon,
     tone: 'sage',
   },
   {
     kind: STORY_KIND.MIXED,
-    title: 'כתיבה ותמונות',
-    hint: 'סיפור עם התמונות שלו',
+    title: 'kind.mixed',
+    hint: 'kind.mixedHint',
     Icon: PencilPhotoIcon,
     tone: 'terracotta',
   },
@@ -29,12 +31,13 @@ const KINDS = [
 
 /** Step 1: what would you like to share? */
 export function KindStep({ kind, onChange }) {
+  const { t } = useLang()
   const id = useId()
   return (
     <>
-      <h1 className={styles.title}>מה תרצו לשתף?</h1>
-      <p className={styles.lead}>אין תשובה לא נכונה. אפשר תמיד להוסיף עוד סיפור אחר כך.</p>
-      <div className={styles.tiles} role="group" aria-label="סוג השיתוף">
+      <h1 className={styles.title}>{t('kind.title')}</h1>
+      <p className={styles.lead}>{t('kind.lead')}</p>
+      <div className={styles.tiles} role="group" aria-label={t('kind.group')}>
         {KINDS.map(({ kind: value, title, hint, Icon, tone }) => (
           <button
             key={value}
@@ -51,10 +54,10 @@ export function KindStep({ kind, onChange }) {
             </span>
             <span className={styles.tileText}>
               <span id={`${id}-${value}-title`} className={styles.tileTitle}>
-                {title}
+                {t(title)}
               </span>
               <span id={`${id}-${value}-hint`} className={styles.tileHint}>
-                {hint}
+                {t(hint)}
               </span>
             </span>
           </button>

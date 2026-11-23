@@ -67,3 +67,9 @@ select {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* Direction icons are drawn for right-to-left Hebrew; the English (left-to-right) site mirrors
+   them. */
+[dir='ltr'] [data-mirror='ltr'] {
+  transform: scaleX(-1);
+}

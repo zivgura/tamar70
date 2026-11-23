@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { newEditToken } from '../api/client.js'
-import { errorMessage, REJECT_MESSAGES } from '../api/messages.js'
+import { errorMessage } from '../api/messages.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
 import { Button, ErrorMessage, Skeleton, SkeletonGroup, Spinner, StoryCard } from '../components'
 import { formatDay } from '../lib/format.js'
@@ -25,6 +25,7 @@ import { PhotoDialog } from './PhotoDialog.jsx'
 import { PhotoGrid } from './PhotoGrid.jsx'
 import { createStory, submission, uploadPhotos, uploadDocuments } from './sendStory.js'
 import { StepHeader } from './StepHeader.jsx'
+import { useLang } from '../i18n/i18n.js'
 
 let nextPhotoKey = 0
 
@@ -40,26 +41,27 @@ const STEP_AUTHOR = 2
 const STEP_CONTENT = 3
 
 /** What's missing before leaving a step, as { field: message }. */
-function stepErrors(step, draft, photos, author) {
+function stepErrors(step, draft, photos, author, t) {
   const errors = {}
-  if (step === STEP_AUTHOR && !author.name.trim()) errors.name = 'כתבו את השם שלכם'
+  if (step === STEP_AUTHOR && !author.name.trim()) errors.name = t('add.needName')
   if (step === STEP_CONTENT) {
     const usable = photos.filter((p) => !p.rejected)
     if (draft.kind !== STORY_KIND.PHOTOS && !draft.content.trim()) {
-      errors.content = 'כתבו כמה מילים, אפילו משפט אחד'
+      errors.content = t('add.needContent')
     }
     if (draft.kind === STORY_KIND.PHOTOS && usable.length === 0) {
-      errors.photos = 'בחרו לפחות תמונה אחת'
+      errors.photos = t('add.needPhoto')
     }
   }
   return errors
 }
 
 function Gate({ children }) {
+  const { t } = useLang()
   return (
     <div className={styles.gate}>
       {children}
-      <Link to="/">לדף הבית</Link>
+      <Link to="/">{t('common.home')}</Link>
     </div>
   )
 }
@@ -67,6 +69,7 @@ function Gate({ children }) {
 /** /add: the three-step "add a story" flow. */
 export default function AddStory() {
   const [params] = useSearchParams()
+  const { lang, t } = useLang()
   const { data, error: bootError, isPending, refetch } = useBootstrap()
   const queryClient = useQueryClient()
 
@@ -122,7 +125,7 @@ export default function AddStory() {
         file,
         name: file.name,
         url,
-        rejected: reason ? REJECT_MESSAGES[reason] : null,
+        rejected: reason || null, // the reason's code; PhotoGrid shows its text
       }
     })
     setPhotos((list) => [...list, ...added])
@@ -130,7 +133,7 @@ export default function AddStory() {
   }
 
   function goNext() {
-    const found = stepErrors(draft.step, draft, photos, author)
+    const found = stepErrors(draft.step, draft, photos, author, t)
     setErrors(found)
     if (Object.keys(found).length) return
     if (draft.step === STEP_AUTHOR) saveAuthor(author)
@@ -213,8 +216,8 @@ export default function AddStory() {
   if (!data.site.submissions_open) {
     return (
       <Gate>
-        <h1 className={styles.title}>ההוספה סגורה כרגע</h1>
-        <p>אפשר לקרוא את הסיפורים שכבר נאספו.</p>
+        <h1 className={styles.title}>{t('add.closed')}</h1>
+        <p>{t('add.closedLead')}</p>
       </Gate>
     )
   }
@@ -239,24 +242,24 @@ export default function AddStory() {
     const editable = data.site.site_status === 'collecting'
     return (
       <div className={styles.center}>
-        <h1 className={styles.title}>תודה!</h1>
+        <h1 className={styles.title}>{t('add.thanks')}</h1>
         <p className={styles.status}>
           {editable
-            ? `הסיפור נשמר ומופיע באתר עכשיו. הוא ייחשף במלואו ב-${formatDay(data.site.birthday_date)}. עד אז אפשר לערוך אותו מהמכשיר הזה.`
-            : 'הסיפור נשמר ופתוח לקריאה באתר.'}
+            ? t('add.savedEditable', { date: formatDay(data.site.birthday_date, lang) })
+            : t('add.savedOpen')}
         </p>
         <StoryCard story={preview} category={category} linked={false} />
         <div className={styles.actions}>
           {editable && (
             <Button as={Link} to={`/edit/${sent.storyId}`} variant="secondary" block>
-              עריכת הסיפור
+              {t('add.editStory')}
             </Button>
           )}
           <Button block onClick={startOver}>
-            הוסיפו סיפור נוסף
+            {t('add.another')}
           </Button>
           <Button as={Link} to="/" variant="quiet" block>
-            לדף הבית
+            {t('common.home')}
           </Button>
         </div>
       </div>
@@ -269,26 +272,28 @@ export default function AddStory() {
       <div className={styles.center}>
         <div className={styles.sendingHead}>
           {phase === 'sending' && (
-            <Spinner label="שולחים את הסיפור" className={styles.bigSpinner} />
+            <Spinner label={t('add.sendingLabel')} className={styles.bigSpinner} />
           )}
-          <h1 className={styles.title}>{phase === 'sending' ? 'שולחים…' : 'כמעט סיימנו'}</h1>
+          <h1 className={styles.title}>
+            {phase === 'sending' ? t('add.sending') : t('add.almost')}
+          </h1>
 
           <p className={styles.status} aria-live="polite">
             {!sent
-              ? 'שומרים את הסיפור…'
+              ? t('add.saving')
               : phase === 'sending'
-                ? `הסיפור נשמר. מעלים את התמונות (${uploaded} מתוך ${photos.length}).`
-                : `הסיפור נשמר, אבל ${failed === 1 ? 'תמונה אחת לא הועלתה' : `${failed} תמונות לא הועלו`}.`}
+                ? t('add.uploading', { done: uploaded, total: photos.length })
+                : t('add.someFailed', { n: failed })}
           </p>
         </div>
         {photos.length > 0 && <PhotoGrid photos={photos} sending />}
         {phase === 'photosFailed' && (
           <div className={styles.actions}>
             <Button block onClick={retryFailed}>
-              נסו שוב להעלות
+              {t('add.retryUpload')}
             </Button>
             <Button variant="quiet" block onClick={() => setPhase('done')}>
-              סיום בלי {failed === 1 ? 'התמונה הזו' : 'התמונות האלה'}
+              {t('add.finishWithout', { n: failed })}
             </Button>
           </div>
         )}
@@ -331,22 +336,17 @@ export default function AddStory() {
 
         {draft.step > 1 && (
           <div className={styles.footer}>
-            {draft.step === STEP_CONTENT && (
-              <p className={styles.consent}>
-                הסיפור והתמונות יהיו גלויים לכל מי שיש לו את קישור האתר, ועשויים לשמש במשחק משפחתי
-                ליום ההולדת.
-              </p>
-            )}
+            {draft.step === STEP_CONTENT && <p className={styles.consent}>{t('add.consent')}</p>}
             {sendError && (
               <p className={styles.error} role="alert">
-                {errorMessage(sendError)}
+                {errorMessage(sendError, lang)}
               </p>
             )}
             <Button type="submit" block>
-              {draft.step === STEP_CONTENT ? 'שליחה' : 'המשך'}
+              {draft.step === STEP_CONTENT ? t('add.send') : t('add.next')}
             </Button>
             {draft.step === STEP_CONTENT && (
-              <p className={styles.footerNote}>הטיוטה נשמרת אוטומטית במכשיר</p>
+              <p className={styles.footerNote}>{t('add.draftSaved')}</p>
             )}
           </div>
         )}
