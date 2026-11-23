@@ -555,3 +555,16 @@
   font-size: var(--text-sm);
   overflow-wrap: anywhere;
 }
+
+/* Printing (the story book): only the page's content, no admin header or tabs. */
+@media print {
+  .header,
+  .tabs {
+    display: none;
+  }
+
+  .main {
+    max-width: none;
+    padding: 0;
+  }
+}

@@ -1,6 +1,7 @@
 import { ACTIONS, DIGEST_HOUR, NOTIFY_MODE, SITE_STATUS } from '@tamar70/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { errorMessage } from '../api/messages.js'
 import { Button, ErrorMessage, CardsSkeleton, Spinner } from '../components'
 import styles from './Admin.module.css'
@@ -154,11 +155,17 @@ function BackupSection({ backup, onBackedUp }) {
         גיבוי עכשיו
       </Button>
       <p className={styles.meta}>
+        ספר מעוצב להדפסה או לשמירה כ-PDF: כל סיפור בעמוד משלו עם התמונות שלו, לפי הפינות.
+      </p>
+      <Button as={Link} to="/admin/book" variant="secondary">
+        ספר הסיפורים (PDF)
+      </Button>
+      <p className={styles.meta}>
         הורדת כל הסיפורים למחשב. התמונות נשארות ב-Drive, ולכל אחת יש קישור.
       </p>
       <div className={styles.downloads}>
         <Button variant="quiet" size="small" onClick={() => exportAs('html')} disabled={busy}>
-          קובץ לקריאה והדפסה
+          קובץ טקסט פשוט
         </Button>
         <Button variant="quiet" size="small" onClick={() => exportAs('csv')} disabled={busy}>
           גיליון (CSV)

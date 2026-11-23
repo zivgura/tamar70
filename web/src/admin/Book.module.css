@@ -1,0 +1,292 @@
+/* The story book. On screen: A4 sheets one under another. In print: one sheet per page.
+   Cover and chapter pages fill the whole sheet; a long story simply continues on the next
+   sheet. */
+
+@page {
+  size: a4;
+  margin: 0;
+}
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6) 0 var(--space-10);
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.toolbarTitle {
+  font-size: var(--text-3xl);
+}
+
+.toolbarText {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.book {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+.chapterGroup {
+  display: contents;
+}
+
+/* One sheet */
+.page {
+  position: relative;
+  width: min(100%, 210mm);
+  min-height: 0;
+  padding: var(--space-8) var(--space-6);
+  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  print-color-adjust: exact;
+}
+
+/* Pages that fill the whole sheet: cover and chapters */
+.full {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 210 / 297;
+  text-align: center;
+  background: var(--color-bg);
+}
+
+/* Cover */
+.coverPhoto {
+  width: 58%;
+  margin-bottom: var(--space-6);
+}
+
+.coverTitle {
+  margin: 0;
+  font-size: var(--text-6xl);
+}
+
+.coverSub {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: var(--text-5xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
+}
+
+.coverMeta {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+/* Contents */
+.contentsTitle {
+  margin: 0 0 var(--space-6);
+  font-size: var(--text-4xl);
+}
+
+.contentsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.contentsList li {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.contentsStamp {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 42px;
+  color: var(--tone-ink);
+  background: var(--tone-soft);
+  border: 2px dashed var(--tone-strong);
+  border-radius: var(--radius-xs);
+}
+
+.contentsName {
+  flex: 1;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+.contentsCount {
+  color: var(--color-text-secondary);
+}
+
+/* A chapter's title page, in its corner's tone */
+.chapter {
+  background: var(--tone-soft);
+}
+
+.chapterStamp {
+  display: grid;
+  place-items: center;
+  width: 168px;
+  height: 196px;
+  margin-bottom: var(--space-4);
+  color: var(--tone-ink);
+  background: var(--color-surface);
+  border: 4px dashed var(--tone-strong);
+  border-radius: var(--radius-sm);
+  transform: rotate(var(--tilt-right-strong));
+}
+
+.chapterTitle {
+  max-width: 85%;
+  margin: 0;
+  font-size: var(--text-6xl);
+  line-height: var(--leading-tight);
+  color: var(--tone-ink);
+}
+
+.chapterText {
+  max-width: 70%;
+  margin: 0;
+  font-size: var(--text-xl);
+  color: var(--color-text-secondary);
+}
+
+.chapterCount {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: var(--text-hand);
+  font-weight: var(--weight-bold);
+  color: var(--tone-ink);
+}
+
+/* A story */
+.story {
+  border-top: 6px solid var(--tone-strong);
+}
+
+.storyCorner {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--tone-ink);
+}
+
+.storyTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-4xl);
+  line-height: var(--leading-snug);
+}
+
+.byline {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+}
+
+.details {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.text {
+  margin: var(--space-6) 0 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  white-space: pre-wrap;
+}
+
+.photos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: center;
+  padding-top: var(--space-6);
+  margin-top: var(--space-4);
+  break-inside: avoid;
+}
+
+.bigPhoto {
+  width: 50%;
+  break-inside: avoid;
+}
+
+.smallRow {
+  display: flex;
+  gap: var(--space-5);
+  justify-content: center;
+  width: 100%;
+}
+
+.smallPhoto {
+  width: 24%;
+  break-inside: avoid;
+}
+
+/* More photos of a story, and the album */
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8) var(--space-6);
+  padding: var(--space-2) var(--space-6);
+}
+
+.photoGrid .smallPhoto {
+  width: 100%;
+}
+
+@media print {
+  .toolbar {
+    display: none;
+  }
+
+  /* Plain blocks, so the browser breaks the sheets exactly where asked. */
+  .wrap,
+  .book {
+    display: block;
+    padding: 0;
+  }
+
+  /* Every sheet is the paper itself, edge to edge in the site's cream. The sheets have no
+     printer margins (so cover and chapters can fill them); story pages keep their own, and
+     a long story that runs on to the next sheet gets them there too. */
+  .page {
+    width: 210mm;
+    padding: 16mm 15mm;
+    background: var(--color-bg);
+    box-shadow: none;
+    break-before: page;
+    break-after: page;
+    box-decoration-break: clone;
+  }
+
+  .full {
+    height: 297mm;
+    padding: 20mm;
+    aspect-ratio: auto;
+    background: var(--color-bg);
+  }
+
+  .chapter {
+    background: var(--tone-soft);
+  }
+}

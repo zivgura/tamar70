@@ -1,7 +1,15 @@
 // Backups and export. Once a week (and on demand) the whole Sheet is copied into the Backups
 // folder in Drive; the newest copies are kept. The export hands admins everything collected,
 // for files they keep themselves.
-import { isPhotoMedia, SETTING_KEYS, STORY_STATUS, UPLOAD_STATUS } from '@tamar70/shared'
+import {
+  CATEGORY_TONES,
+  DEFAULT_TONE,
+  isPhotoMedia,
+  photoUrl,
+  SETTING_KEYS,
+  STORY_STATUS,
+  UPLOAD_STATUS,
+} from '@tamar70/shared'
 import { readSettings, writeSetting } from './settings.js'
 import { israelDay } from './telemetry.js'
 
@@ -9,6 +17,9 @@ export const BACKUP_EVERY_MS = 7 * 24 * 60 * 60 * 1000
 export const BACKUPS_KEPT = 10
 
 const ms = (iso) => Date.parse(iso) || 0
+
+// Wide enough for a full A4 page at print quality, small enough to load quickly.
+const BOOK_PHOTO_WIDTH = 2000
 
 /** Copies the Sheet now and trims old copies. */
 export function backupNow(ctx) {
@@ -51,7 +62,8 @@ export function backupStatus(ctx) {
 
 /** Every story that wasn't deleted, with its photos' details and Drive links. */
 export function exportAll(ctx) {
-  const names = Object.fromEntries(ctx.db.all('Categories').map((c) => [c.id, c.name]))
+  const categoryRows = ctx.db.all('Categories').filter((c) => c.id)
+  const names = Object.fromEntries(categoryRows.map((c) => [c.id, c.name]))
   const photos = new Map()
   for (const m of ctx.db.all('Media')) {
     if (m.upload_status !== UPLOAD_STATUS.DONE || !m.drive_file_id || !isPhotoMedia(m)) continue
@@ -68,6 +80,7 @@ export function exportAll(ctx) {
       author_name: s.author_name,
       author_relation: s.author_relation,
       corner: names[s.category_id] ?? 'כללי',
+      category_id: s.category_id,
       title: s.title,
       content: s.content,
       decade: s.decade,
@@ -84,7 +97,18 @@ export function exportAll(ctx) {
           people: m.people ?? [],
           place: m.place,
           link: `https://drive.google.com/file/d/${m.drive_file_id}/view`,
+          // A picture for the printable book, where the photo is open to view (shared).
+          image: m.is_shared ? photoUrl(m.drive_file_id, BOOK_PHOTO_WIDTH) : null,
         })),
     }))
-  return { exported_at: ctx.now(), stories }
+  // The corners in their order, for the book's chapters.
+  const categories = categoryRows
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      tone: CATEGORY_TONES.includes(c.color) ? c.color : DEFAULT_TONE,
+    }))
+  return { exported_at: ctx.now(), stories, categories }
 }

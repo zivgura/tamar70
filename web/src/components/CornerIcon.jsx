@@ -7,6 +7,7 @@ import Key from '../assets/icons/key.svg?react'
 import Megaphone from '../assets/icons/megaphone.svg?react'
 import Sparkle from '../assets/icons/sparkle.svg?react'
 import SpeechBubble from '../assets/icons/speech-bubble.svg?react'
+import Photo from '../assets/icons/photo.svg?react'
 import Suitcase from '../assets/icons/suitcase.svg?react'
 import TheaterMasks from '../assets/icons/theater-masks.svg?react'
 
@@ -19,6 +20,7 @@ const CORNER_ICONS = {
   'did-you-know': Key, // דברים שלא ידעתם על תמר
   wishes: EnvelopeHeart, // כמה מילים לתמר
   general: Sparkle, // לא בטוחים – כללי
+  album: Photo, // the story book's last chapter: stories that are only photos
 }
 
 /** The corner's icon. Decorative: the corner's name is always written next to it. */

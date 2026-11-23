@@ -125,6 +125,18 @@ function answer(action, payload) {
           },
         ],
       }
+    case 'admin.export':
+      return {
+        exported_at: '2026-12-01T10:00:00Z',
+        categories: adminCategories.map((c) => ({ ...c, description: '', tone: 'sage' })),
+        stories: [
+          { ...story(), photos: [{ caption: 'בצומת', image: 'https://img/a' }] },
+          {
+            ...story({ id: 'st_aaaaaa04', title: '', content: '', author_name: 'דני' }),
+            photos: [{ caption: '', image: 'https://img/b' }],
+          },
+        ],
+      }
     case 'admin.game':
       return game
     case 'admin.gameConfig':
@@ -489,5 +501,15 @@ describe('admin pages', () => {
         id_token: TOKEN,
       }),
     )
+  })
+
+  it('makes the story book: a cover, a page per corner, each story, then the photo album', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/book')
+    expect(await screen.findByRole('heading', { name: 'ספר הסיפורים' })).toBeInTheDocument()
+    expect(screen.getAllByText('הטרמפ לאילת').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('אלבום התמונות').length).toBeGreaterThan(0)
+    expect(screen.getByText('מאת דני')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /הדפסה|טוענים תמונות/ })).toBeInTheDocument()
   })
 })
