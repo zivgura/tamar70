@@ -42,6 +42,7 @@ describe('Home', () => {
   it('shows the countdown, the counter, the corners and sealed memories', async () => {
     renderAt('/')
     expect(screen.getByRole('heading', { level: 1, name: 'תמר בת 70' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /ציור של תמר/ })).toHaveAttribute('loading', 'eager')
     expect(await screen.findByText(/כבר נאספו/)).toHaveTextContent('כבר נאספו 2 סיפורים מ-2 אנשים')
     expect(screen.getByLabelText('הזמן שנשאר עד יום ההולדת')).toHaveTextContent('ימים65שעות12דקות0')
     expect(screen.getByText(/ייחשף ב-7 בפברואר/)).toBeInTheDocument()

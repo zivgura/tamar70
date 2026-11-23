@@ -16,6 +16,8 @@ import {
   StoryCard,
 } from '../components'
 import { birthdayStart, formatDay, peopleText, photosText, storiesText } from '../lib/format.js'
+import tamar440 from '../assets/images/tamar-440.webp'
+import tamar660 from '../assets/images/tamar-660.webp'
 import styles from './Home.module.css'
 
 const LATEST = 10
@@ -55,7 +57,18 @@ export default function Home() {
   return (
     <>
       <section className={styles.hero}>
-        <Polaroid className={styles.photo} caption="תמר" handwritten taped tilt="leftStrong" />
+        <Polaroid
+          className={styles.photo}
+          src={tamar660}
+          srcSet={`${tamar440} 440w, ${tamar660} 660w`}
+          sizes="220px"
+          priority
+          alt="ציור של תמר מחייכת, במשקפיים כחולים ומחרוזת פנינים"
+          caption="תמר"
+          handwritten
+          taped
+          tilt="leftStrong"
+        />
         <h1 className={styles.title}>תמר בת 70</h1>
         {published ? (
           <>
