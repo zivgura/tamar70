@@ -73,15 +73,17 @@ function EditForm({ story, categories, busy, onSave, onCancel }) {
       <fieldset className={styles.fieldset}>
         <legend className={styles.legend}>פינה</legend>
         <div className={styles.filters}>
-          {categories.map((c) => (
-            <Chip
-              key={c.id}
-              selected={values.category_id === c.id}
-              onClick={() => setValues((v) => ({ ...v, category_id: c.id }))}
-            >
-              {c.name}
-            </Chip>
-          ))}
+          {categories
+            .filter((c) => c.active || c.id === values.category_id)
+            .map((c) => (
+              <Chip
+                key={c.id}
+                selected={values.category_id === c.id}
+                onClick={() => setValues((v) => ({ ...v, category_id: c.id }))}
+              >
+                {c.name}
+              </Chip>
+            ))}
         </div>
       </fieldset>
       <TextField

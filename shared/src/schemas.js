@@ -1,7 +1,7 @@
 // Named imports (not `z`) so bundlers can leave out zod's translated error messages:
 // that's about 270 KB of the Apps Script bundle.
 import { array, enum as oneOf, number, object, record, string, unknown } from 'zod'
-import { DEFAULT_CATEGORY_ID, LIMITS, STORY_KIND } from './constants.js'
+import { currentCategoryId, DEFAULT_CATEGORY_ID, LIMITS, STORY_KIND } from './constants.js'
 
 const MAX_LIST_ITEMS = 20
 
@@ -36,7 +36,7 @@ const storyFields = {
     .trim()
     .regex(/^[a-z0-9-]{1,40}$/)
     .optional()
-    .transform((v) => v || DEFAULT_CATEGORY_ID),
+    .transform((v) => currentCategoryId(v || DEFAULT_CATEGORY_ID)),
   decade: number().int().min(1950).max(2020).multipleOf(10).optional(),
   year_approx: number().int().min(1950).max(2030).optional(),
   places: nameList,

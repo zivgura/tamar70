@@ -1,4 +1,11 @@
-import { CATEGORY_TONES, DEFAULT_TONE, SCHEMA_VERSION, SETTING_KEYS, TABLES } from '@tamar70/shared'
+import {
+  CATEGORY_TONES,
+  DEFAULT_TONE,
+  MERGED_CATEGORIES,
+  SCHEMA_VERSION,
+  SETTING_KEYS,
+  TABLES,
+} from '@tamar70/shared'
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS } from './seed.js'
 import { readSettings } from './settings.js'
 
@@ -48,6 +55,41 @@ const V3_WORDING = [
   },
 ]
 
+// Version 9: a new "תרבות" corner, and "עובדה מעניינת על תמר" merged into "לא ידעתם על
+// תמר" under a name that covers both. The merged corner's row stays, hidden (active = false),
+// and its stories move. Texts edited in the Sheet are left alone; the order follows the seed.
+const V9_DID_YOU_KNOW = [
+  { field: 'name', from: 'לא ידעתם על תמר' },
+  { field: 'description', from: 'כישרונות חבויים, הרגלים, אנקדוטות וסודות משעשעים' },
+]
+
+function upgradeTo9(db) {
+  const seeded = Object.fromEntries(DEFAULT_CATEGORIES.map((c) => [c.id, c]))
+  const rows = () => db.all('Categories')
+
+  if (!rows().some((c) => c.id === 'culture')) db.insert('Categories', seeded.culture)
+
+  const didYouKnow = rows().find((c) => c.id === 'did-you-know')
+  if (didYouKnow) {
+    for (const { field, from } of V9_DID_YOU_KNOW) {
+      if (didYouKnow[field] === from) {
+        db.update('Categories', 'id', 'did-you-know', { [field]: seeded['did-you-know'][field] })
+      }
+    }
+  }
+
+  for (const [oldId, newId] of Object.entries(MERGED_CATEGORIES)) {
+    if (rows().some((c) => c.id === oldId)) db.update('Categories', 'id', oldId, { active: false })
+    for (const story of db.all('Stories').filter((s) => s.category_id === oldId)) {
+      db.update('Stories', 'id', story.id, { category_id: newId })
+    }
+  }
+
+  for (const row of rows()) {
+    if (seeded[row.id]) db.update('Categories', 'id', row.id, { order: seeded[row.id].order })
+  }
+}
+
 const UPGRADES = {
   2(db) {
     for (const category of db.all('Categories')) {
@@ -63,6 +105,7 @@ const UPGRADES = {
       if (category && category[field] === from) db.update('Categories', 'id', id, { [field]: to })
     }
   },
+  9: upgradeTo9,
 }
 
 // The housekeeping job (new-story emails, cleanup) runs on a timer. Installing it here means a

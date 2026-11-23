@@ -11,7 +11,7 @@ describe('CornerIcon', () => {
       'protest',
       'travels',
       'sayings',
-      'fun-fact',
+      'culture',
       'did-you-know',
       'wishes',
       'general',

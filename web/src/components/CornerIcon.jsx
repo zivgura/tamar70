@@ -4,19 +4,19 @@
 import EnvelopeHeart from '../assets/icons/envelope-heart.svg?react'
 import Hourglass from '../assets/icons/hourglass.svg?react'
 import Key from '../assets/icons/key.svg?react'
-import LightBulb from '../assets/icons/light-bulb.svg?react'
 import Megaphone from '../assets/icons/megaphone.svg?react'
 import Sparkle from '../assets/icons/sparkle.svg?react'
 import SpeechBubble from '../assets/icons/speech-bubble.svg?react'
 import Suitcase from '../assets/icons/suitcase.svg?react'
+import TheaterMasks from '../assets/icons/theater-masks.svg?react'
 
 const CORNER_ICONS = {
   journey: Hourglass, // מסע בזמן
   protest: Megaphone, // מחאות פוליטיות
   travels: Suitcase, // טיולים בארץ ובעולם
   sayings: SpeechBubble, // המשפטים של תמר
-  'fun-fact': LightBulb, // עובדה מעניינת על תמר
-  'did-you-know': Key, // לא ידעתם על תמר
+  culture: TheaterMasks, // תרבות
+  'did-you-know': Key, // דברים שלא ידעתם על תמר
   wishes: EnvelopeHeart, // כמה מילים לתמר
   general: Sparkle, // לא בטוחים – כללי
 }

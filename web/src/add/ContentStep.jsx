@@ -1,4 +1,4 @@
-import { DEFAULT_CATEGORY_ID, LIMITS, STORY_KIND } from '@tamar70/shared'
+import { currentCategoryId, DEFAULT_CATEGORY_ID, LIMITS, STORY_KIND } from '@tamar70/shared'
 import { Chip, TextField } from '../components'
 import styles from './Add.module.css'
 import { DocumentImport } from './DocumentImport.jsx'
@@ -22,7 +22,9 @@ export function ContentStep({
 }) {
   const wantsText = draft.kind !== STORY_KIND.PHOTOS
   const wantsPhotos = draft.kind !== STORY_KIND.TEXT
-  const category = categories.find((c) => c.id === (draft.category_id ?? DEFAULT_CATEGORY_ID))
+  // A draft saved before two corners were merged still points at the old one.
+  const chosenId = currentCategoryId(draft.category_id ?? DEFAULT_CATEGORY_ID)
+  const category = categories.find((c) => c.id === chosenId)
 
   return (
     <>
@@ -35,7 +37,7 @@ export function ContentStep({
             <Chip
               key={c.id}
               dashed={c.id === DEFAULT_CATEGORY_ID}
-              selected={(draft.category_id ?? DEFAULT_CATEGORY_ID) === c.id}
+              selected={chosenId === c.id}
               onClick={() => update({ category_id: c.id })}
             >
               {c.name}

@@ -3,9 +3,9 @@ export const categories = [
   ['journey', 'מסע בזמן', 'rose'],
   ['protest', 'מחאות פוליטיות', 'sage'],
   ['travels', 'טיולים בארץ ובעולם', 'sage'],
+  ['culture', 'תרבות', 'rose'],
   ['sayings', 'המשפטים של תמר', 'rose'],
-  ['fun-fact', 'עובדה מעניינת על תמר', 'rose'],
-  ['did-you-know', 'לא ידעתם על תמר', 'sage'],
+  ['did-you-know', 'דברים שלא ידעתם על תמר', 'sage'],
   ['wishes', 'כמה מילים לתמר', 'rose'],
   ['general', 'לא בטוחים – כללי', 'sand'],
 ].map(([id, name, tone]) => ({
