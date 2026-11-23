@@ -1,11 +1,12 @@
 // Server data for pages. One call (site.bootstrap) loads the site, the corners and every
 // visible story, because each Apps Script call takes seconds.
-import { currentCategoryId } from '@tamar70/shared'
+import { ACTIONS, currentCategoryId } from '@tamar70/shared'
 import { QueryClient, useQuery } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { localCategory, useLang } from '../i18n/i18n.js'
 import { readStored, writeStored } from '../lib/storage.js'
-import { api } from './client.js'
+import { reportError } from '../lib/telemetry.js'
+import { api, ApiError, apiCall } from './client.js'
 
 export function createQueryClient() {
   return new QueryClient({
@@ -25,9 +26,20 @@ export function createQueryClient() {
 const SAVED_KEY = 'bootstrap'
 const SAVED_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000
 
+/** Whether an answer has everything the pages read (an odd one must never reach them). */
+export function isBootstrap(data) {
+  return Boolean(
+    data &&
+    typeof data.site === 'object' &&
+    data.site !== null &&
+    Array.isArray(data.categories) &&
+    Array.isArray(data.stories),
+  )
+}
+
 export function savedBootstrap(now = new Date()) {
   const saved = readStored(SAVED_KEY)
-  if (!saved?.data?.site || !saved.at) return null
+  if (!isBootstrap(saved?.data) || !saved.at) return null
   if (now.getTime() - saved.at > SAVED_MAX_AGE_MS) return null
   const today = now.toLocaleDateString('en-CA')
   const { site_status: status, birthday_date: birthday } = saved.data.site
@@ -38,7 +50,16 @@ export function savedBootstrap(now = new Date()) {
 export const bootstrapQuery = {
   queryKey: ['bootstrap'],
   queryFn: async () => {
-    const data = await api.bootstrap()
+    let data = await api.bootstrap()
+    if (!isBootstrap(data)) {
+      // Seen in the error log: an answer without site or corners crashed the page. Ask again
+      // the normal way, and note what came back, so it can be traced.
+      reportError(
+        new Error(`Odd site.bootstrap answer: ${Object.keys(data ?? {}).join(',') || typeof data}`),
+      )
+      data = await apiCall(ACTIONS.BOOTSTRAP)
+      if (!isBootstrap(data)) throw new ApiError('internal', 'The server sent an incomplete answer')
+    }
     writeStored(SAVED_KEY, { at: Date.now(), data })
     return data
   },
