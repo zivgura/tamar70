@@ -270,7 +270,7 @@
      printer margins (so cover and chapters can fill them); story pages keep their own, and
      a long story that runs on to the next sheet gets them there too. */
   .page {
-    width: 210mm;
+    width: auto;
     padding: 16mm 15mm;
     background: var(--color-bg);
     box-shadow: none;
@@ -280,7 +280,10 @@
   }
 
   .full {
-    height: 297mm;
+    /* The page's own height, whatever paper and margins the print window uses (in print,
+       100vh is one sheet), so a cover never spills onto a second, empty sheet. */
+    height: 100vh;
+    overflow: hidden;
     padding: 20mm;
     aspect-ratio: auto;
     background: var(--color-bg);
