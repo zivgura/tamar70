@@ -1,4 +1,5 @@
 import { DEFAULT_CATEGORY_ID } from '@tamar70/shared'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCanEdit } from '../add/useMine.js'
 import { findCategory, useBootstrap } from '../api/queries.js'
@@ -13,6 +14,7 @@ import {
   StoryFeedSkeleton,
   Message,
   Polaroid,
+  PhotoStrip,
   StoryCard,
 } from '../components'
 import { birthdayStart, formatDay, peopleText, photosText, storiesText } from '../lib/format.js'
@@ -21,7 +23,8 @@ import tamar660 from '../assets/images/tamar-660.webp'
 import styles from './Home.module.css'
 import { LANGS, useLang } from '../i18n/i18n.js'
 
-const LATEST = 10
+// Stories shown at first, and added by each "טען עוד" (all are already loaded).
+const PAGE = 5
 
 function Counter({ stats, published = false }) {
   const { lang, t } = useLang()
@@ -68,6 +71,7 @@ function Counter({ stats, published = false }) {
 export default function Home() {
   const { lang, t } = useLang()
   const { data, error, isPending, refetch } = useBootstrap()
+  const [shown, setShown] = useState(PAGE)
   const site = data?.site
   const canEdit = useCanEdit(site)
   const corners = data?.categories.filter((c) => c.id !== DEFAULT_CATEGORY_ID) ?? []
@@ -152,6 +156,20 @@ export default function Home() {
             )}
           </section>
 
+          {data?.photos?.length > 0 && (
+            <section className={styles.section} aria-labelledby="photos-title">
+              <div className={styles.sectionHead}>
+                <h2 id="photos-title" className={styles.sectionTitle}>
+                  {t('home.photos')}
+                </h2>
+                <Link to="/gallery" className={styles.sectionLink}>
+                  {t('home.allPhotos')}
+                </Link>
+              </div>
+              <PhotoStrip photos={data.photos} label={t('home.photos')} />
+            </section>
+          )}
+
           <section className={styles.section} aria-labelledby="latest-title">
             <h2 id="latest-title" className={styles.sectionTitle}>
               {t('home.latest')}
@@ -161,16 +179,28 @@ export default function Home() {
             ) : data.stories.length === 0 ? (
               <Message>{t('home.empty')}</Message>
             ) : (
-              <div className={styles.feed}>
-                {data.stories.slice(0, LATEST).map((s) => (
-                  <StoryCard
-                    key={s.id}
-                    story={s}
-                    category={findCategory(data.categories, s.category_id)}
-                    editable={canEdit(s.id)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className={styles.feed}>
+                  {data.stories.slice(0, shown).map((s) => (
+                    <StoryCard
+                      key={s.id}
+                      story={s}
+                      category={findCategory(data.categories, s.category_id)}
+                      editable={canEdit(s.id)}
+                    />
+                  ))}
+                </div>
+                {data.stories.length > shown && (
+                  <Button
+                    variant="secondary"
+                    block
+                    className={styles.more}
+                    onClick={() => setShown((n) => n + PAGE)}
+                  >
+                    {t('home.more')}
+                  </Button>
+                )}
+              </>
             )}
           </section>
         </>

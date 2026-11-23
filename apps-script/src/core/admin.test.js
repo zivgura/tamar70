@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryContext } from '../testing/memoryContext.js'
 import { housekeeping } from './housekeeping.js'
 import { handleRequest } from './router.js'
-import { writeSetting } from './settings.js'
 
 let ctx
 const ADMIN = 'A'.repeat(200)
@@ -226,16 +225,28 @@ describe('admin stories', () => {
 describe('the reveal', () => {
   const photoUrl = (fid, w) => `https://lh3.googleusercontent.com/d/${fid}=w${w}`
 
-  it('opens every story and shares its photos, and can be undone', () => {
+  it('shows photos as soon as they are uploaded, and the text from the reveal', () => {
     const id = submit()
     const { drive_file_id } = addPhoto(id)
-    expect(ok('site.bootstrap').stories[0].view).toBe('teaser')
-    expect(ok('gallery.list').photos).toEqual([])
+    // While collecting: the photo is open and listed, the story is still sealed.
+    expect(ctx.drive.shared.has(drive_file_id)).toBe(true)
+    const boot = ok('site.bootstrap')
+    expect(boot.stories[0].view).toBe('teaser')
+    expect(boot.photos).toEqual([
+      expect.objectContaining({
+        story_id: id,
+        thumb: photoUrl(drive_file_id, 600),
+        url: photoUrl(drive_file_id, 1600),
+      }),
+    ])
+    expect(ok('gallery.list').photos).toEqual([
+      expect.objectContaining({ story_id: id, story_title: 'הטרמפ', author_name: 'ענת' }),
+    ])
+    expect(call('stories.get', { id }).data).not.toHaveProperty('content')
 
     const after = ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'published' })
     expect(after.site_status).toBe('published')
     expect(after.sharing).toEqual({ shared: 1, total: 1, to_close: 0 })
-    expect(ctx.drive.shared.has(drive_file_id)).toBe(true)
 
     // Lists get a card with a cover and no text; the story page gets the text and photos.
     const [card] = ok('site.bootstrap').stories
@@ -243,18 +254,11 @@ describe('the reveal', () => {
     expect(card).not.toHaveProperty('content')
     const story = ok('stories.get', { id })
     expect(story.content).toBe('זה היה בקיץ. ואז עוד.')
-    expect(story.photos).toEqual([
-      expect.objectContaining({
-        url: photoUrl(drive_file_id, 1600),
-        thumb: photoUrl(drive_file_id, 600),
-      }),
-    ])
-    expect(ok('gallery.list').photos).toEqual([
-      expect.objectContaining({ story_id: id, story_title: 'הטרמפ', author_name: 'ענת' }),
-    ])
+    expect(story.photos).toEqual([expect.objectContaining({ url: photoUrl(drive_file_id, 1600) })])
 
+    // Back to collecting: the text is sealed again, the photos stay open.
     ok('admin.setSiteStatus', { id_token: ADMIN, site_status: 'collecting' })
-    expect(ctx.drive.shared.has(drive_file_id)).toBe(false)
+    expect(ctx.drive.shared.has(drive_file_id)).toBe(true)
     expect(ok('site.bootstrap').stories[0].view).toBe('teaser')
     expect(call('stories.get', { id }).data).not.toHaveProperty('content')
   })
@@ -262,8 +266,10 @@ describe('the reveal', () => {
   it('shares in batches, finished by the timer', async () => {
     const id = submit()
     for (let i = 0; i < 3; i++) addPhoto(id)
+    // Hidden: all closed. Shown again behind the server's back: the timer reopens them.
+    ok('admin.setVisibility', { id_token: ADMIN, id, visibility: 'hidden' })
+    ctx.db.update('Stories', 'id', id, { visibility: 'default' })
     const { syncSharing } = await import('./reveal.js')
-    writeSetting(ctx.db, 'site_status', 'published')
     expect(syncSharing(ctx, { limit: 2 })).toBe(2)
     expect(ok('admin.settings', { id_token: ADMIN }).sharing).toEqual({
       shared: 2,

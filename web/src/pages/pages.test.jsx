@@ -49,7 +49,7 @@ describe('Home', () => {
     expect(screen.getByRole('img', { name: /ציור של תמר/ })).toHaveAttribute('loading', 'eager')
     expect(await screen.findByText(/כבר נאספו/)).toHaveTextContent('כבר נאספו 2 סיפורים מ-2 אנשים')
     expect(screen.getByLabelText('הזמן שנשאר עד יום ההולדת')).toHaveTextContent('ימים65שעות12דקות0')
-    expect(screen.getByText(/ייחשף ב-7 בפברואר/)).toBeInTheDocument()
+    expect(screen.getByText(/ייחשפו ב-7 בפברואר/)).toBeInTheDocument()
 
     const corners = within(screen.getByRole('region', { name: 'הפינות' })).getAllByRole('link')
     expect(corners.map((a) => a.textContent)).toHaveLength(7) // "general" isn't a postcard
@@ -112,7 +112,7 @@ describe('Story', () => {
   it('shows the sealed card and the reveal date', async () => {
     renderAt('/story/st_aaaaaa01')
     expect(await screen.findByRole('heading', { level: 1, name: 'הטרמפ לאילת' })).toBeVisible()
-    expect(screen.getByText(/ייחשף ב-7 בפברואר/)).toBeInTheDocument()
+    expect(screen.getByText(/הסיפור המלא ייחשף ב-7 בפברואר/)).toBeInTheDocument()
   })
 
   it('after the reveal, loads the whole story with its photos', async () => {
@@ -143,13 +143,13 @@ describe('Story', () => {
 })
 
 describe('Gallery', () => {
-  it('shows only the photo count while collecting', async () => {
+  it('invites the first photo when there are none', async () => {
+    vi.spyOn(api, 'gallery').mockResolvedValue({ photos: [] })
     renderAt('/gallery')
-    expect(await screen.findByText(/כבר נאספו 3 תמונות/)).toBeInTheDocument()
+    expect(await screen.findByText(/עוד לא נאספו תמונות/)).toBeInTheDocument()
   })
 
-  it('shows every photo after the reveal, each linking to its story', async () => {
-    api.bootstrap.mockResolvedValue(bootstrap({ site: published() }))
+  it('shows every photo, even before the reveal, each linking to its story', async () => {
     vi.spyOn(api, 'gallery').mockResolvedValue({
       photos: [{ ...PHOTO, story_id: 'st_aaaaaa01', story_title: 'הטרמפ לאילת' }],
     })
@@ -160,6 +160,53 @@ describe('Gallery', () => {
       'href',
       '/story/st_aaaaaa01',
     )
+  })
+})
+
+describe('Home: photos and more stories', () => {
+  const many = () =>
+    Array.from({ length: 12 }, (_, i) =>
+      teaser({ id: `st_many${String(i).padStart(5, '0')}`, title: `סיפור ${i + 1}` }),
+    )
+
+  it('shows 5 stories, and 5 more for each "טען עוד"', async () => {
+    api.bootstrap.mockResolvedValue({ ...bootstrap(), stories: many() })
+    const user = userEvent.setup()
+    renderAt('/')
+    const feed = await screen.findByRole('region', { name: 'סיפורים אחרונים' })
+    expect(await within(feed).findAllByRole('heading', { level: 3 })).toHaveLength(5)
+    await user.click(screen.getByRole('button', { name: 'טען עוד' }))
+    expect(within(feed).getAllByRole('heading', { level: 3 })).toHaveLength(10)
+    await user.click(screen.getByRole('button', { name: 'טען עוד' }))
+    expect(within(feed).getAllByRole('heading', { level: 3 })).toHaveLength(12)
+    expect(screen.queryByRole('button', { name: 'טען עוד' })).not.toBeInTheDocument()
+  })
+
+  it('shows the newest photos in a strip above the stories, tap to enlarge', async () => {
+    api.bootstrap.mockResolvedValue({
+      ...bootstrap(),
+      photos: [
+        { ...PHOTO, story_id: 'st_aaaaaa01', story_title: 'הטרמפ לאילת' },
+        { ...PHOTO, id: 'md_2', caption: '' },
+      ],
+    })
+    const user = userEvent.setup()
+    renderAt('/')
+    const strip = await screen.findByRole('region', { name: 'תמונות אחרונות' })
+    expect(within(strip).getByRole('link', { name: 'לכל התמונות' })).toHaveAttribute(
+      'href',
+      '/gallery',
+    )
+    expect(within(strip).getAllByRole('listitem')).toHaveLength(2)
+    expect(strip.querySelector('img')).toHaveAttribute('loading', 'lazy')
+    await user.click(within(strip).getByRole('button', { name: 'הגדלת התמונה: בצומת' }))
+    expect(screen.getByRole('link', { name: 'לסיפור: הטרמפ לאילת' })).toBeInTheDocument()
+  })
+
+  it('has no photo strip until there are photos', async () => {
+    renderAt('/')
+    await screen.findByRole('region', { name: 'סיפורים אחרונים' })
+    expect(screen.queryByRole('region', { name: 'תמונות אחרונות' })).not.toBeInTheDocument()
   })
 })
 
