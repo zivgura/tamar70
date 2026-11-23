@@ -94,6 +94,30 @@ describe('bundle', () => {
     expect(row[1]).toBe('2027-02-07')
   })
 
+  it('opens several Drive upload sessions in one call, through fetchAll', () => {
+    const edit_token = 'c'.repeat(40)
+    const { id } = post({
+      action: 'stories.submit',
+      payload: { edit_token, kind: 'photos', author_name: 'רונית' },
+    }).data
+    const res = post({
+      action: 'media.startMany',
+      payload: {
+        story_id: id,
+        edit_token,
+        origin: 'https://tamar70.web.app',
+        files: [
+          { filename: 'a.jpg', mime: 'image/jpeg', bytes: 10 },
+          { filename: 'b.jpg', mime: 'image/jpeg', bytes: 20 },
+        ],
+      },
+    })
+    expect(res.data.uploads.map((u) => Boolean(u.upload_url))).toEqual([true, true])
+    const sessions = gas.fetches.filter((f) => f.url.includes('uploadType=resumable'))
+    expect(sessions.map((f) => f.options.headers['X-Upload-Content-Length'])).toEqual(['10', '20'])
+    expect(sessions[0].options.headers.Origin).toBe('https://tamar70.web.app')
+  })
+
   it('opens a Drive upload session tied to the site origin, as the owner', () => {
     const edit_token = 'b'.repeat(40)
     const { id } = post({

@@ -15,6 +15,7 @@ import { PhotoDialog } from './PhotoDialog.jsx'
 import { PhotoGrid } from './PhotoGrid.jsx'
 import { storyKind, uploadPhotos } from './sendStory.js'
 import { useLang } from '../i18n/i18n.js'
+import { useWakeLock } from '../lib/useWakeLock.js'
 
 let nextKey = 0
 const joinList = (list) => (list ?? []).join(', ')
@@ -56,6 +57,7 @@ function EditForm({ own, editToken, categories, onReload }) {
   const [openPhoto, setOpenPhoto] = useState(null)
   const [errors, setErrors] = useState({})
   const [phase, setPhase] = useState('edit') // edit | saving | saved | photosFailed | deleted
+  useWakeLock(phase === 'saving')
   const [saveError, setSaveError] = useState(null)
   const confirmRef = useRef(null)
 

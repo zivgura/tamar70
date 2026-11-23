@@ -62,6 +62,19 @@ export function createFakeDrive({ folderId = 'folder-originals' } = {}) {
       sessions.set(url, request)
       return url
     },
+    sessionFailures: 0, // how many of the next batch sessions fail
+    createUploadSessions(requests) {
+      return requests.map((request) => {
+        if (this.sessionFailures > 0) {
+          this.sessionFailures--
+          return null
+        }
+        return this.createUploadSession(request)
+      })
+    },
+    getFiles(ids) {
+      return ids.map((id) => files.get(id) ?? null)
+    },
     browserUpload(url, bytes) {
       const s = sessions.get(url)
       const id = `drivefile${String(++n).padStart(6, '0')}`

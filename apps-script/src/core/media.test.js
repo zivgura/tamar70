@@ -146,3 +146,93 @@ describe('media.finish', () => {
     expect(res.error.code).toBe('forbidden')
   })
 })
+
+describe('media.startMany and media.finishMany', () => {
+  const file = (n, overrides = {}) => ({
+    filename: `IMG_${n}.JPG`,
+    mime: 'image/jpeg',
+    bytes: 2_000_000 + n,
+    ...overrides,
+  })
+  const startMany = (files) =>
+    ok('media.startMany', {
+      story_id: story,
+      edit_token: token,
+      origin: 'https://tamar70.web.app',
+      files,
+    })
+
+  it('opens a session for each file in one call, then confirms them all in one call', () => {
+    const { uploads } = startMany([file(1, { caption: 'בים', sort_order: 0 }), file(2), file(3)])
+    expect(uploads).toHaveLength(3)
+    expect(new Set(uploads.map((u) => u.upload_url)).size).toBe(3)
+    const pending = ctx.db.all('Media')
+    expect(pending.map((m) => m.upload_status)).toEqual(['pending', 'pending', 'pending'])
+    expect(pending[0].caption).toBe('בים')
+    // Each session is tied to its own row, like a single start.
+    expect(ctx.drive.sessions.get(uploads[1].upload_url).properties.media_id).toBe(
+      uploads[1].media_id,
+    )
+
+    const items = uploads.map((u) => ({
+      media_id: u.media_id,
+      drive_file_id: ctx.drive.browserUpload(u.upload_url),
+    }))
+    const { results } = ok('media.finishMany', { story_id: story, edit_token: token, items })
+    expect(results.map((r) => r.ok)).toEqual([true, true, true])
+    expect(ctx.db.all('Stories')[0].media_count).toBe(3)
+
+    // Confirming again is harmless.
+    const again = ok('media.finishMany', { story_id: story, edit_token: token, items })
+    expect(again.results.every((r) => r.ok && r.duplicate)).toBe(true)
+  })
+
+  it('reports a session that failed without failing the others', () => {
+    ctx.drive.sessionFailures = 1
+    const { uploads } = startMany([file(1), file(2)])
+    expect(uploads[0]).toEqual({ error: 'upload_failed' })
+    expect(uploads[1].upload_url).toBeTruthy()
+    expect(ctx.db.all('Media')).toHaveLength(1)
+  })
+
+  it('confirms the good files and names the one that could not be checked', () => {
+    const { uploads } = startMany([file(1), file(2)])
+    const good = ctx.drive.browserUpload(uploads[0].upload_url)
+    const { results } = ok('media.finishMany', {
+      story_id: story,
+      edit_token: token,
+      items: [
+        { media_id: uploads[0].media_id, drive_file_id: good },
+        // A real Drive file, but not the one opened for this row.
+        { media_id: uploads[1].media_id, drive_file_id: good },
+      ],
+    })
+    expect(results).toEqual([
+      { media_id: uploads[0].media_id, ok: true, width: 4032, height: 3024 },
+      { media_id: uploads[1].media_id, ok: false, error: 'upload_failed' },
+    ])
+    expect(ctx.db.all('Stories')[0].media_count).toBe(1)
+  })
+
+  it('keeps the photo limit across the whole batch', () => {
+    const tooMany = Array.from({ length: MAX_PHOTOS_PER_STORY + 1 }, (_, i) => file(i))
+    const res = call('media.startMany', {
+      story_id: story,
+      edit_token: token,
+      origin: 'https://tamar70.web.app',
+      files: tooMany,
+    })
+    expect(res.error.code).toBe('too_many_photos')
+    expect(ctx.db.all('Media')).toHaveLength(0)
+  })
+
+  it('is only for the device that owns the story', () => {
+    const res = call('media.startMany', {
+      story_id: story,
+      edit_token: 'x'.repeat(40),
+      origin: 'https://tamar70.web.app',
+      files: [file(1)],
+    })
+    expect(res.error.code).toBe('forbidden')
+  })
+})

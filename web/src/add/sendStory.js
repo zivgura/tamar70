@@ -3,7 +3,7 @@
 // without sending the story again.
 import { STORY_KIND } from '@tamar70/shared'
 import { api } from '../api/client.js'
-import { uploadPhoto } from '../upload/uploadPhoto.js'
+import { putToDrive, uploadPhoto, uploadType } from '../upload/uploadPhoto.js'
 import { splitList } from './deviceStore.js'
 
 /** The kind the server should store, from what was actually filled in. */
@@ -46,10 +46,29 @@ export function photoDetails(photo, index) {
   }
 }
 
+/** Runs `work(item, index)` for every item, at most `limit` at a time. */
+export async function inPool(items, limit, work) {
+  let next = 0
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++
+      await work(items[index], index)
+    }
+  })
+  await Promise.all(runners)
+}
+
+// Photos going up at the same time. More doesn't help a phone's upload speed.
+export const PARALLEL_UPLOADS = 3
+
 /**
- * Uploads the photos one after another. `onPhoto(key, patch)` receives
- * { stage, progress } updates, then { stage: 'done' } or { stage: 'error', error }.
- * Resolves with the number of photos that failed.
+ * Uploads a story's photos fast: one server call opens a Drive session for every photo, the
+ * files go straight to Drive three at a time, and one more call confirms them all. A photo
+ * whose session or confirmation fails falls back to the one-photo-at-a-time upload (with its
+ * own retries), so nothing is lost.
+ *
+ * `onPhoto(key, patch)` receives { stage, progress } updates, then { stage: 'done' } or
+ * { stage: 'error', error }. Resolves with the number of photos that failed.
  */
 export async function uploadPhotos({
   storyId,
@@ -57,9 +76,21 @@ export async function uploadPhotos({
   photos,
   onPhoto,
   uploadImpl = uploadPhoto,
+  putImpl = putToDrive,
+  apiImpl = api,
+  origin = window.location.origin,
+  parallel = PARALLEL_UPLOADS,
 }) {
+  if (photos.length === 0) return 0
   let failed = 0
-  for (const [index, photo] of photos.entries()) {
+  const done = (photo) => onPhoto(photo.key, { stage: 'done', progress: 1 })
+  const fail = (photo, error) => {
+    failed++
+    onPhoto(photo.key, { stage: 'error', error })
+  }
+
+  /** The careful path for one photo: a new session, retries, its own confirmation. */
+  async function alone(photo, index) {
     try {
       await uploadImpl({
         file: photo.file,
@@ -69,10 +100,75 @@ export async function uploadPhotos({
         onStage: (stage) => onPhoto(photo.key, { stage }),
         onProgress: (progress) => onPhoto(photo.key, { progress }),
       })
-      onPhoto(photo.key, { stage: 'done', progress: 1 })
+      done(photo)
     } catch (error) {
-      failed++
-      onPhoto(photo.key, { stage: 'error', error })
+      fail(photo, error)
+    }
+  }
+
+  photos.forEach((p) => onPhoto(p.key, { stage: 'starting' }))
+  let sessions = []
+  try {
+    const { uploads } = await apiImpl.startUploads({
+      story_id: storyId,
+      edit_token: editToken,
+      origin,
+      files: photos.map((photo, index) => ({
+        filename: photo.file.name,
+        mime: uploadType(photo.file),
+        bytes: photo.file.size,
+        ...photoDetails(photo, index),
+      })),
+    })
+    sessions = uploads
+  } catch {
+    // Every photo takes the careful path below.
+  }
+
+  const uploaded = [] // { photo, index, media_id, drive_file_id }
+  await inPool(photos, parallel, async (photo, index) => {
+    const session = sessions[index]
+    if (!session?.upload_url) return alone(photo, index)
+    try {
+      onPhoto(photo.key, { stage: 'uploading', progress: 0 })
+      const file = await putImpl(session.upload_url, photo.file, uploadType(photo.file), {
+        onProgress: (progress) => onPhoto(photo.key, { progress }),
+      })
+      onPhoto(photo.key, { stage: 'confirming', progress: 1 })
+      uploaded.push({ photo, index, media_id: session.media_id, drive_file_id: file.id })
+    } catch {
+      await alone(photo, index)
+    }
+  })
+
+  if (uploaded.length) {
+    let results = null
+    try {
+      ;({ results } = await apiImpl.finishUploads({
+        story_id: storyId,
+        edit_token: editToken,
+        items: uploaded.map(({ media_id, drive_file_id }) => ({ media_id, drive_file_id })),
+      }))
+    } catch {
+      results = null
+    }
+    for (const [i, item] of uploaded.entries()) {
+      if (results?.[i]?.ok) {
+        done(item.photo)
+        continue
+      }
+      // Not confirmed together: confirm it alone, or upload it again from the start.
+      try {
+        await apiImpl.finishUpload({
+          story_id: storyId,
+          edit_token: editToken,
+          media_id: item.media_id,
+          drive_file_id: item.drive_file_id,
+        })
+        done(item.photo)
+      } catch {
+        await alone(item.photo, item.index)
+      }
     }
   }
   return failed

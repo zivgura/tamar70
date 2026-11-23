@@ -61,6 +61,9 @@ beforeEach(() => {
   vi.spyOn(api, 'deleteOwn').mockResolvedValue({ id: ID })
   vi.spyOn(api, 'updateOwnPhoto').mockResolvedValue({})
   vi.spyOn(api, 'removeOwnPhoto').mockResolvedValue({})
+  // The fast all-at-once path is tested in sendStory.test.js; here every photo takes the
+  // one-at-a-time path, so the tests can follow each upload.
+  vi.spyOn(api, 'startUploads').mockRejectedValue(new ApiError('network', 'offline'))
   globalThis.URL.createObjectURL = vi.fn(() => 'blob:photo')
   HTMLDialogElement.prototype.showModal ??= function () {
     this.open = true

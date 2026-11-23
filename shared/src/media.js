@@ -14,10 +14,8 @@ const shortText = (max) =>
     .optional()
     .transform((v) => v || '')
 
-export const mediaStartSchema = object({
-  story_id: storyId,
-  edit_token: editToken,
-  origin: string().refine(isSiteOrigin, 'Not a site origin'),
+// One file to upload: its name, type, size and the details shown with it.
+const fileFields = {
   filename: string().trim().min(1).max(200),
   mime: string().refine((m) => isPhotoMime(m) || isDocumentMime(m), 'Not a supported file type'),
   bytes: number().int().min(1).max(MAX_PHOTO_BYTES),
@@ -29,6 +27,33 @@ export const mediaStartSchema = object({
     .optional()
     .transform((v) => v ?? []),
   sort_order: number().int().min(0).max(999).optional(),
+}
+
+export const mediaStartSchema = object({
+  story_id: storyId,
+  edit_token: editToken,
+  origin: string().refine(isSiteOrigin, 'Not a site origin'),
+  ...fileFields,
+})
+
+// Several files at once: one server call opens an upload session for each (a story's photos
+// plus up to 3 Word documents).
+export const mediaStartManySchema = object({
+  story_id: storyId,
+  edit_token: editToken,
+  origin: string().refine(isSiteOrigin, 'Not a site origin'),
+  files: array(object(fileFields)).min(1).max(23),
+})
+
+// The files the browser uploaded, confirmed together in one call.
+export const mediaFinishManySchema = object({
+  story_id: storyId,
+  edit_token: editToken,
+  items: array(
+    object({ media_id: mediaId, drive_file_id: string().regex(/^[A-Za-z0-9_-]{10,100}$/) }),
+  )
+    .min(1)
+    .max(23),
 })
 
 export const mediaUpdateSchema = object({
