@@ -41,6 +41,7 @@ export const en = {
   'home.photos': 'Latest photos',
   'home.allPhotos': 'All the photos',
   'home.more': 'Show more',
+  'home.noPhotos': 'No photos yet. The first one could be yours.',
   'home.empty': 'No stories yet. The first one could be yours.',
 
   // Countdown

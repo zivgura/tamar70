@@ -1,6 +1,7 @@
 import cornerStyles from './CornerTile.module.css'
 import countdownStyles from './Countdown.module.css'
 import mosaicStyles from './PhotoMosaic.module.css'
+import stripStyles from './PhotoStrip.module.css'
 import cardStyles from './Card.module.css'
 import styles from './Skeleton.module.css'
 import storyStyles from './StoryCard.module.css'
@@ -152,6 +153,21 @@ export function CardsSkeleton({ count = 2 }) {
           <Skeleton size="sm" width="1/2" />
           <Skeleton size="sm" width="1/3" />
         </div>
+      ))}
+    </SkeletonGroup>
+  )
+}
+
+/** The home page's photo strip loading: the same frames, in the same row. */
+export function PhotoStripSkeleton({ count = 3 }) {
+  const { t } = useLang()
+  return (
+    <SkeletonGroup label={t('loading.photos')} className={stripStyles.list}>
+      {Array.from({ length: count }, (_, i) => (
+        <span key={i} className={cx(stripStyles.item, stripStyles.frame)}>
+          <Skeleton shape="block" size="photo" />
+          <Skeleton size="sm" width="2/3" center />
+        </span>
       ))}
     </SkeletonGroup>
   )

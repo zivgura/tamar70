@@ -15,6 +15,7 @@ import {
   Message,
   Polaroid,
   PhotoStrip,
+  PhotoStripSkeleton,
   StoryCard,
 } from '../components'
 import { birthdayStart, formatDay, peopleText, photosText, storiesText } from '../lib/format.js'
@@ -156,19 +157,25 @@ export default function Home() {
             )}
           </section>
 
-          {data?.photos?.length > 0 && (
-            <section className={styles.section} aria-labelledby="photos-title">
-              <div className={styles.sectionHead}>
-                <h2 id="photos-title" className={styles.sectionTitle}>
-                  {t('home.photos')}
-                </h2>
+          <section className={styles.section} aria-labelledby="photos-title">
+            <div className={styles.sectionHead}>
+              <h2 id="photos-title" className={styles.sectionTitle}>
+                {t('home.photos')}
+              </h2>
+              {data?.photos?.length > 0 && (
                 <Link to="/gallery" className={styles.sectionLink}>
                   {t('home.allPhotos')}
                 </Link>
-              </div>
+              )}
+            </div>
+            {isPending ? (
+              <PhotoStripSkeleton />
+            ) : data.photos?.length ? (
               <PhotoStrip photos={data.photos} label={t('home.photos')} />
-            </section>
-          )}
+            ) : (
+              <Message>{t('home.noPhotos')}</Message>
+            )}
+          </section>
 
           <section className={styles.section} aria-labelledby="latest-title">
             <h2 id="latest-title" className={styles.sectionTitle}>

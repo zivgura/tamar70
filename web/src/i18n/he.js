@@ -40,6 +40,7 @@ export const he = {
   'home.photos': 'תמונות אחרונות',
   'home.allPhotos': 'לכל התמונות',
   'home.more': 'טען עוד',
+  'home.noPhotos': 'עוד אין תמונות. התמונה הראשונה יכולה להיות שלכם.',
   'home.empty': 'עוד אין סיפורים. הסיפור הראשון יכול להיות שלכם.',
 
   // Countdown

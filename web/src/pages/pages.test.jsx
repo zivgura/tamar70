@@ -193,7 +193,7 @@ describe('Home: photos and more stories', () => {
     const user = userEvent.setup()
     renderAt('/')
     const strip = await screen.findByRole('region', { name: 'תמונות אחרונות' })
-    expect(within(strip).getByRole('link', { name: 'לכל התמונות' })).toHaveAttribute(
+    expect(await within(strip).findByRole('link', { name: 'לכל התמונות' })).toHaveAttribute(
       'href',
       '/gallery',
     )
@@ -203,10 +203,11 @@ describe('Home: photos and more stories', () => {
     expect(screen.getByRole('link', { name: 'לסיפור: הטרמפ לאילת' })).toBeInTheDocument()
   })
 
-  it('has no photo strip until there are photos', async () => {
+  it('says so when there are no photos yet, like the stories', async () => {
     renderAt('/')
-    await screen.findByRole('region', { name: 'סיפורים אחרונים' })
-    expect(screen.queryByRole('region', { name: 'תמונות אחרונות' })).not.toBeInTheDocument()
+    const strip = await screen.findByRole('region', { name: 'תמונות אחרונות' })
+    expect(await within(strip).findByText(/עוד אין תמונות/)).toBeInTheDocument()
+    expect(within(strip).queryByRole('link', { name: 'לכל התמונות' })).not.toBeInTheDocument()
   })
 })
 

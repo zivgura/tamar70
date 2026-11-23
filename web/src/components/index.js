@@ -14,6 +14,7 @@ export {
   CountdownSkeleton,
   FormSkeleton,
   MosaicSkeleton,
+  PhotoStripSkeleton,
   Skeleton,
   SkeletonGroup,
   StoryCardSkeleton,
