@@ -1,4 +1,5 @@
 import { currentCategoryId, DEFAULT_CATEGORY_ID, LIMITS, STORY_KIND } from '@tamar70/shared'
+import { useRef } from 'react'
 import { Chip, TextField } from '../components'
 import styles from './Add.module.css'
 import { DocumentImport } from './DocumentImport.jsx'
@@ -21,11 +22,20 @@ export function ContentStep({
   withHeading = true,
 }) {
   const { t } = useLang()
+  const storyRef = useRef(null)
   const wantsText = draft.kind !== STORY_KIND.PHOTOS
   const wantsPhotos = draft.kind !== STORY_KIND.TEXT
   // A draft saved before two corners were merged still points at the old one.
   const chosenId = currentCategoryId(draft.category_id ?? DEFAULT_CATEGORY_ID)
   const category = categories.find((c) => c.id === chosenId)
+
+  /** After a document is imported: scroll to the story box, where its text now is. */
+  function showStory() {
+    requestAnimationFrame(() => {
+      const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      storyRef.current?.scrollIntoView?.({ behavior: still ? 'auto' : 'smooth', block: 'start' })
+    })
+  }
 
   return (
     <>
@@ -52,7 +62,10 @@ export function ContentStep({
           {/* First, so someone who already wrote it sees this before starting to type. */}
           <DocumentImport
             content={draft.content}
-            onText={(content) => update({ content })}
+            onText={(content) => {
+              update({ content })
+              showStory()
+            }}
             onDocument={onDocument}
           />
           <TextField
@@ -62,7 +75,7 @@ export function ContentStep({
             value={draft.title}
             onChange={(e) => update({ title: e.target.value })}
           />
-          <div className={styles.group}>
+          <div className={styles.group} ref={storyRef}>
             <TextField
               label={t('content.story')}
               multiline

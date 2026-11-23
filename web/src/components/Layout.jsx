@@ -3,20 +3,30 @@ import { LANGS, useLang } from '../i18n/i18n.js'
 import { Button } from './Button.jsx'
 import styles from './Layout.module.css'
 
-/** Switches the public site between Hebrew and English. */
+const OPTIONS = [
+  { lang: LANGS.HE, short: 'עב', name: 'עברית' },
+  { lang: LANGS.EN, short: 'EN', name: 'English' },
+]
+
+/** A two-way toggle between the Hebrew and English site; the current one is filled in. */
 function LanguageToggle() {
-  const { lang, setLang, t } = useLang()
-  const other = lang === LANGS.EN ? LANGS.HE : LANGS.EN
+  const { lang, setLang } = useLang()
   return (
-    <button
-      type="button"
-      className={styles.lang}
-      lang={other}
-      aria-label={t('lang.otherLabel')}
-      onClick={() => setLang(other)}
-    >
-      {t('lang.other')}
-    </button>
+    <div className={styles.lang} role="group" aria-label="Language / שפה">
+      {OPTIONS.map((o) => (
+        <button
+          key={o.lang}
+          type="button"
+          lang={o.lang}
+          className={styles.langOption}
+          aria-pressed={lang === o.lang}
+          aria-label={o.name}
+          onClick={() => setLang(o.lang)}
+        >
+          {o.short}
+        </button>
+      ))}
+    </div>
   )
 }
 

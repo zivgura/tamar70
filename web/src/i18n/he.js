@@ -15,8 +15,6 @@ export const he = {
   'common.back': 'חזרה',
   'common.toStory': 'לסיפור',
   'common.backArrow': '→',
-  'lang.other': 'English',
-  'lang.otherLabel': 'Switch to English',
 
   // Counts and dates
   'count.stories': ({ n }) => (n === 1 ? 'סיפור אחד' : `${n.toLocaleString('he-IL')} סיפורים`),

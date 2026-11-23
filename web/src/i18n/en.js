@@ -16,8 +16,6 @@ export const en = {
   'common.back': 'Back',
   'common.toStory': 'To the story',
   'common.backArrow': '←',
-  'lang.other': 'עברית',
-  'lang.otherLabel': 'מעבר לעברית',
 
   // Counts and dates
   'count.stories': ({ n }) => plural(n, 'one story', 'stories'),

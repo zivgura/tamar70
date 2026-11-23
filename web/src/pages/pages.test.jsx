@@ -190,7 +190,9 @@ describe('the English site', () => {
     await screen.findByText(/כבר נאספו/)
     expect(document.documentElement).toHaveAttribute('dir', 'rtl')
 
-    await user.click(screen.getByRole('button', { name: 'Switch to English' }))
+    expect(screen.getByRole('button', { name: 'עברית' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('heading', { level: 1, name: 'Tamar turns 70' })).toBeInTheDocument()
     expect(document.documentElement).toHaveAttribute('dir', 'ltr')
     expect(document.documentElement).toHaveAttribute('lang', 'en')
@@ -199,13 +201,13 @@ describe('the English site', () => {
     )
     expect(screen.getByLabelText('Time left until the birthday')).toHaveTextContent('days')
     expect(screen.getByText(/revealed on 7 February/)).toBeInTheDocument()
-    // A corner with English texts shows them; the others keep their Hebrew names.
+    // Texts from the Sheet when it has them, else the site's own English for its corners.
     const corners = within(screen.getByRole('region', { name: 'Corners' }))
     expect(corners.getByText('Trips in Israel and Abroad')).toBeInTheDocument()
-    expect(corners.getByText('מסע בזמן')).toBeInTheDocument()
+    expect(corners.getByText('A Journey Through Time')).toBeInTheDocument()
     expect(window.localStorage.getItem('tamar70.lang')).toBe('en')
 
-    await user.click(screen.getByRole('button', { name: 'מעבר לעברית' }))
+    await user.click(screen.getByRole('button', { name: 'עברית' }))
     expect(screen.getByRole('heading', { level: 1, name: 'תמר בת 70' })).toBeInTheDocument()
     expect(document.documentElement).toHaveAttribute('dir', 'rtl')
   })
