@@ -92,6 +92,8 @@ export const api = {
   submitStory: (submission, opts) => apiCall(ACTIONS.STORIES_SUBMIT, submission, opts),
   startUpload: (request, opts) => apiCall(ACTIONS.MEDIA_START, request, opts),
   finishUpload: (request, opts) => apiCall(ACTIONS.MEDIA_FINISH, request, opts),
+  startUploads: (request, opts) => apiCall(ACTIONS.MEDIA_START_MANY, request, opts),
+  finishUploads: (request, opts) => apiCall(ACTIONS.MEDIA_FINISH_MANY, request, opts),
   // The contributor's own story, from the device that sent it
   gallery: () => apiCall(ACTIONS.GALLERY),
   importGoogleDoc: (url) => apiCall(ACTIONS.GOOGLE_DOC_IMPORT, { url }),

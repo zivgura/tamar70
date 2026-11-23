@@ -45,6 +45,36 @@ export function createDrive(folderId) {
       return location
     },
 
+    /**
+     * Opens several upload sessions at once (Drive is asked in parallel). Returns, in order,
+     * a session URL or null for each request that failed.
+     */
+    createUploadSessions(requests) {
+      const responses = UrlFetchApp.fetchAll(
+        requests.map(({ name, mime, bytes, origin, properties }) => ({
+          url: UPLOAD_ENDPOINT,
+          method: 'post',
+          contentType: 'application/json; charset=UTF-8',
+          headers: {
+            ...auth(),
+            Origin: origin,
+            'X-Upload-Content-Type': mime,
+            'X-Upload-Content-Length': String(bytes),
+          },
+          payload: JSON.stringify({ name, parents: [folderId], appProperties: properties }),
+          muteHttpExceptions: true,
+        })),
+      )
+      return responses.map((response) => {
+        const location = header(response, 'Location')
+        if (response.getResponseCode() === 200 && location) return location
+        console.error(
+          `Drive session ${response.getResponseCode()}: ${response.getContentText().slice(0, 300)}`,
+        )
+        return null
+      })
+    },
+
     /** A small thumbnail as a data URL, or null (Drive makes them for photos it can read). */
     thumbnail(id) {
       try {
@@ -80,24 +110,43 @@ export function createDrive(folderId) {
 
     /** The file's metadata, or null if Drive doesn't have it. */
     getFile(id) {
-      const response = UrlFetchApp.fetch(
-        `${FILES_ENDPOINT}/${encodeURIComponent(id)}?fields=${encodeURIComponent(FILE_FIELDS)}`,
-        { headers: auth(), muteHttpExceptions: true },
-      )
-      if (response.getResponseCode() === 404) return null
-      if (response.getResponseCode() !== 200) {
-        throw new Error(`Drive get ${response.getResponseCode()}`)
-      }
-      const file = JSON.parse(response.getContentText())
-      return {
-        id: file.id,
-        parents: file.parents || [],
-        size: Number(file.size || 0),
-        mimeType: file.mimeType,
-        appProperties: file.appProperties || {},
-        width: file.imageMediaMetadata?.width ?? null,
-        height: file.imageMediaMetadata?.height ?? null,
-      }
+      const response = UrlFetchApp.fetch(fileUrl(id), { headers: auth(), muteHttpExceptions: true })
+      return readFile(response)
     },
+
+    /** Several files' metadata at once (in parallel), in order; null for a missing one. */
+    getFiles(ids) {
+      const responses = UrlFetchApp.fetchAll(
+        ids.map((id) => ({ url: fileUrl(id), headers: auth(), muteHttpExceptions: true })),
+      )
+      // A file Drive couldn't answer for counts as not found; the browser can confirm it again.
+      return responses.map((response) => {
+        try {
+          return readFile(response)
+        } catch {
+          return null
+        }
+      })
+    },
+  }
+}
+
+const fileUrl = (id) =>
+  `${FILES_ENDPOINT}/${encodeURIComponent(id)}?fields=${encodeURIComponent(FILE_FIELDS)}`
+
+function readFile(response) {
+  if (response.getResponseCode() === 404) return null
+  if (response.getResponseCode() !== 200) {
+    throw new Error(`Drive get ${response.getResponseCode()}`)
+  }
+  const file = JSON.parse(response.getContentText())
+  return {
+    id: file.id,
+    parents: file.parents || [],
+    size: Number(file.size || 0),
+    mimeType: file.mimeType,
+    appProperties: file.appProperties || {},
+    width: file.imageMediaMetadata?.width ?? null,
+    height: file.imageMediaMetadata?.height ?? null,
   }
 }

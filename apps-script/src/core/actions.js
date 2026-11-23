@@ -17,7 +17,13 @@ import { adminHandlers } from './admin.js'
 import { gameHandlers } from './game.js'
 import { telemetryHandlers, underHourlyLimit } from './telemetry.js'
 import { ApiError, notFound } from './errors.js'
-import { finishUpload, invalidatePublicCache, startUpload } from './media.js'
+import {
+  finishUpload,
+  finishUploads,
+  invalidatePublicCache,
+  startUpload,
+  startUploads,
+} from './media.js'
 import {
   deleteOwnStory,
   getOwnStory,
@@ -215,6 +221,8 @@ export const handlers = {
   [ACTIONS.STORIES_SUBMIT]: submitStory,
   [ACTIONS.MEDIA_START]: startUpload,
   [ACTIONS.MEDIA_FINISH]: finishUpload,
+  [ACTIONS.MEDIA_START_MANY]: startUploads,
+  [ACTIONS.MEDIA_FINISH_MANY]: finishUploads,
   [ACTIONS.OWN_GET]: getOwnStory,
   [ACTIONS.OWN_UPDATE]: updateOwnStory,
   [ACTIONS.OWN_DELETE]: deleteOwnStory,

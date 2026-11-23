@@ -191,7 +191,10 @@ export function createFakeGas({ owner = 'owner@example.test' } = {}) {
     },
     // Answers like Drive: a session URL for an upload request, file metadata for a GET.
     UrlFetchApp: {
-      fetch: (url, options = {}) => {
+      fetchAll(requests) {
+        return requests.map(({ url, ...options }) => this.fetch(url, options))
+      },
+      fetch(url, options = {}) {
         fetches.push({ url, options })
         if (url === 'https://api.anthropic.com/v1/messages') {
           const body = JSON.stringify({

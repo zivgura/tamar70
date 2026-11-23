@@ -14,6 +14,9 @@ export const ACTIONS = Object.freeze({
   STORIES_SUBMIT: 'stories.submit',
   MEDIA_START: 'media.start',
   MEDIA_FINISH: 'media.finish',
+  // The same for all of a story's files in one call each (faster: each call costs seconds).
+  MEDIA_START_MANY: 'media.startMany',
+  MEDIA_FINISH_MANY: 'media.finishMany',
   OWN_GET: 'stories.getOwn',
   OWN_UPDATE: 'stories.update',
   OWN_DELETE: 'stories.delete',

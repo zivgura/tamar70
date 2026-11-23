@@ -26,6 +26,7 @@ import { PhotoGrid } from './PhotoGrid.jsx'
 import { createStory, submission, uploadPhotos, uploadDocuments } from './sendStory.js'
 import { StepHeader } from './StepHeader.jsx'
 import { useLang } from '../i18n/i18n.js'
+import { useWakeLock } from '../lib/useWakeLock.js'
 
 let nextPhotoKey = 0
 
@@ -81,6 +82,7 @@ export default function AddStory() {
   const [openPhoto, setOpenPhoto] = useState(null)
   const [errors, setErrors] = useState({})
   const [phase, setPhase] = useState('edit') // edit | sending | photosFailed | done
+  useWakeLock(phase === 'sending')
   const [sendError, setSendError] = useState(null)
   const [sent, setSent] = useState(null) // { storyId, editToken }
   const [photosLostFromDraft] = useState(() => {
@@ -156,12 +158,13 @@ export default function AddStory() {
       rememberMine(storyId, editToken.current)
       setSent({ storyId, editToken: editToken.current })
       clearDraft()
-      if (documents.length) {
-        await uploadDocuments({ storyId, editToken: editToken.current, files: documents })
-        setDocuments([])
-      }
+      // Word files (best effort) go up alongside the photos instead of before them.
+      const docs = documents.length
+        ? uploadDocuments({ storyId, editToken: editToken.current, files: documents })
+        : null
+      setDocuments([])
       setPhotos(toUpload.map((p) => ({ ...p, stage: 'queued', progress: 0 })))
-      await finishPhotos(storyId, toUpload)
+      await Promise.all([finishPhotos(storyId, toUpload), docs])
     } catch (err) {
       setSendError(err)
       setPhase('edit')
