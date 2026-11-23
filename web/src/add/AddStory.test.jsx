@@ -96,9 +96,15 @@ describe('adding a story', () => {
     await user.click(screen.getByRole('button', { name: 'ייבוא' }))
     expect(await screen.findByText(/כל מי שיש לו את הקישור" ונסו שוב/)).toBeInTheDocument()
 
+    const scrolled = vi.fn()
+    Element.prototype.scrollIntoView = scrolled
     await user.click(screen.getByRole('button', { name: 'ייבוא' }))
     expect(await screen.findByLabelText('הסיפור')).toHaveValue('מהגוגל דוקס.')
     expect(api.importGoogleDoc).toHaveBeenLastCalledWith(link)
+    // The page scrolls down to the story box, where the text now is.
+    await vi.waitFor(() => expect(scrolled).toHaveBeenCalled())
+    expect(scrolled.mock.contexts.at(-1)).toContainElement(screen.getByLabelText('הסיפור'))
+    delete Element.prototype.scrollIntoView
   })
 
   it('says so when submissions are closed', async () => {

@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, TextField } from '../components'
 import styles from './Add.module.css'
+import { useLang } from '../i18n/i18n.js'
 
 /**
  * Details for one photo: caption, approximate year and who's in it. These feed the
  * photo-identification puzzles later, so they're worth a gentle ask but never required.
  */
 export function PhotoDialog({ photo, onSave, onRemove, onClose }) {
+  const { t } = useLang()
   const ref = useRef(null)
   const [values, setValues] = useState({ caption: '', year: '', people: '' })
 
@@ -21,16 +23,21 @@ export function PhotoDialog({ photo, onSave, onRemove, onClose }) {
   const set = (field) => (e) => setValues((v) => ({ ...v, [field]: e.target.value }))
 
   return (
-    <dialog ref={ref} className={styles.dialog} onClose={onClose} aria-label="פרטי התמונה">
+    <dialog ref={ref} className={styles.dialog} onClose={onClose} aria-label={t('photo.dialog')}>
       <form
         method="dialog"
         className={styles.dialogForm}
         onSubmit={() => onSave(photo.key, values)}
       >
         <img className={styles.dialogPhoto} src={photo.url} alt="" />
-        <TextField label="כיתוב" optional value={values.caption} onChange={set('caption')} />
         <TextField
-          label="שנה בערך"
+          label={t('photo.caption')}
+          optional
+          value={values.caption}
+          onChange={set('caption')}
+        />
+        <TextField
+          label={t('photo.year')}
           optional
           inputMode="numeric"
           dir="ltr"
@@ -39,14 +46,14 @@ export function PhotoDialog({ photo, onSave, onRemove, onClose }) {
           onChange={set('year')}
         />
         <TextField
-          label="מי בתמונה"
+          label={t('photo.people')}
           optional
-          hint="שמות, מופרדים בפסיקים"
+          hint={t('content.namesHint')}
           value={values.people}
           onChange={set('people')}
         />
         <div className={styles.dialogActions}>
-          <Button type="submit">שמירה</Button>
+          <Button type="submit">{t('photo.save')}</Button>
           <Button
             type="button"
             variant="quiet"
@@ -55,7 +62,7 @@ export function PhotoDialog({ photo, onSave, onRemove, onClose }) {
               onRemove(photo.key)
             }}
           >
-            הסרת התמונה
+            {t('photo.remove')}
           </Button>
         </div>
       </form>

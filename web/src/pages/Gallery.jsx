@@ -11,9 +11,11 @@ import {
 import { formatDay, photosText } from '../lib/format.js'
 import styles from './Corner.module.css'
 import own from './Gallery.module.css'
+import { useLang } from '../i18n/i18n.js'
 
 /** Before the reveal: how many photos are waiting. After: every photo, tap to enlarge. */
 export default function Gallery() {
+  const { lang, t } = useLang()
   const { data, error, isPending, refetch } = useBootstrap()
   const published = data?.site.site_status === 'published'
   const gallery = useGallery(published)
@@ -31,19 +33,19 @@ export default function Gallery() {
   if (published) {
     return (
       <div className={styles.page}>
-        <h1 className={styles.title}>הגלריה</h1>
+        <h1 className={styles.title}>{t('gallery.title')}</h1>
         {gallery.error ? (
           <ErrorMessage error={gallery.error} onRetry={gallery.refetch} />
         ) : gallery.isPending ? (
           <MosaicSkeleton />
         ) : gallery.data.photos.length === 0 ? (
-          <Message>התמונות עוד נפתחות לצפייה. נסו שוב בעוד כמה דקות.</Message>
+          <Message>{t('gallery.opening')}</Message>
         ) : (
           <>
             <p className={styles.description}>
-              {photosText(gallery.data.photos.length)}. לחצו על תמונה כדי להגדיל אותה.
+              {t('gallery.tapHint', { count: photosText(gallery.data.photos.length, lang) })}
             </p>
-            <PhotoMosaic photos={gallery.data.photos} label="כל התמונות" />
+            <PhotoMosaic photos={gallery.data.photos} label={t('gallery.all')} />
           </>
         )}
       </div>
@@ -53,12 +55,12 @@ export default function Gallery() {
   const { photos } = data.site.stats
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>הגלריה</h1>
-      <Polaroid className={own.polaroid} tilt="right" caption="עוד מעט…" handwritten />
+      <h1 className={styles.title}>{t('gallery.title')}</h1>
+      <Polaroid className={own.polaroid} tilt="right" caption={t('gallery.soon')} handwritten />
       <Message>
         <p>
-          {photos ? `כבר נאספו ${photosText(photos)}.` : 'עוד לא נאספו תמונות.'} כולן ייחשפו ב-
-          {formatDay(data.site.birthday_date)}.
+          {photos ? t('gallery.collected', { count: photosText(photos, lang) }) : t('gallery.none')}
+          {t('gallery.revealOn', { date: formatDay(data.site.birthday_date, lang) })}
         </p>
       </Message>
     </div>

@@ -1,21 +1,22 @@
-// Hebrew wording and dates. Plural forms are spelled out because Hebrew counts differ by
-// noun ("סיפור אחד", "שני סיפורים" is not needed here; the site uses digits).
+// Counts and dates in the site's language (Hebrew unless `lang` says 'en'). The words live in
+// the i18n dictionaries.
+import { translate } from '../i18n/i18n.js'
 
-const plural = (one, many) => (n) => (n === 1 ? one : `${n.toLocaleString('he-IL')} ${many}`)
+const LOCALES = { he: 'he-IL', en: 'en-GB' }
+const locale = (lang) => LOCALES[lang] ?? LOCALES.he
 
-export const storiesText = plural('סיפור אחד', 'סיפורים')
-export const peopleText = plural('אדם אחד', 'אנשים')
-export const photosText = plural('תמונה אחת', 'תמונות')
-export const attachedPhotosText = (n) =>
-  n === 1 ? 'תמונה אחת מצורפת' : `${n.toLocaleString('he-IL')} תמונות מצורפות`
+export const storiesText = (n, lang = 'he') => translate(lang, 'count.stories', { n })
+export const peopleText = (n, lang = 'he') => translate(lang, 'count.people', { n })
+export const photosText = (n, lang = 'he') => translate(lang, 'count.photos', { n })
+export const attachedPhotosText = (n, lang = 'he') => translate(lang, 'count.attachedPhotos', { n })
 
 const TIME_ZONE = 'Asia/Jerusalem'
 
-/** "7 בפברואר" from "2027-02-07". */
-export function formatDay(isoDate) {
+/** "7 בפברואר" (or "7 February") from "2027-02-07". */
+export function formatDay(isoDate, lang = 'he') {
   if (!isoDate) return ''
   const date = new Date(`${String(isoDate).slice(0, 10)}T12:00:00Z`)
-  return new Intl.DateTimeFormat('he-IL', {
+  return new Intl.DateTimeFormat(locale(lang), {
     day: 'numeric',
     month: 'long',
     timeZone: 'UTC',
@@ -40,7 +41,6 @@ export function countdownParts(target, now = new Date()) {
   }
 }
 
-const relative = new Intl.RelativeTimeFormat('he-IL', { numeric: 'auto' })
 const UNITS = [
   ['year', 365 * 86_400],
   ['month', 30 * 86_400],
@@ -50,8 +50,9 @@ const UNITS = [
   ['minute', 60],
 ]
 
-/** "לפני יומיים", "אתמול", "לפני 5 דקות". */
-export function timeAgo(iso, now = new Date()) {
+/** "לפני יומיים", "אתמול", "לפני 5 דקות" (or "2 days ago", "yesterday"). */
+export function timeAgo(iso, now = new Date(), lang = 'he') {
+  const relative = new Intl.RelativeTimeFormat(locale(lang), { numeric: 'auto' })
   const then = new Date(iso)
   if (Number.isNaN(then.getTime())) return ''
   const seconds = Math.round((then.getTime() - now.getTime()) / 1000)
@@ -61,14 +62,14 @@ export function timeAgo(iso, now = new Date()) {
       return relative.format(Math.round(seconds / size), unit).replace(/\s*\(\d+\)$/, '')
     }
   }
-  return 'עכשיו'
+  return translate(lang, 'time.now')
 }
 
 /** Formats a date in Israel time, e.g. for "נכתב ב-3 בדצמבר". */
-export function formatDate(iso) {
+export function formatDate(iso, lang = 'he') {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat('he-IL', {
+  return new Intl.DateTimeFormat(locale(lang), {
     day: 'numeric',
     month: 'long',
     timeZone: TIME_ZONE,

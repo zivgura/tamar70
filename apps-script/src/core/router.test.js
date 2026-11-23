@@ -181,6 +181,9 @@ describe('migration', () => {
       ['wishes', 'כמה מילים לתמר'],
       ['general', 'לא בטוחים – כללי'],
     ])
+    // Version 10 adds the English texts.
+    const english = Object.fromEntries(ok('categories.list').map((c) => [c.id, c.name_en]))
+    expect(english).toMatchObject({ culture: 'Culture', travels: 'Trips in Israel and Abroad' })
     const stories = Object.fromEntries(ctx.db.all('Stories').map((s) => [s.id, s.category_id]))
     expect(stories).toEqual({ st_fact000001: 'did-you-know', st_trip000001: 'travels' })
     // The old row stays in the Sheet, hidden.

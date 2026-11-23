@@ -19,35 +19,54 @@ import { birthdayStart, formatDay, peopleText, photosText, storiesText } from '.
 import tamar440 from '../assets/images/tamar-440.webp'
 import tamar660 from '../assets/images/tamar-660.webp'
 import styles from './Home.module.css'
+import { LANGS, useLang } from '../i18n/i18n.js'
 
 const LATEST = 10
 
 function Counter({ stats, published = false }) {
-  if (!stats.stories) return <p className={styles.counter}>היו הראשונים לשתף סיפור</p>
+  const { lang, t } = useLang()
+  if (!stats.stories) return <p className={styles.counter}>{t('home.beFirst')}</p>
+  const stories = storiesText(stats.stories, lang)
+  const people = peopleText(stats.contributors, lang)
+  if (lang === LANGS.EN) {
+    return (
+      <p className={styles.counter}>
+        <strong>{stories}</strong>
+        {published && stats.photos > 0 && (
+          <>
+            {' '}
+            and <strong>{photosText(stats.photos, lang)}</strong>
+          </>
+        )}{' '}
+        {published ? 'from' : 'collected so far from'} <strong>{people}</strong>
+      </p>
+    )
+  }
   if (published) {
     return (
       <p className={styles.counter}>
-        <strong>{storiesText(stats.stories)}</strong>
+        <strong>{stories}</strong>
         {stats.photos > 0 && (
           <>
             {' '}
-            ו-<strong>{photosText(stats.photos)}</strong>
+            ו-<strong>{photosText(stats.photos, lang)}</strong>
           </>
         )}{' '}
-        מ-<strong>{peopleText(stats.contributors)}</strong>
+        מ-<strong>{people}</strong>
       </p>
     )
   }
   return (
     <p className={styles.counter}>
-      כבר נאספו <strong>{storiesText(stats.stories)}</strong> מ-
-      <strong>{peopleText(stats.contributors)}</strong>
+      כבר נאספו <strong>{stories}</strong> מ-
+      <strong>{people}</strong>
     </p>
   )
 }
 
 /** The home page: before the reveal a countdown and sealed stories; after it, the stories. */
 export default function Home() {
+  const { lang, t } = useLang()
   const { data, error, isPending, refetch } = useBootstrap()
   const site = data?.site
   const canEdit = useCanEdit(site)
@@ -63,32 +82,33 @@ export default function Home() {
           srcSet={`${tamar440} 440w, ${tamar660} 660w`}
           sizes="220px"
           priority
-          alt="ציור של תמר מחייכת, במשקפיים כחולים ומחרוזת פנינים"
-          caption="תמר"
+          alt={t('home.photoAlt')}
+          caption={t('home.photoCaption')}
           handwritten
           taped
           tilt="leftStrong"
         />
-        <h1 className={styles.title}>תמר בת 70</h1>
+        <h1 className={styles.title}>{t('site.name')}</h1>
         {published ? (
           <>
             <p className={styles.lead}>
-              {site.reveal_message ||
-                'יום הולדת שמח, תמר! כל הסיפורים והתמונות שאספנו פתוחים עכשיו לקריאה.'}
+              {/* The message set in admin is Hebrew; the English site shows its own. */}
+              {(lang === LANGS.HE && site.reveal_message) || t('home.revealed')}
             </p>
             <Counter stats={site.stats} published />
             <Button as={Link} to="/gallery" block>
-              לכל התמונות
+              {t('home.toGallery')}
             </Button>
             <Button as={Link} to="/add" variant="secondary" block>
-              הוסיפו סיפור
+              {t('common.addStory')}
             </Button>
           </>
         ) : (
           <>
             <p className={styles.lead}>
-              אוספים סיפורים ותמונות לקראת יום ההולדת.
-              {site?.birthday_date && ` כל מה שתשתפו ייחשף ב-${formatDay(site.birthday_date)}.`}
+              {t('home.collecting')}
+              {site?.birthday_date &&
+                t('home.revealOn', { date: formatDay(site.birthday_date, lang) })}
             </p>
             {site ? (
               <>
@@ -102,7 +122,7 @@ export default function Home() {
               </>
             )}
             <Button as={Link} to="/add" block>
-              הוסיפו סיפור
+              {t('common.addStory')}
             </Button>
           </>
         )}
@@ -114,9 +134,9 @@ export default function Home() {
         <>
           <section className={styles.section} aria-labelledby="corners-title">
             <h2 id="corners-title" className={styles.sectionTitle}>
-              הפינות
+              {t('home.corners')}
             </h2>
-            <p className={styles.sectionLead}>בחרו פינה, או פשוט כתבו, ואנחנו נסדר.</p>
+            <p className={styles.sectionLead}>{t('home.cornersLead')}</p>
             {isPending ? (
               <CornerTilesSkeleton className={styles.corners} />
             ) : (
@@ -134,12 +154,12 @@ export default function Home() {
 
           <section className={styles.section} aria-labelledby="latest-title">
             <h2 id="latest-title" className={styles.sectionTitle}>
-              סיפורים אחרונים
+              {t('home.latest')}
             </h2>
             {isPending ? (
               <StoryFeedSkeleton className={styles.feed} />
             ) : data.stories.length === 0 ? (
-              <Message>עוד אין סיפורים. הסיפור הראשון יכול להיות שלכם.</Message>
+              <Message>{t('home.empty')}</Message>
             ) : (
               <div className={styles.feed}>
                 {data.stories.slice(0, LATEST).map((s) => (

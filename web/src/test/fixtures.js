@@ -14,6 +14,10 @@ export const categories = [
   tone,
   description: `תיאור ${name}`,
   prompt_hint: `שאלה על ${name}`,
+  // English from the Sheet only for one corner; the others use the site's own English.
+  name_en: id === 'travels' ? 'Trips in Israel and Abroad' : '',
+  description_en: '',
+  prompt_hint_en: id === 'travels' ? 'Where did you travel together?' : '',
 }))
 
 export const teaser = (overrides = {}) => ({

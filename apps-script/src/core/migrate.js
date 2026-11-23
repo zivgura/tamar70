@@ -106,6 +106,18 @@ const UPGRADES = {
     }
   },
   9: upgradeTo9,
+  // Version 10: English texts for the seeded corners, where the Sheet has none yet.
+  10(db) {
+    for (const seeded of DEFAULT_CATEGORIES) {
+      const row = db.all('Categories').find((c) => c.id === seeded.id)
+      if (!row) continue
+      const patch = {}
+      for (const field of ['name_en', 'description_en', 'prompt_hint_en']) {
+        if (!row[field]) patch[field] = seeded[field]
+      }
+      if (Object.keys(patch).length) db.update('Categories', 'id', seeded.id, patch)
+    }
+  },
 }
 
 // The housekeeping job (new-story emails, cleanup) runs on a timer. Installing it here means a

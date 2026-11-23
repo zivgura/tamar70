@@ -5,8 +5,7 @@ import { errorMessage } from '../api/messages.js'
 import { ChevronDownIcon, DocumentUploadIcon } from '../components/icons.js'
 import { isDocx, readDocx } from '../lib/readDocx.js'
 import styles from './Add.module.css'
-
-const TOO_LONG = `המסמך ארוך מדי: אפשר עד ${LIMITS.STORY_CONTENT_MAX.toLocaleString('en-US')} תווים.`
+import { useLang } from '../i18n/i18n.js'
 
 /**
  * "Already wrote it?": a Word file or a Google Docs link. The text goes into the story box,
@@ -14,6 +13,7 @@ const TOO_LONG = `המסמך ארוך מדי: אפשר עד ${LIMITS.STORY_CONTE
  * with the story.
  */
 export function DocumentImport({ content, onText, onDocument }) {
+  const { lang, t } = useLang()
   const inputRef = useRef(null)
   const [link, setLink] = useState('')
   const [state, setState] = useState({ status: 'idle' }) // idle | reading | done | error
@@ -22,12 +22,15 @@ export function DocumentImport({ content, onText, onDocument }) {
   /** Adds the text below what's already typed. False (with a message) if it can't. */
   function applyText(text, source) {
     if (!text) {
-      setState({ status: 'error', message: 'לא מצאנו טקסט במסמך הזה.' })
+      setState({ status: 'error', message: t('doc.empty') })
       return false
     }
     const joined = content.trim() ? `${content.trim()}\n\n${text}` : text
     if (joined.length > LIMITS.STORY_CONTENT_MAX) {
-      setState({ status: 'error', message: TOO_LONG })
+      setState({
+        status: 'error',
+        message: t('doc.tooLong', { max: LIMITS.STORY_CONTENT_MAX.toLocaleString('en-US') }),
+      })
       return false
     }
     onText(joined)
@@ -40,29 +43,30 @@ export function DocumentImport({ content, onText, onDocument }) {
     e.target.value = ''
     if (!file) return
     if (!isDocx(file)) {
-      setState({ status: 'error', message: 'אפשר להעלות רק מסמך Word (קובץ docx).' })
+      setState({ status: 'error', message: t('doc.wordOnly') })
       return
     }
     setState({ status: 'reading' })
     try {
-      if (applyText(await readDocx(file), `מ-${file.name}`)) onDocument?.(file)
+      if (applyText(await readDocx(file), t('doc.fromFile', { name: file.name })))
+        onDocument?.(file)
     } catch {
-      setState({ status: 'error', message: 'לא הצלחנו לקרוא את המסמך. נסו לשמור אותו שוב כ-docx.' })
+      setState({ status: 'error', message: t('doc.unreadable') })
     }
   }
 
   async function importLink(e) {
     e.preventDefault()
     if (!googleDocId(link)) {
-      setState({ status: 'error', message: 'זה לא קישור למסמך Google Docs.' })
+      setState({ status: 'error', message: t('error.doc_bad_link') })
       return
     }
     setState({ status: 'reading' })
     try {
       const { text } = await api.importGoogleDoc(link.trim())
-      if (applyText(text, 'מהמסמך ב-Google Docs')) setLink('')
+      if (applyText(text, t('doc.fromGoogle'))) setLink('')
     } catch (err) {
-      setState({ status: 'error', message: errorMessage(err) })
+      setState({ status: 'error', message: errorMessage(err, lang) })
     }
   }
 
@@ -75,9 +79,9 @@ export function DocumentImport({ content, onText, onDocument }) {
         </span>
         <span className={styles.docSummaryText}>
           <span className={styles.summaryTitle}>
-            כבר כתבתם את הסיפור? <span className={styles.optionalTag}>רשות</span>
+            {t('doc.title')} <span className={styles.optionalTag}>{t('common.optional')}</span>
           </span>
-          <span className={styles.hint}>העלו מסמך Word או קישור ל-Google Docs</span>
+          <span className={styles.hint}>{t('doc.hint')}</span>
         </span>
         <ChevronDownIcon className={styles.docChevron} aria-hidden="true" />
       </summary>
@@ -89,7 +93,7 @@ export function DocumentImport({ content, onText, onDocument }) {
           className="visually-hidden"
           tabIndex={-1}
           onChange={pick}
-          aria-label="בחירת מסמך Word"
+          aria-label={t('doc.pickWord')}
         />
         <button
           type="button"
@@ -97,13 +101,13 @@ export function DocumentImport({ content, onText, onDocument }) {
           onClick={() => inputRef.current?.click()}
           disabled={reading}
         >
-          העלאת מסמך Word
+          {t('doc.uploadWord')}
         </button>
 
         {/* A div, not a form: this sits inside the story form. Enter imports. */}
         <div className={styles.docLink}>
           <label htmlFor="google-doc-link" className={styles.docHint}>
-            או קישור ל-Google Docs:
+            {t('doc.orLink')}
           </label>
           <div className={styles.docLinkRow}>
             <input
@@ -124,19 +128,19 @@ export function DocumentImport({ content, onText, onDocument }) {
               onClick={importLink}
               disabled={reading || !link.trim()}
             >
-              ייבוא
+              {t('doc.import')}
             </button>
           </div>
-          <p className={styles.docSmall}>
-            המסמך צריך להיות משותף: בגוגל דוקס, שיתוף ← &quot;כל מי שיש לו את הקישור&quot;.
-          </p>
+          <p className={styles.docSmall}>{t('doc.shareTip')}</p>
         </div>
 
         <p className={styles.docStatus} aria-live="polite">
-          {reading && 'קוראים את המסמך…'}
+          {reading && t('doc.reading')}
           {state.status === 'done' && (
             <>
-              הטקסט <bdi>{state.source}</bdi> נכנס לסיפור. עברו עליו לפני השליחה.
+              {t('doc.added', { source: '\u0000' }).split('\u0000')[0]}
+              <bdi>{state.source}</bdi>
+              {t('doc.added', { source: '\u0000' }).split('\u0000')[1]}
             </>
           )}
           {state.status === 'error' && <span className={styles.docError}>{state.message}</span>}

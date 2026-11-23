@@ -1,29 +1,26 @@
 import { MAX_PHOTOS_PER_STORY } from '@tamar70/shared'
-import { errorMessage } from '../api/messages.js'
+import { errorMessage, rejectMessage } from '../api/messages.js'
 import { ProgressBar } from '../components'
 import { PlusIcon } from '../components/icons.js'
 import styles from './Add.module.css'
+import { useLang } from '../i18n/i18n.js'
 
-const STAGE_TEXT = {
-  queued: 'ממתינה',
-  starting: 'מתחילה…',
-  uploading: 'מעלה…',
-  confirming: 'מאמתת…',
-  retrying: 'מנסה שוב…',
-  done: 'הועלתה',
-  error: 'לא הועלתה',
-}
-
+// Each upload stage's text is the dictionary key photo.<stage>.
 function PhotoNote({ photo, sending }) {
+  const { lang, t } = useLang()
   if (photo.rejected) {
-    return <span className={`${styles.photoNote} ${styles.photoNoteError}`}>{photo.rejected}</span>
+    return (
+      <span className={`${styles.photoNote} ${styles.photoNoteError}`}>
+        {rejectMessage(photo.rejected, lang)}
+      </span>
+    )
   }
   if (!photo.stage && sending) {
-    return <span className={styles.photoNote}>{STAGE_TEXT.queued}</span>
+    return <span className={styles.photoNote}>{t('photo.queued')}</span>
   }
   if (!photo.stage) {
     const details = [photo.caption, photo.year].filter(Boolean).join(' · ')
-    return <span className={styles.photoNote}>{details || 'לחצו להוספת פרטים'}</span>
+    return <span className={styles.photoNote}>{details || t('photo.addDetails')}</span>
   }
   const cls = [
     styles.photoNote,
@@ -32,7 +29,7 @@ function PhotoNote({ photo, sending }) {
   ].join(' ')
   return (
     <span className={cls}>
-      {photo.stage === 'error' ? errorMessage(photo.error) : STAGE_TEXT[photo.stage]}
+      {photo.stage === 'error' ? errorMessage(photo.error, lang) : t(`photo.${photo.stage}`)}
       {photo.stage === 'uploading' && ` ${Math.round((photo.progress ?? 0) * 100)}%`}
     </span>
   )
@@ -43,6 +40,7 @@ function PhotoNote({ photo, sending }) {
  * sending, each shows its own progress bar.
  */
 export function PhotoGrid({ photos, onAdd, onOpen, sending = false }) {
+  const { t } = useLang()
   const room = MAX_PHOTOS_PER_STORY - photos.length
   // Each photo: { key, name, url, caption?, year?, ... }; `url` may be missing for a photo
   // Drive couldn't make a thumbnail for.
@@ -55,7 +53,7 @@ export function PhotoGrid({ photos, onAdd, onOpen, sending = false }) {
             className={styles.photoButton}
             onClick={() => onOpen?.(photo)}
             disabled={sending}
-            aria-label={`פרטי התמונה ${photo.name}`}
+            aria-label={t('photo.detailsOf', { name: photo.name })}
           >
             {photo.url ? (
               <img className={styles.thumb} src={photo.url} alt="" />
@@ -76,7 +74,7 @@ export function PhotoGrid({ photos, onAdd, onOpen, sending = false }) {
       {!sending && room > 0 && (
         <label className={styles.addPhoto}>
           <PlusIcon aria-hidden="true" />
-          הוסיפו תמונות
+          {t('photo.add')}
           <input
             className="visually-hidden"
             type="file"

@@ -106,13 +106,16 @@ function listCategories(ctx) {
     .all('Categories')
     .filter((c) => c.active && c.id)
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-    .map(({ id, name, description, prompt_hint, color }) => ({
-      id,
-      name,
-      description,
-      prompt_hint,
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      prompt_hint: c.prompt_hint,
+      name_en: c.name_en || '',
+      description_en: c.description_en || '',
+      prompt_hint_en: c.prompt_hint_en || '',
       // A design-system tone name; anything else in the Sheet falls back to the neutral tone.
-      tone: CATEGORY_TONES.includes(color) ? color : DEFAULT_TONE,
+      tone: CATEGORY_TONES.includes(c.color) ? c.color : DEFAULT_TONE,
     }))
 }
 

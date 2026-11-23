@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { apiCall } from '../api/client.js'
+import { LANGS } from '../i18n/i18n.js'
+import { LanguageProvider } from '../i18n/language.jsx'
 import { Button, ErrorMessage, CardsSkeleton, Message } from '../components'
 import styles from './Admin.module.css'
 import { AdminContext } from './adminContext.js'
@@ -92,7 +94,16 @@ function AdminTabs() {
  * /admin: Google sign-in, then the admin pages. The server checks the token and the
  * AdminUsers list on every call; this screen only decides what to show.
  */
+/** Admin pages are Hebrew only, whatever language the public site is in. */
 export default function AdminLayout() {
+  return (
+    <LanguageProvider force={LANGS.HE}>
+      <AdminShell />
+    </LanguageProvider>
+  )
+}
+
+function AdminShell() {
   const queryClient = useQueryClient()
   const [token, setToken] = useState(loadToken)
   const [expired, setExpired] = useState(false)

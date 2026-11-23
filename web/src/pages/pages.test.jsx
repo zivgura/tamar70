@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, ApiError } from '../api/client.js'
 import { createQueryClient } from '../api/queries.js'
+import { LanguageProvider } from '../i18n/language.jsx'
 import { routes } from '../routes.jsx'
 import { bootstrap, teaser } from '../test/fixtures.js'
 
@@ -23,7 +24,9 @@ function renderAt(path) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(
     <QueryClientProvider client={createQueryClient()}>
-      <RouterProvider router={router} />
+      <LanguageProvider>
+        <RouterProvider router={router} />
+      </LanguageProvider>
     </QueryClientProvider>,
   )
   return router
@@ -34,6 +37,7 @@ beforeEach(() => {
   vi.spyOn(api, 'bootstrap').mockResolvedValue(bootstrap())
 })
 afterEach(() => {
+  window.localStorage.clear()
   vi.useRealTimers()
   vi.restoreAllMocks()
 })
@@ -176,5 +180,57 @@ describe('a page that crashes', () => {
     renderAt('/')
     expect(await screen.findByText(/משהו השתבש בדף הזה/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'טעינה מחדש' })).toBeInTheDocument()
+  })
+})
+
+describe('the English site', () => {
+  it('switches to English and back, and remembers the choice', async () => {
+    const user = userEvent.setup()
+    renderAt('/')
+    await screen.findByText(/כבר נאספו/)
+    expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+
+    expect(screen.getByRole('button', { name: 'עברית' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('heading', { level: 1, name: 'Tamar turns 70' })).toBeInTheDocument()
+    expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+    expect(document.documentElement).toHaveAttribute('lang', 'en')
+    expect(screen.getByText(/collected so far from/)).toHaveTextContent(
+      '2 stories collected so far from 2 people',
+    )
+    expect(screen.getByLabelText('Time left until the birthday')).toHaveTextContent('days')
+    expect(screen.getByText(/revealed on 7 February/)).toBeInTheDocument()
+    // Texts from the Sheet when it has them, else the site's own English for its corners.
+    const corners = within(screen.getByRole('region', { name: 'Corners' }))
+    expect(corners.getByText('Trips in Israel and Abroad')).toBeInTheDocument()
+    expect(corners.getByText('A Journey Through Time')).toBeInTheDocument()
+    expect(window.localStorage.getItem('tamar70.lang')).toBe('en')
+
+    await user.click(screen.getByRole('button', { name: 'עברית' }))
+    expect(screen.getByRole('heading', { level: 1, name: 'תמר בת 70' })).toBeInTheDocument()
+    expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+  })
+
+  it('opens in English when chosen before, with stories left in their own language', async () => {
+    window.localStorage.setItem('tamar70.lang', 'en')
+    renderAt('/corner/travels')
+    expect(
+      await screen.findByRole('heading', { name: 'Trips in Israel and Abroad' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Where did you travel together?')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /All corners/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'הטרמפ לאילת' })).toHaveAttribute('dir', 'auto')
+    expect(screen.getByText('The full story will be revealed soon')).toBeInTheDocument()
+  })
+
+  it('asks for the name in English in the add flow', async () => {
+    window.localStorage.setItem('tamar70.lang', 'en')
+    const user = userEvent.setup()
+    renderAt('/add')
+    await user.click(await screen.findByRole('button', { name: /Writing and photos/ }))
+    expect(screen.getByText('Step 2 of 3')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    expect(screen.getByText('Write your name')).toBeInTheDocument()
   })
 })

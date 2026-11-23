@@ -2,6 +2,8 @@
 // visible story, because each Apps Script call takes seconds.
 import { currentCategoryId } from '@tamar70/shared'
 import { QueryClient, useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { localCategory, useLang } from '../i18n/i18n.js'
 import { readStored, writeStored } from '../lib/storage.js'
 import { api } from './client.js'
 
@@ -43,8 +45,18 @@ export const bootstrapQuery = {
 }
 
 export function useBootstrap() {
+  const { lang } = useLang()
+  // Corner names, descriptions and prompts in the page's language.
+  const select = useCallback(
+    (data) => ({
+      ...data,
+      categories: data.categories?.map((c) => localCategory(c, lang)) ?? data.categories,
+    }),
+    [lang],
+  )
   return useQuery({
     ...bootstrapQuery,
+    select,
     initialData: () => savedBootstrap()?.data,
     initialDataUpdatedAt: () => savedBootstrap()?.at,
   })

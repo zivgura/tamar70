@@ -14,9 +14,11 @@ import {
 import { ShareIcon } from '../components/icons.js'
 import { formatDay } from '../lib/format.js'
 import styles from './Corner.module.css'
+import { useLang } from '../i18n/i18n.js'
 
 /** Shares the story's address: the phone's share sheet, or copied to the clipboard. */
 function ShareButton({ title }) {
+  const { t } = useLang()
   const [copied, setCopied] = useState(false)
   async function share() {
     const url = window.location.href
@@ -34,7 +36,7 @@ function ShareButton({ title }) {
   return (
     <button type="button" className={styles.share} onClick={share}>
       <ShareIcon aria-hidden="true" />
-      {copied ? 'הקישור הועתק' : 'שיתוף הסיפור'}
+      {copied ? t('story.linkCopied') : t('story.share')}
     </button>
   )
 }
@@ -45,6 +47,7 @@ function ShareButton({ title }) {
  */
 export default function Story() {
   const { id } = useParams()
+  const { lang, t } = useLang()
   const { story, isPending, loadingFull, error, boot } = useStory(id)
   const canEdit = useCanEdit(boot.data?.site)
 
@@ -62,8 +65,8 @@ export default function Story() {
     }
     return (
       <Message>
-        <p>הסיפור הזה לא נמצא.</p>
-        <Link to="/">לדף הבית</Link>
+        <p>{t('story.notFound')}</p>
+        <Link to="/">{t('common.home')}</Link>
       </Message>
     )
   }
@@ -73,7 +76,7 @@ export default function Story() {
   return (
     <div className={styles.page}>
       <Link to={category ? `/corner/${category.id}` : '/'} className={styles.back}>
-        → {category?.name ?? 'לדף הבית'}
+        {t('common.backArrow')} {category?.name ?? t('common.home')}
       </Link>
       <StoryCard
         story={story}
@@ -84,16 +87,16 @@ export default function Story() {
         editable={canEdit(story.id)}
       />
       {story.view === 'full' && loadingFull && (
-        <SkeletonGroup label="טוען את הסיפור המלא" className={styles.feed}>
+        <SkeletonGroup label={t('story.loadingFull')} className={styles.feed}>
           <Skeleton size="lg" />
           <Skeleton size="lg" />
           <Skeleton size="lg" width="2/3" />
         </SkeletonGroup>
       )}
-      {story.photos?.length > 0 && <PhotoMosaic photos={story.photos} label="התמונות של הסיפור" />}
-      {story.view === 'full' && <ShareButton title={story.title || 'סיפור על תמר'} />}
+      {story.photos?.length > 0 && <PhotoMosaic photos={story.photos} label={t('story.photos')} />}
+      {story.view === 'full' && <ShareButton title={story.title || t('story.shareTitle')} />}
       {story.view === 'teaser' && birthday && (
-        <Message>הסיפור המלא, עם התמונות, ייחשף ב-{formatDay(birthday)}.</Message>
+        <Message>{t('story.sealedOn', { date: formatDay(birthday, lang) })}</Message>
       )}
     </div>
   )
