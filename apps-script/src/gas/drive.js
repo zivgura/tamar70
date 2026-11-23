@@ -86,6 +86,37 @@ export function createDrive(folderId) {
       }
     },
 
+    /**
+     * Thumbnails for several files, asked from Drive in parallel, as data URLs (null where
+     * Drive has none). A file Drive's API can't answer for falls back to thumbnail(id).
+     */
+    thumbnails(ids) {
+      const metas = UrlFetchApp.fetchAll(
+        ids.map((id) => ({
+          url: `${FILES_ENDPOINT}/${encodeURIComponent(id)}?fields=thumbnailLink`,
+          headers: auth(),
+          muteHttpExceptions: true,
+        })),
+      )
+      const links = metas.map((r) => {
+        if (r.getResponseCode() !== 200) return null
+        const link = JSON.parse(r.getContentText()).thumbnailLink
+        return link ? link.replace(/=s\d+$/, '=s320') : null
+      })
+      const asked = links.map((link, i) => ({ link, i })).filter((x) => x.link)
+      const images = UrlFetchApp.fetchAll(
+        asked.map(({ link }) => ({ url: link, headers: auth(), muteHttpExceptions: true })),
+      )
+      const out = ids.map(() => undefined)
+      asked.forEach(({ i }, k) => {
+        const r = images[k]
+        if (r.getResponseCode() !== 200) return
+        const blob = r.getBlob()
+        out[i] = `data:${blob.getContentType()};base64,${Utilities.base64Encode(blob.getBytes())}`
+      })
+      return out.map((url, i) => (url === undefined ? this.thumbnail(ids[i]) : url))
+    },
+
     /** Every file in the originals folder (not in the trash): [{ id, created }]. */
     listFiles() {
       const out = []

@@ -1,21 +1,47 @@
 import { ACTIONS, JOB_STATUS } from '@tamar70/shared'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAdmin } from './adminContext.js'
+
+// Each server call takes seconds, so what's already loaded is shown at once and refreshed in
+// the background when older than this. Every change an admin makes refreshes it right away.
+const FRESH_MS = 60_000
 
 export function useAdminStories() {
   const { token, call } = useAdmin()
   return useQuery({
     queryKey: ['admin', 'stories', token],
     queryFn: () => call(ACTIONS.ADMIN_STORIES),
+    staleTime: FRESH_MS,
     retry: false,
   })
 }
 
 export function useAdminStory(id) {
   const { token, call } = useAdmin()
+  const queryClient = useQueryClient()
   return useQuery({
     queryKey: ['admin', 'story', id, token],
     queryFn: () => call(ACTIONS.ADMIN_STORY, { id }),
+    staleTime: FRESH_MS,
+    retry: false,
+    // Opened from the list: show the story from it at once; photos follow from the server.
+    placeholderData: () => {
+      const list = queryClient.getQueryData(['admin', 'stories', token])
+      const story = list?.stories.find((s) => s.id === id)
+      return story ? { story, photos: null, documents: [], categories: list.categories } : undefined
+    },
+  })
+}
+
+/** { media_id: data URL } for a story's photos, loaded after the story itself. */
+export function useAdminStoryThumbs(id, photoIds) {
+  const { token, call } = useAdmin()
+  return useQuery({
+    // Keyed by the photos too, so a photo added later gets its thumbnail.
+    queryKey: ['admin', 'thumbs', id, photoIds.join(','), token],
+    queryFn: () => call(ACTIONS.ADMIN_STORY_THUMBS, { id }),
+    enabled: photoIds.length > 0,
+    staleTime: Infinity,
     retry: false,
   })
 }
@@ -25,6 +51,7 @@ export function useAdminStats() {
   return useQuery({
     queryKey: ['admin', 'stats', token],
     queryFn: () => call(ACTIONS.ADMIN_STATS),
+    staleTime: FRESH_MS,
     retry: false,
   })
 }
@@ -34,6 +61,7 @@ export function useAdminSettings() {
   return useQuery({
     queryKey: ['admin', 'settings', token],
     queryFn: () => call(ACTIONS.ADMIN_SETTINGS),
+    staleTime: FRESH_MS,
     retry: false,
   })
 }

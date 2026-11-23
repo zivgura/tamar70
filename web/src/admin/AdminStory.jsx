@@ -15,7 +15,7 @@ import {
 import styles from './Admin.module.css'
 import { useAdmin } from './adminContext.js'
 import { formatBytes, formatDateTime, storyState } from './adminFormat.js'
-import { useAdminStory } from './adminQueries.js'
+import { useAdminStory, useAdminStoryThumbs } from './adminQueries.js'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { StateBadge } from './StateBadge.jsx'
 
@@ -112,6 +112,11 @@ export default function AdminStory() {
   const { call } = useAdmin()
   const queryClient = useQueryClient()
   const { data, isPending, error, refetch } = useAdminStory(id)
+  const photosLoaded = Array.isArray(data?.photos)
+  const thumbs = useAdminStoryThumbs(
+    id,
+    photosLoaded ? data.photos.filter((p) => p.has_thumbnail).map((p) => p.id) : [],
+  )
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(null) // what's being done, for the status line
   const [actionError, setActionError] = useState(null)
@@ -154,7 +159,12 @@ export default function AdminStory() {
     return <ErrorMessage error={error} onRetry={refetch} />
   }
 
-  const { story, photos, categories, documents = [] } = data
+  const { story, categories, documents = [] } = data
+  // Until the server answers, the story comes from the list and its photos are on the way.
+  const photos = (data.photos ?? []).map((p) => ({
+    ...p,
+    thumbnail: thumbs.data?.thumbnails[p.id] ?? null,
+  }))
   const state = storyState(story)
   const category = categories.find((c) => c.id === story.category_id)
 
@@ -247,8 +257,12 @@ export default function AdminStory() {
       )}
 
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>תמונות ({photos.length})</h2>
-        {photos.length === 0 ? (
+        <h2 className={styles.sectionTitle}>
+          תמונות ({photosLoaded ? photos.length : (story.media_count ?? 0)})
+        </h2>
+        {!photosLoaded ? (
+          <Spinner label="טוען את התמונות" size="small" />
+        ) : photos.length === 0 ? (
           <p className={styles.meta}>אין תמונות.</p>
         ) : (
           <ul className={styles.photos}>
@@ -257,7 +271,10 @@ export default function AdminStory() {
                 {p.thumbnail ? (
                   <img src={p.thumbnail} alt={p.caption || p.filename} className={styles.thumb} />
                 ) : (
-                  <span className={styles.thumb} />
+                  <span
+                    className={styles.thumb}
+                    data-loading={p.has_thumbnail && thumbs.isPending}
+                  />
                 )}
                 <span className={styles.photoText}>
                   {p.caption || p.filename}

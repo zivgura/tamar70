@@ -5,7 +5,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { apiCall } from '../api/client.js'
 import { LANGS } from '../i18n/i18n.js'
 import { LanguageProvider } from '../i18n/language.jsx'
-import { Button, ErrorMessage, CardsSkeleton, Message } from '../components'
+import { Button, ErrorMessage, Message } from '../components'
 import styles from './Admin.module.css'
 import { AdminContext } from './adminContext.js'
 import { loadGoogleIdentity } from './googleSignIn.js'
@@ -152,8 +152,6 @@ function AdminShell() {
     content = (
       <SignIn onToken={signIn} note={expired ? 'הכניסה פגה. היכנסו שוב כדי להמשיך.' : null} />
     )
-  } else if (me.isPending) {
-    content = <CardsSkeleton count={3} />
   } else if (me.error?.code === 'not_admin') {
     content = (
       <Message>
@@ -166,6 +164,8 @@ function AdminShell() {
   } else if (me.error) {
     content = <ErrorMessage error={me.error} onRetry={me.refetch} />
   } else {
+    // The page loads its data while the sign-in is being checked, not after: the server
+    // checks the sign-in on every call anyway.
     content = <Outlet />
   }
 
