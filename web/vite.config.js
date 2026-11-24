@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import svgr from 'vite-plugin-svgr'
+import { adminHtml } from './vite-plugins/adminHtml.js'
 
 // The API is the Apps Script web app. Its deployment ID lives in one committed file, which CI
 // also uses to redeploy the same deployment, so the URL can't drift. VITE_API_URL overrides it
@@ -34,7 +35,7 @@ const release = (process.env.GITHUB_SHA ?? '').slice(0, 7) || 'dev'
 
 export default defineConfig({
   // SVG files imported with ?react become components, so icons can use currentColor.
-  plugins: [react(), svgr(), earlyBootstrap()],
+  plugins: [react(), svgr(), earlyBootstrap(), adminHtml()],
   build: {
     rollupOptions: {
       output: {
