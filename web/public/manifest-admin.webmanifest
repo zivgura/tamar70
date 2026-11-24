@@ -1,0 +1,23 @@
+{
+  "id": "/admin",
+  "name": "ניהול האתר – תמר בת 70",
+  "short_name": "ניהול תמר 70",
+  "description": "ניהול האתר של תמר בת 70, למנהלות בלבד",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#f7f1e6",
+  "theme_color": "#f7f1e6",
+  "icons": [
+    { "src": "/icon-admin-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-admin-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "/icon-admin-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
