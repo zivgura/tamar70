@@ -25,7 +25,18 @@ function takeEarlyBootstrap() {
   const early = typeof window === 'undefined' ? null : window.__tamar70Boot
   if (!early) return null
   window.__tamar70Boot = undefined
-  return early.then((body) => (body?.ok ? body.data : apiCall(ACTIONS.BOOTSTRAP)))
+  return early.then((body) =>
+    body?.ok && !isHealthCheckAnswer(body.data) ? body.data : apiCall(ACTIONS.BOOTSTRAP),
+  )
+}
+
+/**
+ * What the server's doGet answers (see apps-script/src/main.js). A POST should never get it,
+ * but the error log showed it can happen now and then. It looks like a success, so without
+ * this check it would be taken for the real answer.
+ */
+export function isHealthCheckAnswer(data) {
+  return data?.service === 'tamar70' && 'schema_version' in data
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -53,7 +64,16 @@ async function once(action, payload, { url, fetchImpl, signal }) {
   } catch {
     throw new ApiError(ERROR_CODES.INTERNAL, 'The server sent an unreadable answer')
   }
-  if (body?.ok) return body.data
+  if (body?.ok) {
+    // Retryable, like a busy server: asking again normally gets the real answer.
+    if (isHealthCheckAnswer(body.data)) {
+      throw new ApiError(
+        ERROR_CODES.INTERNAL,
+        `The server answered ${action} with its health check`,
+      )
+    }
+    return body.data
+  }
   const { code = ERROR_CODES.INTERNAL, message, details } = body?.error ?? {}
   throw new ApiError(code, message, details)
 }

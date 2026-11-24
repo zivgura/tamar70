@@ -37,6 +37,28 @@ describe('apiCall', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(3)
   })
 
+  it('treats the health-check page as a failed try and asks again', async () => {
+    const stub = { service: 'tamar70', schema_version: 7 }
+    const fetchImpl = vi
+      .fn()
+      .mockImplementationOnce(() => reply({ ok: true, data: stub }))
+      .mockImplementationOnce(() => reply({ ok: true, data: [] }))
+    await expect(api.categories(opts(fetchImpl))).resolves.toEqual([])
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('names the action when only the health-check page ever comes back', async () => {
+    const fetchImpl = vi.fn(() =>
+      reply({ ok: true, data: { service: 'tamar70', schema_version: 7 } }),
+    )
+    const err = await apiCall('admin.stories', {}, { ...opts(fetchImpl), retries: 1 }).catch(
+      (e) => e,
+    )
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err.message).toContain('admin.stories')
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
   it('gives up after the retries run out', async () => {
     const fetchImpl = vi.fn(() => reply({}, 503))
     const err = await apiCall('site.get', {}, { ...opts(fetchImpl), retries: 2 }).catch((e) => e)

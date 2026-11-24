@@ -41,6 +41,18 @@ describe('the early bootstrap call', () => {
     expect(window.__tamar70Boot).toBeUndefined()
   })
 
+  it('is not used when it got the health-check page: a normal call takes over', async () => {
+    window.__tamar70Boot = Promise.resolve({
+      ok: true,
+      data: { service: 'tamar70', schema_version: 7 },
+    })
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true, data: { from: 'retry' } })))
+    expect(await api.bootstrap()).toEqual({ from: 'retry' })
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
   it('falls back to a normal call when the early one failed', async () => {
     window.__tamar70Boot = Promise.resolve(null)
     const fetchSpy = vi
