@@ -1,4 +1,4 @@
-import { DEFAULT_CATEGORY_ID } from '@tamar70/shared'
+import { DEFAULT_CATEGORY_ID, STORY_KIND } from '@tamar70/shared'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCanEdit } from '../add/useMine.js'
@@ -77,6 +77,8 @@ export default function Home() {
   const canEdit = useCanEdit(site)
   const corners = data?.categories.filter((c) => c.id !== DEFAULT_CATEGORY_ID) ?? []
   const published = site?.site_status === 'published'
+  // Photos-only stories show in the photo strip and the gallery, not among the latest stories.
+  const stories = data?.stories.filter((s) => s.kind !== STORY_KIND.PHOTOS) ?? []
 
   return (
     <>
@@ -183,12 +185,12 @@ export default function Home() {
             </h2>
             {isPending ? (
               <StoryFeedSkeleton className={styles.feed} />
-            ) : data.stories.length === 0 ? (
+            ) : stories.length === 0 ? (
               <Message>{t('home.empty')}</Message>
             ) : (
               <>
                 <div className={styles.feed}>
-                  {data.stories.slice(0, shown).map((s) => (
+                  {stories.slice(0, shown).map((s) => (
                     <StoryCard
                       key={s.id}
                       story={s}
@@ -197,7 +199,7 @@ export default function Home() {
                     />
                   ))}
                 </div>
-                {data.stories.length > shown && (
+                {stories.length > shown && (
                   <Button
                     variant="secondary"
                     block

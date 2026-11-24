@@ -182,6 +182,32 @@ describe('Home: photos and more stories', () => {
     expect(screen.queryByRole('button', { name: 'טען עוד' })).not.toBeInTheDocument()
   })
 
+  it('leaves photos-only stories out of the latest stories', async () => {
+    api.bootstrap.mockResolvedValue({
+      ...bootstrap(),
+      stories: [
+        teaser({ id: 'st_onlyphoto', kind: 'photos', title: 'רק תמונות', excerpt: '' }),
+        teaser({ id: 'st_withtext1', kind: 'text', title: 'סיפור עם טקסט' }),
+        teaser({ id: 'st_mixedone1', kind: 'mixed', title: 'סיפור ותמונות' }),
+      ],
+    })
+    renderAt('/')
+    const feed = await screen.findByRole('region', { name: 'סיפורים אחרונים' })
+    expect(await within(feed).findByRole('heading', { name: 'סיפור עם טקסט' })).toBeInTheDocument()
+    expect(within(feed).getByRole('heading', { name: 'סיפור ותמונות' })).toBeInTheDocument()
+    expect(within(feed).queryByRole('heading', { name: 'רק תמונות' })).not.toBeInTheDocument()
+  })
+
+  it('says there are no stories when only photos-only ones exist', async () => {
+    api.bootstrap.mockResolvedValue({
+      ...bootstrap(),
+      stories: [teaser({ kind: 'photos', title: 'רק תמונות', excerpt: '' })],
+    })
+    renderAt('/')
+    const feed = await screen.findByRole('region', { name: 'סיפורים אחרונים' })
+    expect(await within(feed).findByText(/עוד אין סיפורים/)).toBeInTheDocument()
+  })
+
   it('shows the newest photos in a strip above the stories, tap to enlarge', async () => {
     api.bootstrap.mockResolvedValue({
       ...bootstrap(),
