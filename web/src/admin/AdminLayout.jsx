@@ -8,7 +8,6 @@ import { LanguageProvider } from '../i18n/language.jsx'
 import { Button, ErrorMessage, Message } from '../components'
 import styles from './Admin.module.css'
 import { AdminContext } from './adminContext.js'
-import { applyAdminAppIdentity } from './adminAppIdentity.js'
 import { loadGoogleIdentity } from './googleSignIn.js'
 import { clearToken, loadToken, readClaims, saveToken } from './session.js'
 
@@ -97,10 +96,6 @@ function AdminTabs() {
  */
 /** Admin pages are Hebrew only, whatever language the public site is in. */
 export default function AdminLayout() {
-  // Installing from an admin page installs the admin app, not the public site.
-  useEffect(() => {
-    return applyAdminAppIdentity()
-  }, [])
   return (
     <LanguageProvider force={LANGS.HE}>
       <AdminShell />

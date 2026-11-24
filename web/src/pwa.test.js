@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { applyAdminAppIdentity } from './admin/adminAppIdentity.js'
+import { toAdminHtml } from '../vite-plugins/adminHtml.js'
 
 // web/src/ -> web/ (import.meta.url is not a file address in the jsdom test environment)
 const file = (path) => join(import.meta.dirname, '..', path)
@@ -68,23 +68,36 @@ describe('the admin app', () => {
     expect(admin.icons.some((i) => i.purpose === 'maskable')).toBe(true)
   })
 
-  it('swaps the page to the admin identity and puts the site back afterwards', () => {
-    document.head.innerHTML = `
-      <link rel="icon" href="/icon.svg" />
-      <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      <link rel="manifest" href="/manifest.webmanifest" />
-      <meta name="apple-mobile-web-app-title" content="תמר 70" />`
-    const restore = applyAdminAppIdentity()
-    const get = (selector, attr) => document.head.querySelector(selector).getAttribute(attr)
-    expect(get('link[rel="manifest"]', 'href')).toBe('/manifest-admin.webmanifest')
-    expect(get('link[rel="apple-touch-icon"]', 'href')).toBe('/apple-touch-icon-admin.png')
-    expect(get('link[rel="icon"]', 'href')).toBe('/icon-admin.svg')
-    expect(get('meta[name="apple-mobile-web-app-title"]', 'content')).toBe('ניהול תמר 70')
-    restore()
-    expect(get('link[rel="manifest"]', 'href')).toBe('/manifest.webmanifest')
-    expect(get('link[rel="apple-touch-icon"]', 'href')).toBe('/apple-touch-icon.png')
-    expect(get('link[rel="icon"]', 'href')).toBe('/icon.svg')
-    expect(get('meta[name="apple-mobile-web-app-title"]', 'content')).toBe('תמר 70')
+  it('has its own page, with the admin tags already in the HTML the phone first loads', () => {
+    const built = `${read('index.html').replace('</head>', '<script>window.__tamar70Boot=fetch("x",{a:1}).then(function(r){return r})</script></head>')}`
+    const html = toAdminHtml(built)
+    expect(html).toContain('<link rel="manifest" href="/manifest-admin.webmanifest" />')
+    expect(html).toContain('rel="apple-touch-icon" href="/apple-touch-icon-admin.png"')
+    expect(html).toContain('rel="icon" type="image/svg+xml" href="/icon-admin.svg"')
+    expect(html).toContain('name="apple-mobile-web-app-title" content="ניהול תמר 70"')
+    expect(html).toContain('<title>ניהול האתר – תמר בת 70</title>')
+    // Nothing of the public identity is left, and the home page's API call isn't repeated.
+    expect(html).not.toContain('manifest.webmanifest')
+    expect(html).not.toContain('"/icon.svg"')
+    expect(html).not.toContain('__tamar70Boot')
+    expect(html).toContain('<script type="module" src="/src/main.jsx"></script>')
+  })
+
+  it('fails the build, loudly, if index.html no longer has the tags it swaps', () => {
+    expect(() => toAdminHtml('<html><head></head></html>')).toThrow(/admin\.html/)
+  })
+
+  it('is served for /admin and below by the host, before the catch-all', () => {
+    const { rewrites } = JSON.parse(
+      readFileSync(join(import.meta.dirname, '../../firebase.json'), 'utf8'),
+    ).hosting
+    const sources = rewrites.map((r) => r.source)
+    expect(rewrites.filter((r) => r.destination === '/admin.html').map((r) => r.source)).toEqual([
+      '/admin',
+      '/admin/**',
+    ])
+    expect(sources.indexOf('/admin/**')).toBeLessThan(sources.indexOf('**'))
+    expect(rewrites.at(-1)).toEqual({ source: '**', destination: '/index.html' })
   })
 
   it('points at files that exist', () => {
