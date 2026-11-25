@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { errorMessage } from '../api/messages.js'
+import { isBadYear, photoYear } from '../lib/photoYear.js'
 import {
   Button,
   Chip,
@@ -28,6 +29,61 @@ const editable = (story) => ({
   category_id: story.category_id || 'general',
   admin_notes: story.admin_notes ?? '',
 })
+
+function PhotoEditForm({ photo, busy, onSave, onCancel }) {
+  const [name, setName] = useState(photo.caption || '')
+  const [year, setYear] = useState(photo.year_approx ? String(photo.year_approx) : '')
+  const [people, setPeople] = useState((photo.people || []).join(', '))
+  const badYear = isBadYear(year)
+  return (
+    <form
+      className={styles.photoForm}
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (badYear) return
+        onSave({
+          media_id: photo.id,
+          caption: name.trim(),
+          year_approx: photoYear(year),
+          people: people
+            .split(/[,،]/)
+            .map((n) => n.trim())
+            .filter(Boolean),
+        })
+      }}
+    >
+      <TextField
+        label="שם התמונה"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        maxLength={200}
+      />
+      <TextField
+        label="שנה"
+        inputMode="numeric"
+        dir="ltr"
+        maxLength={4}
+        value={year}
+        onChange={(e) => setYear(e.target.value)}
+        error={badYear ? 'שנה בין 1940 ל-2030' : undefined}
+      />
+      <TextField
+        label="מי בתמונה"
+        hint="שמות מופרדים בפסיק"
+        value={people}
+        onChange={(e) => setPeople(e.target.value)}
+      />
+      <div className={styles.photoFormActions}>
+        <Button type="submit" disabled={Boolean(busy) || badYear}>
+          שמירה
+        </Button>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={Boolean(busy)}>
+          ביטול
+        </Button>
+      </div>
+    </form>
+  )
+}
 
 function EditForm({ story, categories, busy, onSave, onCancel }) {
   const [values, setValues] = useState(() => editable(story))
@@ -122,6 +178,7 @@ export default function AdminStory() {
   const [actionError, setActionError] = useState(null)
   const [done, setDone] = useState(null)
   const [photoToRemove, setPhotoToRemove] = useState(null)
+  const [photoEditing, setPhotoEditing] = useState(null) // id of the photo being edited
   const deleteRef = useRef(null)
   const photoRef = useRef(null)
 
@@ -287,6 +344,36 @@ export default function AdminStory() {
                 <span className={styles.photoMeta}>
                   {[p.year_approx, formatBytes(p.bytes)].filter(Boolean).join(' · ')}
                 </span>
+                {(p.people || []).length > 0 && (
+                  <span className={styles.photoMeta}>{p.people.join(', ')}</span>
+                )}
+                {state !== 'deleted' && photoEditing !== p.id && (
+                  <button
+                    type="button"
+                    className={styles.linkButton}
+                    aria-label={`עריכת פרטי התמונה ${p.filename}`}
+                    disabled={Boolean(busy)}
+                    onClick={() => setPhotoEditing(p.id)}
+                  >
+                    עריכה
+                  </button>
+                )}
+                {photoEditing === p.id && (
+                  <PhotoEditForm
+                    photo={p}
+                    busy={busy}
+                    onCancel={() => setPhotoEditing(null)}
+                    onSave={async (values) => {
+                      const ok = await run(
+                        'שומרים',
+                        ACTIONS.ADMIN_MEDIA_UPDATE,
+                        values,
+                        'פרטי התמונה נשמרו.',
+                      )
+                      if (ok) setPhotoEditing(null)
+                    }}
+                  />
+                )}
                 {state !== 'deleted' && (
                   <button
                     type="button"

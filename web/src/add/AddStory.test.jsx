@@ -246,17 +246,47 @@ describe('adding a story', () => {
     expect(second).toBe(first) // same token: a retry can't create a duplicate
   })
 
-  it('collects photo details in a dialog', async () => {
+  it('collects a name, a year and who is in it right under each photo', async () => {
+    writeStored('author', { name: 'דני', relation: '' })
+    renderAdd()
+    await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
+    await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [
+      photoFile('beach.jpg'),
+      photoFile('home.jpg'),
+    ])
+    const cards = screen.getAllByRole('listitem').filter((li) => li.querySelector('img'))
+    expect(cards).toHaveLength(2)
+    await user.type(within(cards[0]).getByLabelText('שם התמונה'), 'תמר בחוף')
+    await user.type(within(cards[0]).getByLabelText('שנה'), '1975')
+    // "Who's in it" opens on request, so a photo without details stays compact.
+    expect(within(cards[0]).queryByLabelText(/מי בתמונה/)).not.toBeInTheDocument()
+    await user.click(within(cards[0]).getByRole('button', { name: 'מי בתמונה' }))
+    await user.type(within(cards[0]).getByLabelText(/מי בתמונה/), 'תמר, דנה')
+    expect(within(cards[0]).getByLabelText('שם התמונה')).toHaveValue('תמר בחוף')
+    expect(within(cards[1]).getByLabelText('שם התמונה')).toHaveValue('')
+  })
+
+  it('flags a year the server would refuse', async () => {
+    writeStored('author', { name: 'דני', relation: '' })
+    renderAdd()
+    await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
+    await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [photoFile('old.jpg')])
+    await user.type(screen.getByLabelText('שנה'), '1850')
+    expect(screen.getByText('שנה בין 1940 ל-2030')).toBeInTheDocument()
+    await user.clear(screen.getByLabelText('שנה'))
+    await user.type(screen.getByLabelText('שנה'), '1975')
+    expect(screen.queryByText('שנה בין 1940 ל-2030')).not.toBeInTheDocument()
+  })
+
+  it('removes a photo from the card', async () => {
     writeStored('author', { name: 'דני', relation: '' })
     renderAdd()
     await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
     await user.click(screen.getByRole('button', { name: 'המשך' }))
     await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [photoFile('beach.jpg')])
-    await user.click(screen.getByRole('button', { name: 'פרטי התמונה beach.jpg' }))
-    const dialog = screen.getByRole('dialog', { name: 'פרטי התמונה' })
-    await user.type(within(dialog).getByLabelText(/כיתוב/), 'בים')
-    await user.type(within(dialog).getByLabelText(/שנה בערך/), '1975')
-    await user.click(within(dialog).getByRole('button', { name: 'שמירה' }))
-    expect(screen.getByText('בים · 1975')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'הסרת התמונה beach.jpg' }))
+    expect(screen.queryByLabelText('שם התמונה')).not.toBeInTheDocument()
   })
 })

@@ -11,10 +11,10 @@ import styles from './Add.module.css'
 import { AuthorStep } from './AuthorStep.jsx'
 import { ContentStep } from './ContentStep.jsx'
 import { forgetMine, splitList, tokenFor } from './deviceStore.js'
-import { PhotoDialog } from './PhotoDialog.jsx'
 import { PhotoGrid } from './PhotoGrid.jsx'
 import { storyKind, uploadPhotos } from './sendStory.js'
 import { useLang } from '../i18n/i18n.js'
+import { photoYear } from '../lib/photoYear.js'
 import { useWakeLock } from '../lib/useWakeLock.js'
 
 let nextKey = 0
@@ -54,7 +54,6 @@ function EditForm({ own, editToken, categories, onReload }) {
   const [photos, setPhotos] = useState(() => own.photos.map(fromServer))
   const [removed, setRemoved] = useState([])
   const [changed, setChanged] = useState(new Set())
-  const [openPhoto, setOpenPhoto] = useState(null)
   const [errors, setErrors] = useState({})
   const [phase, setPhase] = useState('edit') // edit | saving | saved | photosFailed | deleted
   useWakeLock(phase === 'saving')
@@ -84,11 +83,15 @@ function EditForm({ own, editToken, categories, onReload }) {
     setPhotos((list) => [...list, ...added])
   }
 
+  function changePhoto(key, patch) {
+    updatePhoto(key, patch)
+    setChanged((c) => new Set(c).add(key))
+  }
+
   function removePhoto(key) {
     const photo = photos.find((p) => p.key === key)
     if (photo?.mediaId) setRemoved((r) => [...r, photo.mediaId])
     setPhotos((list) => list.filter((p) => p.key !== key))
-    setOpenPhoto(null)
   }
 
   async function save(e) {
@@ -121,12 +124,11 @@ function EditForm({ own, editToken, categories, onReload }) {
       })
       for (const mediaId of removed) await api.removeOwnPhoto({ ...owner, media_id: mediaId })
       for (const p of kept.filter((p) => p.mediaId && changed.has(p.key))) {
-        const year = Number.parseInt(p.year, 10)
         await api.updateOwnPhoto({
           ...owner,
           media_id: p.mediaId,
           caption: p.caption,
-          year_approx: Number.isInteger(year) && year >= 1940 && year <= 2030 ? year : null,
+          year_approx: photoYear(p.year),
           people: splitList(p.people),
         })
       }
@@ -211,7 +213,7 @@ function EditForm({ own, editToken, categories, onReload }) {
                 : t('edit.savingChanges')}
           </p>
         </div>
-        {uploading && <PhotoGrid photos={photos.filter((p) => p.stage)} sending />}
+        {uploading && <PhotoGrid photos={photos.filter((p) => p.stage)} />}
         {phase === 'photosFailed' && (
           <div className={styles.actions}>
             <Button block onClick={onReload}>
@@ -239,7 +241,8 @@ function EditForm({ own, editToken, categories, onReload }) {
           categories={categories}
           photos={photos}
           onAddPhotos={addPhotos}
-          onOpenPhoto={setOpenPhoto}
+          onChangePhoto={changePhoto}
+          onRemovePhoto={removePhoto}
           errors={errors}
           withHeading={false}
         />
@@ -264,16 +267,6 @@ function EditForm({ own, editToken, categories, onReload }) {
           {t('edit.delete')}
         </Button>
       </div>
-
-      <PhotoDialog
-        photo={openPhoto}
-        onClose={() => setOpenPhoto(null)}
-        onSave={(key, values) => {
-          updatePhoto(key, values)
-          setChanged((c) => new Set(c).add(key))
-        }}
-        onRemove={removePhoto}
-      />
 
       <dialog ref={confirmRef} className={styles.dialog} aria-label={t('edit.delete')}>
         <div className={styles.dialogForm}>

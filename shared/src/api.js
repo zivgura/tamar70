@@ -39,6 +39,7 @@ export const ACTIONS = Object.freeze({
   ADMIN_VISIBILITY: 'admin.setVisibility',
   ADMIN_STORY_DELETE: 'admin.storyDelete',
   ADMIN_MEDIA_REMOVE: 'admin.mediaRemove',
+  ADMIN_MEDIA_UPDATE: 'admin.mediaUpdate',
   ADMIN_STATS: 'admin.stats',
   ADMIN_SETTINGS: 'admin.settings',
   ADMIN_SETTINGS_UPDATE: 'admin.settingsUpdate',
