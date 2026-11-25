@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { Chip, TextField } from '../components'
 import styles from './Add.module.css'
 import { DocumentImport } from './DocumentImport.jsx'
-import { PhotoFields } from './PhotoFields.jsx'
+import { PhotoGrid } from './PhotoGrid.jsx'
 import { useLang } from '../i18n/i18n.js'
 
 const DECADES = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020]
@@ -15,8 +15,7 @@ export function ContentStep({
   categories,
   photos,
   onAddPhotos,
-  onChangePhoto,
-  onRemovePhoto,
+  onOpenPhoto,
   errors,
   photosLostFromDraft,
   onDocument,
@@ -104,12 +103,7 @@ export function ContentStep({
             )}
           </span>
           {photosLostFromDraft && <p className={styles.hint}>{t('content.photosLost')}</p>}
-          <PhotoFields
-            photos={photos}
-            onAdd={onAddPhotos}
-            onChange={onChangePhoto}
-            onRemove={onRemovePhoto}
-          />
+          <PhotoGrid photos={photos} onAdd={onAddPhotos} onOpen={onOpenPhoto} />
           {errors.photos ? (
             <p className={styles.error}>{errors.photos}</p>
           ) : (

@@ -21,6 +21,7 @@ import {
   saveDraft,
 } from './deviceStore.js'
 import { KindStep } from './KindStep.jsx'
+import { PhotoDialog } from './PhotoDialog.jsx'
 import { PhotoGrid } from './PhotoGrid.jsx'
 import { createStory, submission, uploadPhotos, uploadDocuments } from './sendStory.js'
 import { StepHeader } from './StepHeader.jsx'
@@ -78,6 +79,7 @@ export default function AddStory() {
   const [photos, setPhotos] = useState([])
   // Word files whose text went into the story; kept in Drive after sending.
   const [documents, setDocuments] = useState([])
+  const [openPhoto, setOpenPhoto] = useState(null)
   const [errors, setErrors] = useState({})
   const [phase, setPhase] = useState('edit') // edit | sending | photosFailed | done
   useWakeLock(phase === 'sending')
@@ -287,7 +289,7 @@ export default function AddStory() {
                 : t('add.someFailed', { n: failed })}
           </p>
         </div>
-        {photos.length > 0 && <PhotoGrid photos={photos} />}
+        {photos.length > 0 && <PhotoGrid photos={photos} sending />}
         {phase === 'photosFailed' && (
           <div className={styles.actions}>
             <Button block onClick={retryFailed}>
@@ -328,8 +330,7 @@ export default function AddStory() {
               photos={photos}
               onAddPhotos={addPhotos}
               onDocument={(file) => setDocuments((list) => [...list, file].slice(-3))}
-              onChangePhoto={updatePhoto}
-              onRemovePhoto={(key) => setPhotos((list) => list.filter((p) => p.key !== key))}
+              onOpenPhoto={setOpenPhoto}
               errors={errors}
               photosLostFromDraft={photosLostFromDraft && photos.length === 0}
             />
@@ -353,6 +354,16 @@ export default function AddStory() {
           </div>
         )}
       </form>
+
+      <PhotoDialog
+        photo={openPhoto}
+        onClose={() => setOpenPhoto(null)}
+        onSave={(key, values) => updatePhoto(key, values)}
+        onRemove={(key) => {
+          setPhotos((list) => list.filter((p) => p.key !== key))
+          setOpenPhoto(null)
+        }}
+      />
     </div>
   )
 }

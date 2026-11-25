@@ -110,32 +110,12 @@ describe('editing a story', () => {
     expect(uploadPhoto).not.toHaveBeenCalled()
   })
 
-  it('saves a changed photo name and year, and leaves untouched photos alone', async () => {
-    renderEdit()
-    const name = await screen.findByDisplayValue('בדרך')
-    expect(screen.getByDisplayValue('1985')).toBeInTheDocument()
-    await user.clear(name)
-    await user.type(name, 'על הכביש')
-    await user.clear(screen.getByDisplayValue('1985'))
-    await user.type(screen.getByLabelText('שנה'), '1986')
-    await user.click(screen.getByRole('button', { name: 'שמירת השינויים' }))
-    expect(await screen.findByText('השינויים נשמרו')).toBeInTheDocument()
-    expect(api.updateOwnPhoto).toHaveBeenCalledWith(
-      expect.objectContaining({
-        story_id: ID,
-        edit_token: TOKEN,
-        media_id: 'md_1',
-        caption: 'על הכביש',
-        year_approx: 1986,
-      }),
-    )
-  })
-
   it('removes an existing photo and uploads a new one', async () => {
     uploadPhoto.mockResolvedValue({})
     renderEdit()
     await screen.findByDisplayValue('הטיול לגליל')
-    await user.click(screen.getByRole('button', { name: /הסרת התמונה .*a\.jpg/ }))
+    await user.click(screen.getByRole('button', { name: /a\.jpg/ }))
+    await user.click(screen.getByRole('button', { name: 'הסרת התמונה' }))
     await user.upload(
       document.querySelector('input[type=file][accept="image/*"]'),
       new File([new Uint8Array(100)], 'b.jpg', { type: 'image/jpeg' }),

@@ -3,7 +3,6 @@
 // without sending the story again.
 import { STORY_KIND } from '@tamar70/shared'
 import { api } from '../api/client.js'
-import { photoYear } from '../lib/photoYear.js'
 import { putToDrive, uploadPhoto, uploadType } from '../upload/uploadPhoto.js'
 import { splitList } from './deviceStore.js'
 
@@ -38,10 +37,10 @@ export async function createStory(payload, { apiImpl = api } = {}) {
 
 /** The details sent with one photo. */
 export function photoDetails(photo, index) {
-  const year = photoYear(photo.year)
+  const year = Number.parseInt(photo.year, 10)
   return {
     caption: photo.caption?.trim() || undefined,
-    ...(year ? { year_approx: year } : {}),
+    ...(Number.isInteger(year) && year >= 1940 && year <= 2030 ? { year_approx: year } : {}),
     people: splitList(photo.people),
     sort_order: index,
   }

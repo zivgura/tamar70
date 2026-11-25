@@ -1,4 +1,5 @@
 // UI icons, each a separate SVG file in src/assets/icons drawn in currentColor.
+export { default as CheckIcon } from '../assets/icons/check.svg?react'
 export { default as ChevronBackIcon } from '../assets/icons/chevron-back.svg?react'
 export { default as ChevronForwardIcon } from '../assets/icons/chevron-forward.svg?react'
 export { default as ChevronDownIcon } from '../assets/icons/chevron-down.svg?react'

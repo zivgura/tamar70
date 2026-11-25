@@ -246,7 +246,7 @@ describe('adding a story', () => {
     expect(second).toBe(first) // same token: a retry can't create a duplicate
   })
 
-  it('collects a name, a year and who is in it right under each photo', async () => {
+  it('collects a name and year from a button under each photo', async () => {
     writeStored('author', { name: 'דני', relation: '' })
     renderAdd()
     await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
@@ -255,38 +255,32 @@ describe('adding a story', () => {
       photoFile('beach.jpg'),
       photoFile('home.jpg'),
     ])
-    const cards = screen.getAllByRole('listitem').filter((li) => li.querySelector('img'))
-    expect(cards).toHaveLength(2)
-    await user.type(within(cards[0]).getByLabelText('שם התמונה'), 'תמר בחוף')
-    await user.type(within(cards[0]).getByLabelText('שנה'), '1975')
-    // "Who's in it" opens on request, so a photo without details stays compact.
-    expect(within(cards[0]).queryByLabelText(/מי בתמונה/)).not.toBeInTheDocument()
-    await user.click(within(cards[0]).getByRole('button', { name: 'מי בתמונה' }))
-    await user.type(within(cards[0]).getByLabelText(/מי בתמונה/), 'תמר, דנה')
-    expect(within(cards[0]).getByLabelText('שם התמונה')).toHaveValue('תמר בחוף')
-    expect(within(cards[1]).getByLabelText('שם התמונה')).toHaveValue('')
+    expect(screen.getByText('0 מתוך 2 תמונות עם פרטים')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'פרטי התמונה beach.jpg' }))
+    const dialog = screen.getByRole('dialog', { name: 'פרטי התמונה' })
+    await user.type(within(dialog).getByLabelText(/שם התמונה/), 'בים')
+    await user.type(within(dialog).getByLabelText(/שנה/), '1975')
+    await user.click(within(dialog).getByRole('button', { name: 'שמירה' }))
+    // The button now shows what was entered, and the counter moves.
+    const button = screen.getByRole('button', { name: 'פרטי התמונה beach.jpg' })
+    expect(button).toHaveTextContent('בים')
+    expect(button).toHaveTextContent('1975')
+    expect(screen.getByText('1 מתוך 2 תמונות עם פרטים')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'פרטי התמונה home.jpg' })).toHaveTextContent(
+      'שם ושנה',
+    )
   })
 
-  it('flags a year the server would refuse', async () => {
+  it('flags a year the server would refuse and blocks saving it', async () => {
     writeStored('author', { name: 'דני', relation: '' })
     renderAdd()
     await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
     await user.click(screen.getByRole('button', { name: 'המשך' }))
     await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [photoFile('old.jpg')])
-    await user.type(screen.getByLabelText('שנה'), '1850')
-    expect(screen.getByText('שנה בין 1940 ל-2030')).toBeInTheDocument()
-    await user.clear(screen.getByLabelText('שנה'))
-    await user.type(screen.getByLabelText('שנה'), '1975')
-    expect(screen.queryByText('שנה בין 1940 ל-2030')).not.toBeInTheDocument()
-  })
-
-  it('removes a photo from the card', async () => {
-    writeStored('author', { name: 'דני', relation: '' })
-    renderAdd()
-    await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
-    await user.click(screen.getByRole('button', { name: 'המשך' }))
-    await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [photoFile('beach.jpg')])
-    await user.click(screen.getByRole('button', { name: 'הסרת התמונה beach.jpg' }))
-    expect(screen.queryByLabelText('שם התמונה')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'פרטי התמונה old.jpg' }))
+    const dialog = screen.getByRole('dialog', { name: 'פרטי התמונה' })
+    await user.type(within(dialog).getByLabelText(/שנה/), '1850')
+    expect(within(dialog).getByText('שנה בין 1940 ל-2030')).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'שמירה' })).toBeDisabled()
   })
 })
