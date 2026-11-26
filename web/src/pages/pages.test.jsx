@@ -225,6 +225,10 @@ describe('Home: photos and more stories', () => {
     )
     expect(within(strip).getAllByRole('listitem')).toHaveLength(2)
     expect(strip.querySelector('img')).toHaveAttribute('loading', 'lazy')
+    // A photo without a name still has its caption line, so every frame is the same height.
+    const captions = [...strip.querySelectorAll('button span')]
+    expect(captions).toHaveLength(2)
+    expect(captions[1].textContent).toBe('\u00A0')
     await user.click(within(strip).getByRole('button', { name: 'הגדלת התמונה: בצומת' }))
     expect(screen.getByRole('link', { name: 'לסיפור: הטרמפ לאילת' })).toBeInTheDocument()
   })
