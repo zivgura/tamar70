@@ -348,6 +348,26 @@ describe('admin pages', () => {
     })
   })
 
+  it('edits the name, year and people of one photo', async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/story/st_aaaaaa01')
+    await user.click(await screen.findByRole('button', { name: 'עריכת פרטי התמונה eilat.jpg' }))
+    const nameField = screen.getByLabelText(/שם התמונה/)
+    await user.clear(nameField)
+    await user.type(nameField, 'חוף אילת')
+    await user.type(screen.getByLabelText(/שנה/), '1986')
+    await user.type(screen.getByLabelText(/מי בתמונה/), 'תמר, דנה')
+    await user.click(screen.getByRole('button', { name: 'שמירה' }))
+    expect(await screen.findByText('פרטי התמונה נשמרו.')).toBeInTheDocument()
+    expect(apiCall).toHaveBeenCalledWith('admin.mediaUpdate', {
+      media_id: 'md_photo0001',
+      caption: 'חוף אילת',
+      year_approx: 1986,
+      people: ['תמר', 'דנה'],
+      id_token: TOKEN,
+    })
+  })
+
   it("shows visits per day and errors from people's phones", async () => {
     window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
     renderAt('/admin/stats')

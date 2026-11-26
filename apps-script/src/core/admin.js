@@ -4,6 +4,7 @@ import {
   ACTIONS,
   adminAuthSchema,
   adminMediaSchema,
+  adminMediaUpdateSchema,
   adminSettingsSchema,
   adminSiteStatusSchema,
   NOTIFY_MODE,
@@ -274,6 +275,23 @@ function removeMedia(ctx, payload) {
   }
 }
 
+function updateMedia(ctx, payload) {
+  const { id_token, media_id, caption, year_approx, people } = adminMediaUpdateSchema.parse(payload)
+  const admin = requireAdmin(ctx, id_token)
+  const media = ctx.db.all('Media').find((m) => m.id === media_id)
+  if (!media || media.upload_status === UPLOAD_STATUS.REMOVED) throw notFound('Photo not found')
+  ctx.lock.run(() => {
+    ctx.db.update('Media', 'id', media.id, {
+      caption,
+      year_approx: year_approx ?? null,
+      people,
+    })
+    audit(ctx, admin, 'media.update', media.id, { story_id: media.story_id })
+  })
+  invalidatePublicCache(ctx)
+  return { media_id: media.id, caption, year_approx: year_approx ?? null, people }
+}
+
 function adminStats(ctx, payload) {
   const { id_token } = adminAuthSchema.parse(payload)
   requireAdmin(ctx, id_token)
@@ -355,6 +373,7 @@ export const adminHandlers = {
   [ACTIONS.ADMIN_VISIBILITY]: setVisibility,
   [ACTIONS.ADMIN_STORY_DELETE]: deleteStory,
   [ACTIONS.ADMIN_MEDIA_REMOVE]: removeMedia,
+  [ACTIONS.ADMIN_MEDIA_UPDATE]: updateMedia,
   [ACTIONS.ADMIN_STATS]: adminStats,
   [ACTIONS.ADMIN_SETTINGS]: getSettings,
   [ACTIONS.ADMIN_SETTINGS_UPDATE]: updateSettings,

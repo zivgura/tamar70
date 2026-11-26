@@ -1,4 +1,4 @@
-import { enum as oneOf, object, string } from 'zod'
+import { array, enum as oneOf, number, object, string } from 'zod'
 import { currentCategoryId, LIMITS, SITE_STATUS, VISIBILITY } from './constants.js'
 import { GAME_MODELS, JOB_KIND } from './game.js'
 import { NOTIFY_MODE } from './tables.js'
@@ -16,6 +16,16 @@ export const adminVisibilitySchema = object({
   id_token: idToken,
   id: storyId,
   visibility: oneOf([VISIBILITY.DEFAULT, VISIBILITY.HIDDEN, VISIBILITY.EARLY]),
+})
+export const adminMediaUpdateSchema = object({
+  id_token: idToken,
+  media_id: mediaId,
+  caption: text(200),
+  year_approx: number().int().min(1940).max(2030).nullable().optional(),
+  people: array(string().trim().min(1).max(60))
+    .max(20)
+    .optional()
+    .transform((v) => v ?? []),
 })
 export const adminStoryUpdateSchema = object({
   id_token: idToken,

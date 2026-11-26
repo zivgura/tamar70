@@ -246,17 +246,41 @@ describe('adding a story', () => {
     expect(second).toBe(first) // same token: a retry can't create a duplicate
   })
 
-  it('collects photo details in a dialog', async () => {
+  it('collects a name and year from a button under each photo', async () => {
     writeStored('author', { name: 'דני', relation: '' })
     renderAdd()
     await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
     await user.click(screen.getByRole('button', { name: 'המשך' }))
-    await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [photoFile('beach.jpg')])
+    await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [
+      photoFile('beach.jpg'),
+      photoFile('home.jpg'),
+    ])
+    expect(screen.getByText('0 מתוך 2 תמונות עם פרטים')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'פרטי התמונה beach.jpg' }))
     const dialog = screen.getByRole('dialog', { name: 'פרטי התמונה' })
-    await user.type(within(dialog).getByLabelText(/כיתוב/), 'בים')
-    await user.type(within(dialog).getByLabelText(/שנה בערך/), '1975')
+    await user.type(within(dialog).getByLabelText(/שם התמונה/), 'בים')
+    await user.type(within(dialog).getByLabelText(/שנה/), '1975')
     await user.click(within(dialog).getByRole('button', { name: 'שמירה' }))
-    expect(screen.getByText('בים · 1975')).toBeInTheDocument()
+    // The button now shows what was entered, and the counter moves.
+    const button = screen.getByRole('button', { name: 'פרטי התמונה beach.jpg' })
+    expect(button).toHaveTextContent('בים')
+    expect(button).toHaveTextContent('1975')
+    expect(screen.getByText('1 מתוך 2 תמונות עם פרטים')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'פרטי התמונה home.jpg' })).toHaveTextContent(
+      'שם ושנה',
+    )
+  })
+
+  it('flags a year the server would refuse and blocks saving it', async () => {
+    writeStored('author', { name: 'דני', relation: '' })
+    renderAdd()
+    await user.click(await screen.findByRole('button', { name: 'כתיבה ותמונות' }))
+    await user.click(screen.getByRole('button', { name: 'המשך' }))
+    await user.upload(screen.getByLabelText(/הוסיפו תמונות/), [photoFile('old.jpg')])
+    await user.click(screen.getByRole('button', { name: 'פרטי התמונה old.jpg' }))
+    const dialog = screen.getByRole('dialog', { name: 'פרטי התמונה' })
+    await user.type(within(dialog).getByLabelText(/שנה/), '1850')
+    expect(within(dialog).getByText('שנה בין 1940 ל-2030')).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'שמירה' })).toBeDisabled()
   })
 })

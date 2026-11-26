@@ -215,6 +215,30 @@ describe('admin stories', () => {
     expect(ok('admin.story', { id_token: ADMIN, id }).photos).toHaveLength(1)
   })
 
+  it('edits a photo name, year and people, and refuses a bad year', () => {
+    const id = submit()
+    const { media_id } = addPhoto(id)
+    ok('admin.mediaUpdate', {
+      id_token: ADMIN,
+      media_id,
+      caption: 'חוף אילת',
+      year_approx: 1986,
+      people: ['תמר', 'דנה'],
+    })
+    const photo = ok('admin.story', { id_token: ADMIN, id }).photos[0]
+    expect(photo).toMatchObject({ caption: 'חוף אילת', year_approx: 1986, people: ['תמר', 'דנה'] })
+    // Clearing the year works; a year out of range is refused.
+    ok('admin.mediaUpdate', { id_token: ADMIN, media_id, caption: '', year_approx: null })
+    expect(ok('admin.story', { id_token: ADMIN, id }).photos[0].year_approx).toBeFalsy()
+    expect(
+      call('admin.mediaUpdate', { id_token: ADMIN, media_id, caption: '', year_approx: 1800 }).error
+        .code,
+    ).toBe('validation')
+    expect(
+      call('admin.mediaUpdate', { id_token: OUTSIDER, media_id, caption: 'x' }).error.code,
+    ).toBe('not_admin')
+  })
+
   it('refuses every write without an admin', () => {
     const id = submit()
     expect(call('admin.storyDelete', { id_token: OUTSIDER, id }).error.code).toBe('not_admin')

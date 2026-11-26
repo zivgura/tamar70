@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, TextField } from '../components'
+import { isBadYear } from '../lib/photoYear.js'
 import styles from './Add.module.css'
 import { useLang } from '../i18n/i18n.js'
 
@@ -31,7 +32,9 @@ export function PhotoDialog({ photo, onSave, onRemove, onClose }) {
       >
         <img className={styles.dialogPhoto} src={photo.url} alt="" />
         <TextField
-          label={t('photo.caption')}
+          label={t('photo.name')}
+          placeholder={t('photo.namePlaceholder')}
+          maxLength={200}
           optional
           value={values.caption}
           onChange={set('caption')}
@@ -39,6 +42,7 @@ export function PhotoDialog({ photo, onSave, onRemove, onClose }) {
         <TextField
           label={t('photo.year')}
           optional
+          error={isBadYear(values.year) ? t('photo.yearInvalid') : undefined}
           inputMode="numeric"
           dir="ltr"
           maxLength={4}
@@ -53,7 +57,9 @@ export function PhotoDialog({ photo, onSave, onRemove, onClose }) {
           onChange={set('people')}
         />
         <div className={styles.dialogActions}>
-          <Button type="submit">{t('photo.save')}</Button>
+          <Button type="submit" disabled={isBadYear(values.year)}>
+            {t('photo.save')}
+          </Button>
           <Button
             type="button"
             variant="quiet"
