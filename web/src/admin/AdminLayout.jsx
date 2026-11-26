@@ -8,6 +8,7 @@ import { LanguageProvider } from '../i18n/language.jsx'
 import { Button, ErrorMessage, Message } from '../components'
 import styles from './Admin.module.css'
 import { AdminContext } from './adminContext.js'
+import { useAdminPrefetch } from './adminQueries.js'
 import { loadGoogleIdentity } from './googleSignIn.js'
 import { clearToken, loadToken, readClaims, saveToken } from './session.js'
 
@@ -103,6 +104,12 @@ export default function AdminLayout() {
   )
 }
 
+/** Loads every tab's data in the background once the sign-in is confirmed. */
+function AdminPrefetch() {
+  useAdminPrefetch(true)
+  return null
+}
+
 function AdminShell() {
   const queryClient = useQueryClient()
   const [token, setToken] = useState(loadToken)
@@ -185,6 +192,7 @@ function AdminShell() {
             )}
           </nav>
         </header>
+        {me.isSuccess && <AdminPrefetch />}
         {token && <AdminTabs />}
         <main className={styles.main}>{content}</main>
       </div>
