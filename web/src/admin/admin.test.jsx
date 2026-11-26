@@ -335,6 +335,16 @@ describe('admin pages', () => {
     answerMe()
   })
 
+  it("loads every tab's data in the background after sign-in", async () => {
+    window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
+    renderAt('/admin/stats')
+    for (const action of ['admin.stats', 'admin.stories', 'admin.settings', 'admin.game']) {
+      await vi.waitFor(() => expect(apiCall).toHaveBeenCalledWith(action, { id_token: TOKEN }))
+    }
+    // Each is asked for once: the open tab and the prefetch share one request.
+    expect(apiCall.mock.calls.filter(([a]) => a === 'admin.stats')).toHaveLength(1)
+  })
+
   it('removes one photo', async () => {
     window.sessionStorage.setItem('tamar70.adminToken', TOKEN)
     renderAt('/admin/story/st_aaaaaa01')
