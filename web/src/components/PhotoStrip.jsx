@@ -47,9 +47,10 @@ export function PhotoStrip({ photos, label }) {
                 width="300"
                 height="300"
               />
-              {/* Always there, so frames with and without a caption are the same height. */}
+              {/* Always there, so frames with and without a caption are the same height. A plain
+                  space collapses to nothing, so an empty caption holds a non-breaking one. */}
               <span className={styles.caption} dir="auto">
-                {p.caption || ' '}
+                {p.caption || '\u00A0'}
               </span>
             </button>
           </li>
